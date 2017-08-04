@@ -73,11 +73,6 @@ static void NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf)
     {
     case (MODE_POLL | TECH_PASSIVE_NFCA):
                     memcpy(pRfIntf->Info.NFC_APP.SensRes, &pBuf[0], 2);
-//    uartbb_puts("idlen: "); uartbb_putu(pBuf[2]); uartbb_putnl();
-//    uartbb_puts("id 0: "); uartbb_putu(pBuf[3]); uartbb_putnl();
-//    uartbb_puts("id 1: "); uartbb_putu(pBuf[4]); uartbb_putnl();
-//    uartbb_puts("id 2: "); uartbb_putu(pBuf[5]); uartbb_putnl();
-//    uartbb_puts("id 3: "); uartbb_putu(pBuf[6]); uartbb_putnl();
     pRfIntf->Info.NFC_APP.NfcIdLen = pBuf[2];
     memcpy(pRfIntf->Info.NFC_APP.NfcId, &pBuf[3], pRfIntf->Info.NFC_APP.NfcIdLen);
     pRfIntf->Info.NFC_APP.SelResLen = pBuf[3+pBuf[2]];
@@ -121,7 +116,6 @@ uint16_t NxpNci_ProcessCardMode(NxpNci_RfIntf_t RfIntf)
         /* is RF_DEACTIVATE_NTF ? */
         if((Answer[0] == 0x61) && (Answer[1] == 0x06))
         {
-        	uartbb_puts("RF_DEACTIVATE_NTF\n\r");
             /* Come back to discovery state */
         	return data_count;
         }
@@ -137,7 +131,6 @@ uint16_t NxpNci_ProcessCardMode(NxpNci_RfIntf_t RfIntf)
             Cmd[0] = 0x00;
             Cmd[1] = (CmdSize & 0xFF00) >> 8;
             Cmd[2] = CmdSize & 0x00FF;
-        	uartbb_puts("DATA_PACKET: "); uartbb_putu(CmdSize); uartbb_putnl();
 
             NxpNci_HostTransceive(Cmd, CmdSize+3, Answer, sizeof(Answer), &AnswerSize);
             data_count++;
@@ -200,7 +193,6 @@ void NxpNci_ProcessP2pMode(NxpNci_RfIntf_t RfIntf)
     /* Is Initiator mode ? */
     if((RfIntf.ModeTech & MODE_LISTEN) != MODE_LISTEN)
     {
-    	uartbb_puts("Initiate communication\n\r");
         /* Initiate communication (SYMM PDU) */
         NxpNci_HostTransceive(NCILlcpSymm, sizeof(NCILlcpSymm), Answer, sizeof(Answer), &AnswerSize);
     }
@@ -211,7 +203,6 @@ void NxpNci_ProcessP2pMode(NxpNci_RfIntf_t RfIntf)
         /* is DATA_PACKET ? */
         if((Answer[0] == 0x00) && (Answer[1] == 0x00))
         {
-        	uartbb_puts("DATA_PACKET: "); uartbb_putu(Answer[2]); uartbb_putnl();
             uint8_t Cmd[MAX_NCI_FRAME_SIZE];
             uint16_t CmdSize;
 
@@ -227,37 +218,25 @@ void NxpNci_ProcessP2pMode(NxpNci_RfIntf_t RfIntf)
         /* is CORE_INTERFACE_ERROR_NTF ?*/
         else if ((Answer[0] == 0x60) && (Answer[1] == 0x08))
         {
-        	uartbb_puts("CORE_INTERFACE_ERROR_NTF\n\r");
             break;
         }
         /* is RF_DEACTIVATE_NTF ? */
         else if((Answer[0] == 0x61) && (Answer[1] == 0x06))
         {
-        	uartbb_puts("RF_DEACTIVATE_NTF\n\r");
             /* Come back to discovery state */
             break;
         }
         /* is RF_DISCOVERY_NTF ? */
         else if((Answer[0] == 0x61) && ((Answer[1] == 0x05) || (Answer[1] == 0x03)))
         {
-        	uartbb_puts("RF_DISCOVERY_NTF\n\r");
             restart = false;
             do{
-            	uartbb_puts("Answer[0]: "); uartbb_putu(Answer[0]); uartbb_putnl();
-            	uartbb_puts("Answer[1]: "); uartbb_putu(Answer[1]); uartbb_putnl();
-            	uartbb_puts("Answer[2]: "); uartbb_putu(Answer[2]); uartbb_putnl();
-            	uartbb_puts("Answer[3]: "); uartbb_putu(Answer[3]); uartbb_putnl();
-            	uartbb_puts("Answer[4]: "); uartbb_putu(Answer[4]); uartbb_putnl();
-            	uartbb_puts("Answer[5]: "); uartbb_putu(Answer[5]); uartbb_putnl();
-            	uartbb_puts("Answer[6]: "); uartbb_putu(Answer[6]); uartbb_putnl();
-            	uartbb_puts("AnswerSize: "); uartbb_putu(AnswerSize); uartbb_putnl();
                 if((Answer[6] & MODE_LISTEN) != MODE_LISTEN) restart = true;
                 NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
             }
             while (AnswerSize != 0);
             if(restart)
             {
-            	uartbb_puts("restart\n\r");
                 NxpNci_HostTransceive(NCIRestartDiscovery, sizeof(NCIRestartDiscovery), Answer, sizeof(Answer), &AnswerSize);
             }
         }
@@ -266,7 +245,6 @@ void NxpNci_ProcessP2pMode(NxpNci_RfIntf_t RfIntf)
     /* Is Initiator mode ? */
     if((RfIntf.ModeTech & MODE_LISTEN) != MODE_LISTEN)
     {
-        uartbb_puts("Initiator\n\r");
         /* Communication ended, restart discovery loop */
         NxpNci_HostTransceive(NCIRestartDiscovery, sizeof(NCIRestartDiscovery), Answer, sizeof(Answer), &AnswerSize);
         NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
@@ -878,14 +856,6 @@ do
 
     gNextTag_Protocol = PROT_UNDETERMINED;
 
-//    uartbb_puts("Answer 0: "); uartbb_putu(Answer[0]); uartbb_putnl();
-//    uartbb_puts("Answer 1: "); uartbb_putu(Answer[1]); uartbb_putnl();
-//    uartbb_puts("Answer 2: "); uartbb_putu(Answer[2]); uartbb_putnl();
-//    uartbb_puts("Answer 3: "); uartbb_putu(Answer[3]); uartbb_putnl();
-//    uartbb_puts("Answer 4: "); uartbb_putu(Answer[4]); uartbb_putnl();
-//    uartbb_puts("Answer 5: "); uartbb_putu(Answer[5]); uartbb_putnl();
-//    uartbb_puts("Answer 6: "); uartbb_putu(Answer[6]); uartbb_putnl();
-
     /* Is RF_INTF_ACTIVATED_NTF ? */
     if (Answer[1] == 0x05)
     {
@@ -909,14 +879,6 @@ do
                 /* Wait for discovery */
                 do NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_1S);
                 while ((AnswerSize == 4) && (Answer[0] == 0x60) && (Answer[1] == 0x07));
-
-//                uartbb_puts("Answer 0: "); uartbb_putu(Answer[0]); uartbb_putnl();
-//                uartbb_puts("Answer 1: "); uartbb_putu(Answer[1]); uartbb_putnl();
-//                uartbb_puts("Answer 2: "); uartbb_putu(Answer[2]); uartbb_putnl();
-//                uartbb_puts("Answer 3: "); uartbb_putu(Answer[3]); uartbb_putnl();
-//                uartbb_puts("Answer 4: "); uartbb_putu(Answer[4]); uartbb_putnl();
-//                uartbb_puts("Answer 5: "); uartbb_putu(Answer[5]); uartbb_putnl();
-//                uartbb_puts("Answer 6: "); uartbb_putu(Answer[6]); uartbb_putnl();
 
                 if ((AnswerSize != 0) && (Answer[0] == 0x61) && (Answer[1] == 0x05))
                 {

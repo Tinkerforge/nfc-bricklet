@@ -70,17 +70,14 @@ bool pn7150_init_nfc(void) {
 
     // Open connection to NXPNCI device
     if(NxpNci_Connect() == NFC_ERROR) {
-        uartbb_puts("Error: cannot connect to NXPNCI device\n\r");
         return false;
     }
 
     while(NxpNci_ConfigureSettings() == NFC_ERROR) {
-    	uartbb_puts("Error: cannot configure NXPNCI settings\n\r");
         return false;
     }
 
     while(NxpNci_ConfigureMode(configure_mask) == NFC_ERROR) {
-    	uartbb_puts("Error: cannot configure NXPNCI\n\r");
         return false;
     }
 

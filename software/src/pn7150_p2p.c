@@ -33,7 +33,6 @@ extern PN7150 pn7150;
 static NxpNci_RfIntf_t pn7150_p2p_interface;
 
 void pn7150_p2p_push_cb(unsigned char *ndef, unsigned short ndef_length) {
-	uartbb_puts("pn7150_p2p_push_cb: "); uartbb_putu(ndef_length); uartbb_putnl();
 	pn7150.p2p_state = NFC_P2P_STATE_TRANSFER_NDEF_READY;
 }
 
@@ -42,7 +41,6 @@ void pn7150_p2p_pull_cb(unsigned char *ndef, unsigned short ndef_length) {
 	pn7150.data_length = ndef_length;
 	pn7150.data_chunk_offset = 0;
 	pn7150.p2p_state = NFC_P2P_STATE_TRANSFER_NDEF_READY;
-	uartbb_puts("pn7150_p2p_pull_cb: "); uartbb_putu(ndef_length); uartbb_putnl();
 }
 
 void pn7150_p2p_discover(void) {
@@ -61,25 +59,16 @@ void pn7150_p2p_discover(void) {
 //	    MODE_LISTEN | TECH_ACTIVE_NFCF,
 	};
 
-//	uartbb_puts("NxpNci_StartDiscovery\n\r");
 	if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
 		// Discovery failed. Perhaps there was still a discovery running? Lets stop and try again!
 		NxpNci_StopDiscovery();
-//		uartbb_puts("NxpNci_StartDiscovery 2\n\r");
 		if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
-//			pn7150.cardemu_state = NFC_CARDEMU_STATE_DISCOVER_ERROR;
-			uartbb_puts("Error: cannot start discovery\n\r");
 			pn7150_init_nfc();
-//			pn7150.p2p_state = NFC_P2P_STATE_DISCOVER_ERROR;
 			return;
 		}
 	}
 
-//	uartbb_puts("NxpNci_WaitForDiscoveryNotification\n\r");
 	if(NxpNci_WaitForDiscoveryNotification(&pn7150_p2p_interface) != NFC_SUCCESS) {
-//		pn7150.cardemu_state = NFC_CARDEMU_STATE_DISCOVER_ERROR;
-		uartbb_puts("Error: discovery timeout\n\r");
-//		pn7150.p2p_state = NFC_P2P_STATE_DISCOVER_ERROR;
 		return;
 	}
 
@@ -88,27 +77,7 @@ void pn7150_p2p_discover(void) {
 
 void pn7150_p2p_transfer_ndef(void) {
     if(pn7150_p2p_interface.Interface == INTF_NFCDEP) {
-        if((pn7150_p2p_interface.ModeTech & MODE_LISTEN) == MODE_LISTEN) {
-        	uartbb_puts(" - P2P TARGET MODE: Activated from remote Initiator\n\r");
-        } else {
-        	uartbb_puts(" - P2P INITIATOR MODE: Remote Target activated\n\r");
-        }
-
-        uartbb_puts("try 1\n\r");
         NxpNci_ProcessP2pMode(pn7150_p2p_interface);
-
-        /*
-        if(pn7150.p2p_state != NFC_P2P_STATE_TRANSFER_NDEF_READY) {
-        	uartbb_puts("try 2\n\r");
-        	NxpNci_ProcessP2pMode(pn7150_p2p_interface);
-        }
-
-        if(pn7150.p2p_state != NFC_P2P_STATE_TRANSFER_NDEF_READY) {
-        	uartbb_puts("try 3\n\r");
-        	NxpNci_ProcessP2pMode(pn7150_p2p_interface);
-        }*/
-
-        uartbb_puts("PEER LOST\n\r");
 
         if(pn7150.p2p_state == NFC_P2P_STATE_TRANSFER_NDEF_READY) {
         	return;
@@ -120,8 +89,6 @@ void pn7150_p2p_transfer_ndef(void) {
 
 void pn7150_p2p_update_ndef(void) {
 	// TODO: Check validity of ndef record?
-
-	uartbb_puts("update_ndef: "); uartbb_putu(pn7150.p2p_ndef_length); uartbb_putnl();
 
 	pn7150.cardemu_ndef_ready = true;
 

@@ -76,7 +76,6 @@ BootloaderHandleMessageResponse set_mode(const SetMode *data) {
     // TODO: Do we need to do something here to bring the nfc task out
     //       of the current state of the state machine?
 
-	uartbb_puts("set_mode: "); uartbb_putu(pn7150.mode); uartbb_putnl();
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
@@ -84,7 +83,6 @@ BootloaderHandleMessageResponse get_mode(const GetMode *data, GetMode_Response *
 	response->header.length = sizeof(GetMode_Response);
 	response->mode          = pn7150.mode;
 
-	uartbb_puts("get_mode: "); uartbb_putu(pn7150.mode); uartbb_putnl();
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 

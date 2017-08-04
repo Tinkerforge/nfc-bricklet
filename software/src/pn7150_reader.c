@@ -33,18 +33,13 @@ extern PN7150 pn7150;
 static NxpNci_RfIntf_t pn7150_reader_interface;
 
 void pn7150_reader_push_cb(unsigned char *ndef, unsigned short ndef_length) {
-	uartbb_puts("pn7150_reader_push_cb: "); uartbb_putu(ndef_length); uartbb_putnl();
 	pn7150.reader_state = NFC_READER_STATE_WRITE_NDEF_READY;
 }
 
 void pn7150_reader_pull_cb(unsigned char *ndef, unsigned short ndef_length) {
-	uartbb_puts("ndef addr: "); uartbb_putu((uint32_t)ndef); uartbb_putnl();
-	uartbb_puts("data addr: "); uartbb_putu((uint32_t)pn7150.data); uartbb_putnl();
-//	memcpy(pn7150.data, ndef, ndef_length);
 	pn7150.data_length = ndef_length;
 	pn7150.data_chunk_offset = 0;
 	pn7150.reader_state = NFC_READER_STATE_REQUEST_NDEF_READY;
-	uartbb_puts("pn7150_reader_pull_cb: "); uartbb_putu(ndef_length); uartbb_putnl();
 }
 
 static void pn7150_reader_request_tag_id(void) {
@@ -55,26 +50,19 @@ static void pn7150_reader_request_tag_id(void) {
 		MODE_POLL | TECH_PASSIVE_15693
 	};
 
-//	uartbb_puts("NxpNci_StartDiscovery\n\r");
 	if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
 		// Discovery failed. Perhaps there was still a discovery running? Lets stop and try again!
 		NxpNci_StopDiscovery();
-//		uartbb_puts("NxpNci_StartDiscovery 2\n\r");
 		if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
-			uartbb_puts("Error: cannot start discovery\n\r");
-
 			pn7150_init_nfc();
 			return;
 		}
 	}
 
-//	uartbb_puts("NxpNci_WaitForDiscoveryNotification\n\r");
 	if(NxpNci_WaitForDiscoveryNotification(&pn7150_reader_interface) != NFC_SUCCESS) {
-		uartbb_puts("Error: discovery timeout\n\r");
 		return;
 	}
 
-//	uartbb_puts("rf_interface.ModeTech: "); uartbb_putu(pn7150_reader_interface.ModeTech); uartbb_putnl();
 	if((pn7150_reader_interface.ModeTech & MODE_MASK) == MODE_POLL) {
 		pn7150.reader_tid_length = pn7150_reader_interface.Info.NFC_APP.NfcIdLen;
 		memcpy(pn7150.reader_tid, pn7150_reader_interface.Info.NFC_APP.NfcId, 10);
@@ -89,10 +77,8 @@ static void pn7150_reader_request_tag_id(void) {
 				uint8_t t1t_rid[] = {0x78,0x00,0x00,0x00,0x00,0x00,0x00};
 				uint8_t response[256];
 				uint8_t length;
-//				uartbb_puts("read id start\n\r");
 				bool status = NxpNci_ReaderTagCmd(t1t_rid, sizeof(t1t_rid), response, &length);
 				if((status == NFC_ERROR) || (response[length - 1] != 0)) {
-					uartbb_puts("T1T Read block failed with error: "); uartbb_putu(response[length - 1]); uartbb_putnl();
 					pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
 					return;
 				}
@@ -118,7 +104,6 @@ static void pn7150_reader_request_tag_id(void) {
 				return;
 			}
 		}
-//		uartbb_puts("Protocol: "); uartbb_putu(pn7150_reader_interface.Protocol); uartbb_putnl();
 	} else {
 		pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
 		return;
@@ -181,10 +166,8 @@ static void pn7150_reader_authenticate_mifare_classic_page(void) {
 
 			uint8_t length;
 			uint8_t response[256];
-			uartbb_puts("Mifare start auth\n\r");
 			bool status = NxpNci_ReaderTagCmd(auth, sizeof(auth), response, &length);
 			if((status == NFC_ERROR) || (response[length - 1] != 0)) {
-				uartbb_puts("Mifare auth failed with error: "); uartbb_putu(response[length - 1]); uartbb_putnl();
 				pn7150.reader_state = NFC_READER_STATE_AUTHENTICATE_MIFARE_CLASSIC_PAGE_ERROR;
 				return;
 			}
@@ -212,13 +195,7 @@ static void pn7150_reader_request_page(void) {
 				// See NFC Mifare Classic specification 10.2 MIFARE Read, Table 14
 				uint8_t read[] = {0x10, 0x30, page};
 				bool status = NxpNci_ReaderTagCmd(read, sizeof(read), response, &length);
-				uartbb_puts("mifare read length: "); uartbb_putu(length); uartbb_putnl();
-				uartbb_puts("mifare read 0: "); uartbb_putu(response[0]); uartbb_putnl();
-				uartbb_puts("mifare read 1: "); uartbb_putu(response[1]); uartbb_putnl();
-				uartbb_puts("mifare read 2: "); uartbb_putu(response[2]); uartbb_putnl();
-				uartbb_puts("mifare read 3: "); uartbb_putu(response[3]); uartbb_putnl();
 				if((status == NFC_ERROR) || (length != 18) || (response[length - 1] != 0)) {
-					uartbb_puts("Mifare Read block failed with error: "); uartbb_putu(response[length - 1]); uartbb_putnl();
 					pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
 					return;
 				}
@@ -246,10 +223,8 @@ static void pn7150_reader_request_page(void) {
 				if(page < 0xf) { // page num < 0xF are read with RALL (see Type1 spec 5.7)
 					uint8_t rall[7] = {0x00, 0x00, 0x00, pn7150.reader_tid[0], pn7150.reader_tid[1], pn7150.reader_tid[2], pn7150.reader_tid[3]};
 
-					uartbb_puts("t1t rall: "); uartbb_putu(page); uartbb_putnl();
 					bool status = NxpNci_ReaderTagCmd(rall, sizeof(rall), response, &length);
 					if((status == NFC_ERROR) || (response[length - 1] != 0)) {
-						uartbb_puts("T1T Read block all failed with error: "); uartbb_putu(response[length - 1]); uartbb_putnl();
 						pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
 						return;
 					}
@@ -261,10 +236,8 @@ static void pn7150_reader_request_page(void) {
 				} else { // page num >= 0xF are read with READ8 (see Type1 spec 5.13)
 					uint8_t read8[14] = {0x02, page, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, pn7150.reader_tid[0], pn7150.reader_tid[1], pn7150.reader_tid[2], pn7150.reader_tid[3]};
 
-					uartbb_puts("t1t read8: "); uartbb_putu(page); uartbb_putnl();
 					bool status = NxpNci_ReaderTagCmd(read8, sizeof(read8), response, &length);
 					if((status == NFC_ERROR) || (response[length - 1] != 0)) {
-						uartbb_puts("T1T Read block 8 failed with error: "); uartbb_putu(response[length - 1]); uartbb_putnl();
 						pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
 						return;
 					}
@@ -291,7 +264,6 @@ static void pn7150_reader_request_page(void) {
 				uint8_t read[] = {0x30, page};
 				bool status = NxpNci_ReaderTagCmd(read, sizeof(read), pn7150.data + offset, &length);
 				if((status == NFC_ERROR) || (pn7150.data[offset + length - 1] != 0)) {
-					uartbb_puts("T2T Read block failed with error: "); uartbb_putu(pn7150.data[offset + length - 1]); uartbb_putnl();
 					pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
 					return;
 				}
@@ -327,26 +299,14 @@ void pn7150_reader_write_page(void) {
 				uint8_t write_data[17] = {0x10};
 				memcpy(write_data+1, pn7150.data + offset, 16);
 				bool status = NxpNci_ReaderTagCmd(write_start, sizeof(write_start), ret, &ret_length);
-				uartbb_puts("offset: "); uartbb_putu(offset); uartbb_putnl();
-				uartbb_puts("sizeof(write): "); uartbb_putu(sizeof(ret)); uartbb_putnl();
-				uartbb_puts("ret_length: "); uartbb_putu(ret_length); uartbb_putnl();
-				uartbb_puts("page: "); uartbb_putu(page); uartbb_putnl();
-				uartbb_puts("0: "); uartbb_putu(ret[0]); uartbb_putnl();
-				uartbb_puts("1: "); uartbb_putu(ret[1]); uartbb_putnl();
-				uartbb_puts("2: "); uartbb_putu(ret[2]); uartbb_putnl();
+
 				if((status == NFC_ERROR) || (ret[ret_length - 1] != 0)) {
-					uartbb_puts("Write block failed with error: "); uartbb_putu(ret[ret_length - 1]); uartbb_putnl();
 					pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
 					return;
 				}
 
 				status = NxpNci_ReaderTagCmd(write_data, sizeof(write_data), ret, &ret_length);
-				uartbb_puts("ret_length: "); uartbb_putu(ret_length); uartbb_putnl();
-				uartbb_puts("0: "); uartbb_putu(ret[0]); uartbb_putnl();
-				uartbb_puts("1: "); uartbb_putu(ret[1]); uartbb_putnl();
-				uartbb_puts("2: "); uartbb_putu(ret[2]); uartbb_putnl();
 				if((status == NFC_ERROR) || (ret[ret_length - 1] != 0)) {
-					uartbb_puts("Write block failed with error: "); uartbb_putu(ret[ret_length - 1]); uartbb_putnl();
 					pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
 					return;
 				}
@@ -372,15 +332,8 @@ void pn7150_reader_write_page(void) {
 				uint8_t write_e8[14] = {0x54, page, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, pn7150.reader_tid[0], pn7150.reader_tid[1], pn7150.reader_tid[2], pn7150.reader_tid[3]};
 				memcpy(write_e8+2, pn7150.data + offset, 8);
 				bool status = NxpNci_ReaderTagCmd(write_e8, sizeof(write_e8), ret, &ret_length);
-				uartbb_puts("offset: "); uartbb_putu(offset); uartbb_putnl();
-				uartbb_puts("sizeof(write): "); uartbb_putu(sizeof(write_e8)); uartbb_putnl();
-				uartbb_puts("ret_length: "); uartbb_putu(ret_length); uartbb_putnl();
-				uartbb_puts("page: "); uartbb_putu(page); uartbb_putnl();
-				uartbb_puts("0: "); uartbb_putu(ret[0]); uartbb_putnl();
-				uartbb_puts("1: "); uartbb_putu(ret[1]); uartbb_putnl();
-				uartbb_puts("2: "); uartbb_putu(ret[2]); uartbb_putnl();
+
 				if((status == NFC_ERROR) || (ret[ret_length - 1] != 0)) {
-					uartbb_puts("Write block failed with error: "); uartbb_putu(ret[ret_length - 1]); uartbb_putnl();
 					pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
 					return;
 				}
@@ -402,15 +355,8 @@ void pn7150_reader_write_page(void) {
 				uint8_t write[6] = {0xA2, page};
 				memcpy(write+2, pn7150.data + offset, 4);
 				bool status = NxpNci_ReaderTagCmd(write, sizeof(write), ret, &ret_length);
-				uartbb_puts("offset: "); uartbb_putu(offset); uartbb_putnl();
-				uartbb_puts("sizeof(write): "); uartbb_putu(sizeof(write)); uartbb_putnl();
-				uartbb_puts("ret_length: "); uartbb_putu(ret_length); uartbb_putnl();
-				uartbb_puts("page: "); uartbb_putu(page); uartbb_putnl();
-				uartbb_puts("0: "); uartbb_putu(ret[0]); uartbb_putnl();
-				uartbb_puts("1: "); uartbb_putu(ret[1]); uartbb_putnl();
-				uartbb_puts("2: "); uartbb_putu(ret[2]); uartbb_putnl();
+
 				if((status == NFC_ERROR) || (ret[ret_length - 1] != 0)) {
-					uartbb_puts("Write block failed with error: "); uartbb_putu(ret[ret_length - 1]); uartbb_putnl();
 					pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
 					return;
 				}
@@ -435,11 +381,8 @@ void pn7150_reader_write_page(void) {
 void pn7150_reader_update_ndef(void) {
 	// TODO: Check validity of ndef record?
 
-	uartbb_puts("update_ndef: "); uartbb_putu(pn7150.reader_ndef_length); uartbb_putnl();
-
 	// We always only do either read or write
 	if(pn7150.reader_ndef_length > 0) {
-		uartbb_putarru8("ndef upd", pn7150.data, pn7150.reader_ndef_length);
 		RW_NDEF_SetMessage((unsigned char *) pn7150.data, pn7150.reader_ndef_length, pn7150_reader_push_cb);
 		RW_NDEF_RegisterPullCallback(NULL);
 	} else {

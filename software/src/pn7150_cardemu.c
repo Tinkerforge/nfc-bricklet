@@ -34,7 +34,6 @@ static NxpNci_RfIntf_t pn7150_cardemu_interface;
 
 void pn7150_cardemu_cb(unsigned char *pNdefRecord, unsigned short NdefRecordSize) {
 	pn7150.cardemu_state = NFC_CARDEMU_STATE_TRANSFER_NDEF_READY;
-    uartbb_puts("pn7150_cardemu_cb\n\r");
 }
 
 
@@ -44,21 +43,16 @@ void pn7150_cardemu_discover(void) {
 		MODE_LISTEN | TECH_PASSIVE_NFCB,
 	};
 
-//	uartbb_puts("NxpNci_StartDiscovery\n\r");
 	if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
 		// Discovery failed. Perhaps there was still a discovery running? Lets stop and try again!
 		NxpNci_StopDiscovery();
-//		uartbb_puts("NxpNci_StartDiscovery 2\n\r");
 		if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
-			uartbb_puts("Error: cannot start discovery\n\r");
 			pn7150_init_nfc();
 			return;
 		}
 	}
 
-//	uartbb_puts("NxpNci_WaitForDiscoveryNotification\n\r");
 	if(NxpNci_WaitForDiscoveryNotification(&pn7150_cardemu_interface) != NFC_SUCCESS) {
-		uartbb_puts("Error: discovery timeout\n\r");
 		return;
 	}
 
@@ -67,7 +61,6 @@ void pn7150_cardemu_discover(void) {
 
 void pn7150_cardemu_transfer_ndef(void) {
     if(pn7150.cardemu_ndef_ready && (pn7150_cardemu_interface.Interface == INTF_ISODEP) && ((pn7150_cardemu_interface.ModeTech & MODE_MASK) == MODE_LISTEN)) {
-    	uartbb_puts("pn7150_cardemu_process_card start\n\r");
 
     	// We try to start the data transfer for 250ms
     	uint32_t time = system_timer_get_ms();
@@ -82,23 +75,17 @@ void pn7150_cardemu_transfer_ndef(void) {
         for(uint8_t i = 0; i < 100; i++) {
         	coop_task_sleep_ms(50);
         	if(pn7150.cardemu_state == NFC_CARDEMU_STATE_TRANSFER_NDEF_READY) {
-        		uartbb_puts("pn7150_cardemu_process_card end ok\n\r");
         		return;
         	}
         }
-
-    	uartbb_puts("pn7150_cardemu_process_card end timeout\n\r");
     }
 
-    uartbb_puts("pn7150_cardemu_process_card end error\n\r");
    	pn7150.cardemu_state = NFC_CARDEMU_STATE_TRANSFER_NDEF_ERROR;
 }
 
 
 void pn7150_cardemu_update_ndef(void) {
 	// TODO: Check validity of ndef record?
-
-	uartbb_puts("update_ndef: "); uartbb_putu(pn7150.cardemu_ndef_length); uartbb_putnl();
 
 	pn7150.cardemu_ndef_ready = true;
 	T4T_NDEF_EMU_SetMessage((unsigned char *) pn7150.data, pn7150.cardemu_ndef_length, pn7150_cardemu_cb);

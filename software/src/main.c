@@ -26,7 +26,7 @@
 
 #include "bricklib2/bootloader/bootloader.h"
 #include "bricklib2/hal/system_timer/system_timer.h"
-#include "bricklib2/hal/uartbb/uartbb.h"
+#include "bricklib2/logging/logging.h"
 #include "communication.h"
 #include "pn7150.h"
 
@@ -48,13 +48,13 @@ void blink(void) {
 }
 
 void HardFault_Handler() {
-	uartbb_puts("HardFault_Handler\n\r");
+	loge("HardFault_Handler\n\r");
 	while(true);
 }
 
 int main(void) {
-	uartbb_init();
-	uartbb_puts("Start NFC Bricklet\n\r");
+	logging_init();
+	logd("Start NFC Bricklet\n\r");
 
 	communication_init();
 	coop_task_init(&blink_task, blink);
@@ -71,7 +71,9 @@ int main(void) {
 	while(true) {
 		if(system_timer_is_time_elapsed_ms(t, 1000)) {
 			t = system_timer_get_ms();
-			uartbb_puts("tick: "); uartbb_putu(count); uartbb_putnl(); count = 0;
+
+			logi("tick: %u\n\r", count);
+			count = 0;
 		}
 		bootloader_tick();
 		communication_tick();

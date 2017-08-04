@@ -57,6 +57,8 @@ typedef struct {
 	uint16_t reader_write_page;
 	uint16_t reader_write_length;
 
+	uint16_t reader_ndef_length;
+
 	// Cardemu
 	uint8_t  cardemu_state;
 	bool     cardemu_ndef_ready;
@@ -64,7 +66,6 @@ typedef struct {
 
 	// P2P
 	uint8_t  p2p_state;
-	bool     p2p_ndef_ready;
 	uint16_t p2p_ndef_length;
 } PN7150;
 

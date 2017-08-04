@@ -42,6 +42,8 @@ void communication_init(void);
 #define NFC_TAG_TYPE_MIFARE_CLASSIC 0
 #define NFC_TAG_TYPE_TYPE1 1
 #define NFC_TAG_TYPE_TYPE2 2
+#define NFC_TAG_TYPE_TYPE3 3
+#define NFC_TAG_TYPE_TYPE4 4
 
 #define NFC_READER_STATE_INITIALIZATION 0
 #define NFC_READER_STATE_IDLE 128
@@ -58,6 +60,12 @@ void communication_init(void);
 #define NFC_READER_STATE_REQUEST_PAGE 5
 #define NFC_READER_STATE_REQUEST_PAGE_READY 133
 #define NFC_READER_STATE_REQUEST_PAGE_ERROR 197
+#define NFC_READER_STATE_WRITE_NDEF 6
+#define NFC_READER_STATE_WRITE_NDEF_READY 134
+#define NFC_READER_STATE_WRITE_NDEF_ERROR 198
+#define NFC_READER_STATE_REQUEST_NDEF 7
+#define NFC_READER_STATE_REQUEST_NDEF_READY 135
+#define NFC_READER_STATE_REQUEST_NDEF_ERROR 199
 
 #define NFC_KEY_A 0
 #define NFC_KEY_B 1
@@ -95,23 +103,26 @@ void communication_init(void);
 #define FID_READER_REQUEST_TAG_ID 3
 #define FID_READER_GET_TAG_ID 4
 #define FID_READER_GET_STATE 5
-#define FID_READER_AUTHENTICATE_MIFARE_CLASSIC_PAGE 6
-#define FID_READER_WRITE_PAGE_LOW_LEVEL 7
-#define FID_READER_REQUEST_PAGE 8
-#define FID_READER_READ_PAGE_LOW_LEVEL 9
-#define FID_CARDEMU_GET_STATE 11
-#define FID_CARDEMU_START_DISCOVERY 12
-#define FID_CARDEMU_WRITE_NDEF_LOW_LEVEL 13
-#define FID_CARDEMU_START_TRANSFER 14
-#define FID_P2P_GET_STATE 16
-#define FID_P2P_START_DISCOVERY 17
-#define FID_P2P_WRITE_NDEF_LOW_LEVEL 18
-#define FID_P2P_START_TRANSFER 19
-#define FID_P2P_READ_NDEF_LOW_LEVEL 20
+#define FID_READER_WRITE_NDEF_LOW_LEVEL 6
+#define FID_READER_REQUEST_NDEF 7
+#define FID_READER_READ_NDEF_LOW_LEVEL 8
+#define FID_READER_AUTHENTICATE_MIFARE_CLASSIC_PAGE 9
+#define FID_READER_WRITE_PAGE_LOW_LEVEL 10
+#define FID_READER_REQUEST_PAGE 11
+#define FID_READER_READ_PAGE_LOW_LEVEL 12
+#define FID_CARDEMU_GET_STATE 14
+#define FID_CARDEMU_START_DISCOVERY 15
+#define FID_CARDEMU_WRITE_NDEF_LOW_LEVEL 16
+#define FID_CARDEMU_START_TRANSFER 17
+#define FID_P2P_GET_STATE 19
+#define FID_P2P_START_DISCOVERY 20
+#define FID_P2P_WRITE_NDEF_LOW_LEVEL 21
+#define FID_P2P_START_TRANSFER 22
+#define FID_P2P_READ_NDEF_LOW_LEVEL 23
 
-#define FID_CALLBACK_READER_STATE_CHANGED 10
-#define FID_CALLBACK_CARDEMU_STATE_CHANGED 15
-#define FID_CALLBACK_P2P_STATE_CHANGED 21
+#define FID_CALLBACK_READER_STATE_CHANGED 13
+#define FID_CALLBACK_CARDEMU_STATE_CHANGED 18
+#define FID_CALLBACK_P2P_STATE_CHANGED 24
 
 typedef struct {
 	TFPMessageHeader header;
@@ -151,6 +162,28 @@ typedef struct {
 	uint8_t state;
 	bool idle;
 } __attribute__((__packed__)) ReaderGetState_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t ndef_length;
+	uint16_t ndef_chunk_offset;
+	uint8_t ndef_chunk_data[60];
+} __attribute__((__packed__)) ReaderWriteNdefLowLevel;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) ReaderRequestNdef;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) ReaderReadNdefLowLevel;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t ndef_length;
+	uint16_t ndef_chunk_offset;
+	uint8_t ndef_chunk_data[60];
+} __attribute__((__packed__)) ReaderReadNdefLowLevel_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -272,6 +305,9 @@ BootloaderHandleMessageResponse get_mode(const GetMode *data, GetMode_Response *
 BootloaderHandleMessageResponse reader_request_tag_id(const ReaderRequestTagID *data);
 BootloaderHandleMessageResponse reader_get_tag_id(const ReaderGetTagID *data, ReaderGetTagID_Response *response);
 BootloaderHandleMessageResponse reader_get_state(const ReaderGetState *data, ReaderGetState_Response *response);
+BootloaderHandleMessageResponse reader_write_ndef_low_level(const ReaderWriteNdefLowLevel *data);
+BootloaderHandleMessageResponse reader_request_ndef(const ReaderRequestNdef *data);
+BootloaderHandleMessageResponse reader_read_ndef_low_level(const ReaderReadNdefLowLevel *data, ReaderReadNdefLowLevel_Response *response);
 BootloaderHandleMessageResponse reader_authenticate_mifare_classic_page(const ReaderAuthenticateMifareClassicPage *data);
 BootloaderHandleMessageResponse reader_write_page_low_level(const ReaderWritePageLowLevel *data);
 BootloaderHandleMessageResponse reader_request_page(const ReaderRequestPage *data);

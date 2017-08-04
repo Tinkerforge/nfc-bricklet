@@ -32,6 +32,19 @@ extern PN7150 pn7150;
 
 static NxpNci_RfIntf_t pn7150_reader_interface;
 
+void pn7150_reader_push_cb(unsigned char *ndef, unsigned short ndef_length) {
+	uartbb_puts("pn7150_reader_push_cb: "); uartbb_putu(ndef_length); uartbb_putnl();
+	pn7150.reader_state = NFC_READER_STATE_WRITE_NDEF_READY;
+}
+
+void pn7150_reader_pull_cb(unsigned char *ndef, unsigned short ndef_length) {
+	memcpy(pn7150.data, ndef, ndef_length);
+	pn7150.data_length = ndef_length;
+	pn7150.data_chunk_offset = 0;
+	pn7150.reader_state = NFC_READER_STATE_REQUEST_NDEF_READY;
+	uartbb_puts("pn7150_reader_pull_cb: "); uartbb_putu(ndef_length); uartbb_putnl();
+}
+
 static void pn7150_reader_request_tag_id(void) {
 	uint8_t discovery_technologies[] = {
 		MODE_POLL | TECH_PASSIVE_NFCA,
@@ -110,6 +123,50 @@ static void pn7150_reader_request_tag_id(void) {
 	}
 
 	pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_READY;
+}
+
+static void pn7150_reader_request_ndef(void) {
+	switch(pn7150_reader_interface.Protocol) {
+		case PROT_T1T:
+		case PROT_T2T:
+		case PROT_T3T:
+		case PROT_ISODEP: {
+			NxpNci_ProcessReaderMode(pn7150_reader_interface, READ_NDEF);
+			if(pn7150.reader_state != NFC_READER_STATE_REQUEST_NDEF_READY) {
+				pn7150.reader_state = NFC_READER_STATE_REQUEST_NDEF_ERROR;
+			}
+			break;
+		}
+
+		// Read NDEF not supported for Mifare Classic tags
+		case PROT_MIFARE:
+		default: {
+			pn7150.reader_state = NFC_READER_STATE_REQUEST_NDEF_ERROR;
+			break;
+		}
+	}
+}
+
+static void pn7150_reader_write_ndef(void) {
+	switch(pn7150_reader_interface.Protocol) {
+		case PROT_T2T:
+		case PROT_ISODEP: {
+			NxpNci_ProcessReaderMode(pn7150_reader_interface, WRITE_NDEF);
+			if(pn7150.reader_state != NFC_READER_STATE_WRITE_NDEF_READY) {
+				pn7150.reader_state = NFC_READER_STATE_WRITE_NDEF_ERROR;
+			}
+			break;
+		}
+
+		// write NDEF not supported for type 1, 3 and mifare tags
+		case PROT_T1T:
+		case PROT_T3T:
+		case PROT_MIFARE:
+		default: {
+			pn7150.reader_state = NFC_READER_STATE_WRITE_NDEF_ERROR;
+			break;
+		}
+	}
 }
 
 static void pn7150_reader_authenticate_mifare_classic_page(void) {
@@ -371,9 +428,37 @@ void pn7150_reader_write_page(void) {
 	}
 }
 
+void uartbb_putarru(char *name, uint8_t *data, uint32_t length) {
+	uartbb_puts(name); uartbb_puts(": ");
+	for(uint32_t i = 0; i < length; i++) {
+		uartbb_putu(data[i]); uartbb_puts(", ");
+	}
+
+	uartbb_putnl();
+}
+
+void pn7150_reader_update_ndef(void) {
+	// TODO: Check validity of ndef record?
+
+	uartbb_puts("update_ndef: "); uartbb_putu(pn7150.reader_ndef_length); uartbb_putnl();
+
+	// We always only do either read or write
+	if(pn7150.reader_ndef_length > 0) {
+		uartbb_putarru("ndef upd", pn7150.data, pn7150.reader_ndef_length);
+		RW_NDEF_SetMessage((unsigned char *) pn7150.data, pn7150.reader_ndef_length, pn7150_reader_push_cb);
+		RW_NDEF_RegisterPullCallback(NULL);
+	} else {
+		RW_NDEF_SetMessage(NULL, 0, NULL);
+		RW_NDEF_RegisterPullCallback(pn7150_reader_pull_cb);
+	}
+
+}
+
 void pn7150_reader_state_machine(void) {
 	switch(pn7150.reader_state) {
 		case NFC_READER_STATE_REQUEST_TAG_ID:                   pn7150_reader_request_tag_id();                   break;
+		case NFC_READER_STATE_REQUEST_NDEF:                     pn7150_reader_request_ndef();                     break;
+		case NFC_READER_STATE_WRITE_NDEF:                       pn7150_reader_write_ndef();                       break;
 		case NFC_READER_STATE_AUTHENTICATE_MIFARE_CLASSIC_PAGE: pn7150_reader_authenticate_mifare_classic_page(); break;
 		case NFC_READER_STATE_REQUEST_PAGE:                     pn7150_reader_request_page();                     break;
 		case NFC_READER_STATE_WRITE_PAGE:                       pn7150_reader_write_page();                       break;

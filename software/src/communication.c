@@ -28,6 +28,7 @@
 #include "pn7150.h"
 #include "pn7150_cardemu.h"
 #include "pn7150_p2p.h"
+#include "pn7150_reader.h"
 
 BootloaderHandleMessageResponse handle_message(const void *message, void *response) {
 	switch(tfp_get_fid_from_message(message)) {
@@ -36,6 +37,9 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_READER_REQUEST_TAG_ID: return reader_request_tag_id(message);
 		case FID_READER_GET_TAG_ID: return reader_get_tag_id(message, response);
 		case FID_READER_GET_STATE: return reader_get_state(message, response);
+		case FID_READER_WRITE_NDEF_LOW_LEVEL: return reader_write_ndef_low_level(message);
+		case FID_READER_REQUEST_NDEF: return reader_request_ndef(message);
+		case FID_READER_READ_NDEF_LOW_LEVEL: return reader_read_ndef_low_level(message, response);
 		case FID_READER_AUTHENTICATE_MIFARE_CLASSIC_PAGE: return reader_authenticate_mifare_classic_page(message);
 		case FID_READER_WRITE_PAGE_LOW_LEVEL: return reader_write_page_low_level(message);
 		case FID_READER_REQUEST_PAGE: return reader_request_page(message);
@@ -87,7 +91,7 @@ BootloaderHandleMessageResponse get_mode(const GetMode *data, GetMode_Response *
 BootloaderHandleMessageResponse reader_request_tag_id(const ReaderRequestTagID *data) {
 	if((pn7150.mode == NFC_MODE_READER) && (pn7150.reader_state & NFC_READER_STATE_IDLE)) {
 		pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID;
-		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
 	}
 
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
@@ -110,6 +114,59 @@ BootloaderHandleMessageResponse reader_get_state(const ReaderGetState *data, Rea
 	response->state = pn7150.reader_state;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse reader_write_ndef_low_level(const ReaderWriteNdefLowLevel *data) {
+	if((pn7150.mode == NFC_MODE_READER) && (pn7150.reader_state & NFC_READER_STATE_IDLE)) {
+		uint8_t length = BETWEEN(0, ((int32_t)data->ndef_length) - ((int32_t)data->ndef_chunk_offset), 60);
+		memcpy(pn7150.data + data->ndef_chunk_offset, data->ndef_chunk_data, length);
+
+		if(data->ndef_chunk_offset + length >= data->ndef_length) {
+			pn7150.reader_state = NFC_READER_STATE_WRITE_NDEF;
+			pn7150.reader_ndef_length = data->ndef_length;
+
+			// Fill end of data buffer with 0, so the write task does not have to
+			// check for non-full pages
+			memset(pn7150.data + pn7150.reader_ndef_length, 0, PN7150_MAX_OVERHEAD);
+
+			pn7150_reader_update_ndef();
+		}
+
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+}
+
+BootloaderHandleMessageResponse reader_request_ndef(const ReaderRequestNdef *data) {
+	if((pn7150.mode == NFC_MODE_READER) && (pn7150.reader_state & NFC_READER_STATE_IDLE)) {
+		pn7150.reader_state = NFC_READER_STATE_REQUEST_NDEF;
+
+		pn7150.reader_ndef_length = 0;
+		pn7150_reader_update_ndef();
+
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+}
+
+BootloaderHandleMessageResponse reader_read_ndef_low_level(const ReaderReadNdefLowLevel *data, ReaderReadNdefLowLevel_Response *response) {
+	response->header.length = sizeof(ReaderReadNdefLowLevel_Response);
+
+	if((pn7150.mode == NFC_MODE_READER) && (pn7150.reader_state == NFC_READER_STATE_REQUEST_NDEF_READY)) {
+		uint8_t length = BETWEEN(0, ((int32_t)pn7150.data_length) - ((int32_t)pn7150.data_chunk_offset), 60);
+
+		memcpy(response->ndef_chunk_data, pn7150.data + pn7150.data_chunk_offset, length);
+
+		response->ndef_chunk_offset = pn7150.data_chunk_offset;
+		response->ndef_length = pn7150.data_length;
+		pn7150.data_chunk_offset += length;
+
+		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 }
 
 BootloaderHandleMessageResponse reader_authenticate_mifare_classic_page(const ReaderAuthenticateMifareClassicPage *data) {
@@ -145,7 +202,7 @@ BootloaderHandleMessageResponse reader_write_page_low_level(const ReaderWritePag
 			memset(pn7150.data + pn7150.reader_write_length, 0, PN7150_MAX_OVERHEAD);
 		}
 
-		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
 	}
 
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
@@ -156,7 +213,7 @@ BootloaderHandleMessageResponse reader_request_page(const ReaderRequestPage *dat
 		pn7150.reader_state          = NFC_READER_STATE_REQUEST_PAGE;
 		pn7150.reader_request_page   = data->page;
 		pn7150.reader_request_length = data->length;
-		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
 	}
 
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
@@ -211,7 +268,7 @@ BootloaderHandleMessageResponse cardemu_write_ndef_low_level(const CardemuWriteN
 			pn7150_cardemu_update_ndef();
 		}
 
-		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
 	}
 
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
@@ -264,7 +321,7 @@ BootloaderHandleMessageResponse p2p_write_ndef_low_level(const P2PWriteNdefLowLe
 			pn7150_p2p_update_ndef();
 		}
 
-		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
 	}
 
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;

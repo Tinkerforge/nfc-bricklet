@@ -22,6 +22,7 @@
 #ifndef PN7150_READER_H
 #define PN7150_READER_H
 
+void pn7150_reader_update_ndef(void);
 void pn7150_reader_state_machine(void);
 
 #endif

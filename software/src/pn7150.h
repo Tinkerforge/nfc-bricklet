@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define PN7150_MAX_DATA_SIZE 4096
+#define PN7150_MAX_DATA_SIZE 8192
 
 // Some of the read functions have data at the end of the read
 // that we want to be able to write to the data array to save

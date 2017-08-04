@@ -3,6 +3,7 @@ software/src/brickletlib
 software/src/bricklib
 nxp_examples
 *.swp
+*.pyc
 .cproject
 .project
 .pydevproject

@@ -12,9 +12,13 @@
 *                          arising from its use.
 */
 
-#define RW_MAX_NDEF_FILE_SIZE 500
+//#define RW_MAX_NDEF_FILE_SIZE 500
+//extern unsigned char NdefBuffer[RW_MAX_NDEF_FILE_SIZE];
 
-extern unsigned char NdefBuffer[RW_MAX_NDEF_FILE_SIZE];
+#include "pn7150.h"
+
+#define RW_MAX_NDEF_FILE_SIZE PN7150_MAX_DATA_SIZE
+extern unsigned char *NdefBuffer;
 
 typedef void RW_NDEF_Callback_t (unsigned char*, unsigned short);
 

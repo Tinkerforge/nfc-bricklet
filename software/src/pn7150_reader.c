@@ -38,7 +38,9 @@ void pn7150_reader_push_cb(unsigned char *ndef, unsigned short ndef_length) {
 }
 
 void pn7150_reader_pull_cb(unsigned char *ndef, unsigned short ndef_length) {
-	memcpy(pn7150.data, ndef, ndef_length);
+	uartbb_puts("ndef addr: "); uartbb_putu((uint32_t)ndef); uartbb_putnl();
+	uartbb_puts("data addr: "); uartbb_putu((uint32_t)pn7150.data); uartbb_putnl();
+//	memcpy(pn7150.data, ndef, ndef_length);
 	pn7150.data_length = ndef_length;
 	pn7150.data_chunk_offset = 0;
 	pn7150.reader_state = NFC_READER_STATE_REQUEST_NDEF_READY;
@@ -428,14 +430,7 @@ void pn7150_reader_write_page(void) {
 	}
 }
 
-void uartbb_putarru(char *name, uint8_t *data, uint32_t length) {
-	uartbb_puts(name); uartbb_puts(": ");
-	for(uint32_t i = 0; i < length; i++) {
-		uartbb_putu(data[i]); uartbb_puts(", ");
-	}
 
-	uartbb_putnl();
-}
 
 void pn7150_reader_update_ndef(void) {
 	// TODO: Check validity of ndef record?
@@ -444,7 +439,7 @@ void pn7150_reader_update_ndef(void) {
 
 	// We always only do either read or write
 	if(pn7150.reader_ndef_length > 0) {
-		uartbb_putarru("ndef upd", pn7150.data, pn7150.reader_ndef_length);
+		uartbb_putarru8("ndef upd", pn7150.data, pn7150.reader_ndef_length);
 		RW_NDEF_SetMessage((unsigned char *) pn7150.data, pn7150.reader_ndef_length, pn7150_reader_push_cb);
 		RW_NDEF_RegisterPullCallback(NULL);
 	} else {

@@ -33,7 +33,7 @@
 #define FIRMWARE_VERSION_MINOR 0
 #define FIRMWARE_VERSION_REVISION 0
 
-#define CRC16_USE_CCITT
+#define COOP_TASK_STACK_SIZE (4*1024)
 
 #include "config_custom_bootloader.h"
 

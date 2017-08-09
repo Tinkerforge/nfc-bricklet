@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #############################################################
-# This file was automatically generated on 2017-08-03.      #
+# This file was automatically generated on 2017-08-08.      #
 #                                                           #
 # Python Bindings Version 2.1.14                            #
 #                                                           #
@@ -95,6 +95,8 @@ class BrickletNFC(Device):
     READER_STATE_REQUEST_NDEF_ERROR = 199
     KEY_A = 0
     KEY_B = 1
+    READER_REQUEST_TYPE4_CAPABILITY_CONTAINER = 3
+    READER_REQUEST_TYPE4_NDEF = 4
     CARDEMU_STATE_INITIALIZATION = 0
     CARDEMU_STATE_IDLE = 128
     CARDEMU_STATE_ERROR = 192

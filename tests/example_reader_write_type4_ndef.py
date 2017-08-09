@@ -13,7 +13,7 @@ tag_type = 0
 
 # Callback function for state changed callback
 def cb_state_changed(state, idle, nfc):
-    print("state", state)
+
     if state == nfc.READER_STATE_IDLE:
         nfc.reader_request_tag_id()
 
@@ -25,12 +25,10 @@ def cb_state_changed(state, idle, nfc):
               ' '.join(map(str, map(hex, ret.tid[:ret.tid_length]))) +
               "]")
 
-        nfc.reader_request_ndef()
+        nfc.reader_write_page(nfc.READER_REQUEST_TYPE4_NDEF, [0, 11, 209, 1, 7, 84, 2, 101, 110, 72, 117, 104, 117])
 
-    elif state == nfc.READER_STATE_REQUEST_NDEF_READY:
-        data = nfc.reader_read_ndef()
-        print(len(data), data)
-        print(map(chr, data))
+    elif state == nfc.READER_STATE_WRITE_PAGE_READY:
+        print("write page ready")
 
 if __name__ == "__main__":
     ipcon = IPConnection() # Create IP connection

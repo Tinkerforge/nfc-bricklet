@@ -198,7 +198,8 @@ void RW_NDEF_T4T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
             {
                 /* Read NDEF data */
                 memcpy(pCmd, RW_NDEF_T4T_Read, sizeof(RW_NDEF_T4T_Read));
-                pCmd[3] =  RW_NDEF_T4T_Ndef.MessagePtr + 2;
+                pCmd[3] = (RW_NDEF_T4T_Ndef.MessagePtr + 2) >> 8;
+                pCmd[3] = (RW_NDEF_T4T_Ndef.MessagePtr + 2) & 0xFF;
                 pCmd[4] = ((RW_NDEF_T4T_Ndef.MessageSize - RW_NDEF_T4T_Ndef.MessagePtr) > RW_NDEF_T4T_Ndef.MLe-1) ? RW_NDEF_T4T_Ndef.MLe-1 : (unsigned char) (RW_NDEF_T4T_Ndef.MessageSize - RW_NDEF_T4T_Ndef.MessagePtr);
                 *pCmd_size = sizeof(RW_NDEF_T4T_Read);
             }

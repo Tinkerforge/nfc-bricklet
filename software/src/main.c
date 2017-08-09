@@ -33,19 +33,9 @@
 #include "bricklib2/os/coop_task.h"
 #include "xmc_gpio.h"
 
-CoopTask blink_task;
 CoopTask pn7150_task;
 
 uint32_t count = 0;
-
-void blink(void) {
-	while(true) {
-		XMC_GPIO_SetOutputHigh(P1_4);
-		coop_task_sleep_ms(500);
-		XMC_GPIO_SetOutputLow(P1_4);
-		coop_task_sleep_ms(500);
-	}
-}
 
 void HardFault_Handler() {
 	loge("HardFault_Handler\n\r");
@@ -57,15 +47,7 @@ int main(void) {
 	logd("Start NFC Bricklet\n\r");
 
 	communication_init();
-	coop_task_init(&blink_task, blink);
 	coop_task_init(&pn7150_task, pn7150_tick);
-
-	XMC_GPIO_CONFIG_t led;
-	led.mode = XMC_GPIO_MODE_OUTPUT_PUSH_PULL;
-	led.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW;
-	XMC_GPIO_Init(P1_4, &led);
-	XMC_GPIO_Init(P4_6, &led);
-	XMC_GPIO_Init(P4_7, &led);
 
 	uint32_t t = system_timer_get_ms();
 	while(true) {
@@ -75,10 +57,9 @@ int main(void) {
 			logi("tick: %u\n\r", count);
 			count = 0;
 		}
+
 		bootloader_tick();
 		communication_tick();
-		coop_task_tick(&blink_task);
 		coop_task_tick(&pn7150_task);
-
 	}
 }

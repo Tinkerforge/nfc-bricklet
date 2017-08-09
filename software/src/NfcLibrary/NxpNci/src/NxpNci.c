@@ -284,7 +284,7 @@ bool NxpNci_ReaderTagCmd (unsigned char *pCommand, unsigned char CommandSize, un
 }
 
 #ifndef NO_NDEF_SUPPORT
-static bool NxpNci_T3TretrieveIDm (void)
+bool NxpNci_T3TretrieveIDm (void)
 {
     uint8_t NCIPollingCmdT3T[] = {0x21, 0x08, 0x04, 0x12, 0xFC, 0x00, 0x01};
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
@@ -313,7 +313,9 @@ static void NxpNci_ReadNdef(NxpNci_RfIntf_t RfIntf)
     RW_NDEF_Reset(RfIntf.Protocol);
 
     /* In case of T3T tag, retrieve card IDm for further operation */
-    if (RfIntf.Protocol == PROT_T3T) NxpNci_T3TretrieveIDm();
+    // We don't call NxpNci_T3TretrieveIDm here, the state machine makes
+    // sure that it always has to be called before we reach this point
+//    if (RfIntf.Protocol == PROT_T3T) NxpNci_T3TretrieveIDm();
 
     while(1)
     {
@@ -331,6 +333,7 @@ static void NxpNci_ReadNdef(NxpNci_RfIntf_t RfIntf)
             Cmd[2] = CmdSize & 0x00FF;
 
             NxpNci_HostTransceive(Cmd, CmdSize+3, Answer, sizeof(Answer), &AnswerSize);
+            Sleep(1); // Add sleep here, otherwise we sometimes read back too fast here;
             NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
         }
     }

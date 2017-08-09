@@ -23,10 +23,24 @@
 
 #include "bricklib2/hal/uartbb/uartbb.h"
 #include "bricklib2/utility/crc16.h"
+#include "bricklib2/utility/util_definitions.h"
+#include "bricklib2/logging/logging.h"
 
 #include "pn7150.h"
 #include "communication.h"
 #include "NxpNci.h"
+
+typedef struct
+{
+    unsigned char IDm[8];
+    unsigned char BlkNb;
+    unsigned short Ptr;
+    unsigned short Size;
+    unsigned char *p;
+} RW_NDEF_T3T_Ndef_t;
+
+bool NxpNci_T3TretrieveIDm(void);
+extern RW_NDEF_T3T_Ndef_t RW_NDEF_T3T_Ndef;
 
 extern PN7150 pn7150;
 
@@ -83,7 +97,7 @@ static void pn7150_reader_request_tag_id(void) {
 					return;
 				}
 
-				pn7150.reader_tid_length  = 4;
+				pn7150.reader_tid_length = 4;
 				memcpy(pn7150.reader_tid, &response[2], 4);
 
 				break;
@@ -91,6 +105,23 @@ static void pn7150_reader_request_tag_id(void) {
 
 			case PROT_T2T: {
 				pn7150.reader_tag_type = NFC_TAG_TYPE_TYPE2;
+				break;
+			}
+
+			case PROT_T3T: {
+				pn7150.reader_tag_type = NFC_TAG_TYPE_TYPE3;
+				if(NxpNci_T3TretrieveIDm() == NFC_ERROR) {
+					pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
+					return;
+				}
+
+				pn7150.reader_tid_length = 8;
+				memcpy(pn7150.reader_tid, RW_NDEF_T3T_Ndef.IDm, 8);
+				break;
+			}
+
+			case PROT_ISODEP: {
+				pn7150.reader_tag_type = NFC_TAG_TYPE_TYPE4;
 				break;
 			}
 
@@ -279,6 +310,135 @@ static void pn7150_reader_request_page(void) {
 			break;
 		}
 
+		case PROT_T3T: {
+			uint8_t response[256];
+			uint8_t check_cmd[] = {0x10,0x06,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x0B,0x00,0x1,0x80,0x00};
+			memcpy(&check_cmd[2], pn7150.reader_tid, 8);
+
+			uint8_t length;
+			uint16_t offset = 0;
+			uint16_t page = pn7150.reader_request_page;
+			do {
+				check_cmd[15] = page;
+				bool status = NxpNci_ReaderTagCmd(check_cmd, sizeof(check_cmd), response, &length);
+				if((status == NFC_ERROR) || (response[length - 1] != 0)) {
+					pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+					return;
+				}
+
+				memcpy(pn7150.data + offset, &response[13], 16);
+
+				page++;
+				offset += 16;
+			} while(offset < pn7150.reader_request_length);
+
+			pn7150.data_length       = pn7150.reader_request_length;
+			pn7150.data_chunk_offset = 0;
+
+			pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_READY;
+
+			break;
+		}
+
+		case PROT_ISODEP: {
+			uint8_t response[256];
+			uint8_t length;
+			uint16_t offset = 0;
+
+			uint8_t app_select_20[] = {0x00,0xA4,0x04,0x00,0x07,0xD2,0x76,0x00,0x00,0x85,0x01,0x01,0x00};
+			uint8_t app_select_10[] = {0x00,0xA4,0x04,0x00,0x07,0xD2,0x76,0x00,0x00,0x85,0x01,0x00};
+			uint8_t file_select_cc[] = {0x00,0xA4,0x00,0x0C,0x02,0xE1,0x03};
+			uint8_t file_select_ndef[] = {0x00,0xA4,0x00,0x0C,0x02,0xE1,0x04};
+//			uint8_t file_select_system[] = {0x00,0xA4,0x00,0x0C,0x02,0xE1,0x01}; // TODO: Is this always available? Doesn't seem to work with the cards we have here.
+			uint8_t read_file[] = {0x00,0xB0,0x00,0x00,0x0F};
+
+			if((pn7150.reader_request_page != NFC_READER_REQUEST_TYPE4_CAPABILITY_CONTAINER) &&
+			   (pn7150.reader_request_page != NFC_READER_REQUEST_TYPE4_NDEF)) {
+				pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+				return;
+			}
+
+			bool status = NxpNci_ReaderTagCmd(app_select_20, sizeof(app_select_20), response, &length);
+			if((status == NFC_ERROR) || (response[length - 1] != 0)) {
+				pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+				return;
+			}
+
+			if(response[length-2] != 0x90) {
+				// If tag application selection version 2.0 fails, we try version 1.0
+				status = NxpNci_ReaderTagCmd(app_select_10, sizeof(app_select_10), response, &length);
+				if((status == NFC_ERROR) || (response[length - 1] != 0)) {
+					pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+					return;
+				}
+
+				file_select_cc[3] = 0x00;
+			}
+
+			status = NxpNci_ReaderTagCmd(file_select_cc, sizeof(file_select_cc), response, &length);
+			if((status == NFC_ERROR) || (response[length - 1] != 0) || (response[length - 2] != 0x90)) {
+				pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+				return;
+			}
+
+			status = NxpNci_ReaderTagCmd(read_file, sizeof(read_file), response, &length);
+			if((status == NFC_ERROR) || (response[length - 1] != 0) || (response[length - 2] != 0x90)) {
+				pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+				return;
+			}
+
+			if(pn7150.reader_request_page == NFC_READER_REQUEST_TYPE4_CAPABILITY_CONTAINER) {
+				memset(pn7150.data, 0, pn7150.reader_request_length);
+				memcpy(pn7150.data, response, length-2);
+
+				pn7150.data_length       = pn7150.reader_request_length;
+				pn7150.data_chunk_offset = 0;
+
+				pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_READY;
+				break;
+			}
+
+			uint8_t mapping_version = response[2];
+			uint8_t file_id[2] = {response[9], response[10]};
+			uint16_t max_single_read_size = ((response[3] << 8) | response[4]) - 1;
+
+            if(mapping_version == 0x10) {
+            	file_select_ndef[3] = 0x00;
+//            	file_select_system[3] = 0x00;
+            }
+
+            file_select_ndef[5] = file_id[0];
+            file_select_ndef[6] = file_id[1];
+
+			status = NxpNci_ReaderTagCmd(file_select_ndef, sizeof(file_select_ndef), response, &length);
+			if((status == NFC_ERROR) || (response[length - 1] != 0) || (response[length - 2] != 0x90)) {
+				pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+				return;
+			}
+
+			memset(pn7150.data, 0, pn7150.reader_request_length);
+			do {
+				read_file[2] = offset >> 8;
+				read_file[3] = offset & 0xFF;
+				read_file[4] = MIN(max_single_read_size, pn7150.reader_request_length - offset);;
+
+				status = NxpNci_ReaderTagCmd(read_file, sizeof(read_file), response, &length);
+				if((status == NFC_ERROR) || (response[length - 1] != 0) || (response[length - 2] != 0x90)) {
+					pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+					return;
+				}
+
+				memcpy(&pn7150.data[offset], response, read_file[4]);
+				offset += read_file[4];
+			} while(offset < pn7150.reader_request_length);
+
+			pn7150.data_length       = pn7150.reader_request_length;
+			pn7150.data_chunk_offset = 0;
+
+			pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_READY;
+			break;
+		}
+
 		default: {
 			pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
 			break;
@@ -369,6 +529,139 @@ void pn7150_reader_write_page(void) {
 			break;
 		}
 
+		case PROT_T3T: {
+			uint8_t response[256];
+			uint8_t check_cmd[0x20] = {0x20,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x09,0x00,0x1,0x80,0x00};
+			memcpy(&check_cmd[2], pn7150.reader_tid, 8);
+
+			uint8_t length;
+			uint16_t offset = 0;
+			uint16_t page = pn7150.reader_write_page;
+			do {
+				check_cmd[15] = page;
+				memcpy(&check_cmd[16], pn7150.data+offset, 16);
+				bool status = NxpNci_ReaderTagCmd(check_cmd, sizeof(check_cmd), response, &length);
+				if((status == NFC_ERROR) || (response[length - 1] != 0)) {
+					pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+					return;
+				}
+
+				page++;
+				offset += 16;
+			} while(offset < pn7150.reader_write_length);
+
+			pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_READY;
+
+			break;
+		}
+
+		case PROT_ISODEP: {
+			uint8_t response[256];
+			uint8_t write_data[256];
+			uint8_t length;
+			uint16_t offset = 0;
+
+			uint8_t app_select_20[] = {0x00,0xA4,0x04,0x00,0x07,0xD2,0x76,0x00,0x00,0x85,0x01,0x01,0x00};
+			uint8_t app_select_10[] = {0x00,0xA4,0x04,0x00,0x07,0xD2,0x76,0x00,0x00,0x85,0x01,0x00};
+			uint8_t file_select_cc[] = {0x00,0xA4,0x00,0x0C,0x02,0xE1,0x03};
+			uint8_t file_select_ndef[] = {0x00,0xA4,0x00,0x0C,0x02,0xE1,0x04};
+//			uint8_t file_select_system[] = {0x00,0xA4,0x00,0x0C,0x02,0xE1,0x01}; // TODO: Is this always available? Doesn't seem to work with the cards we have here.
+			uint8_t read_file[] = {0x00,0xB0,0x00,0x00,0x0F};
+			uint8_t write_file[] = {0x00,0xD6,0x00,0x00,0x00};
+
+			if((pn7150.reader_write_page != NFC_READER_WRITE_TYPE4_CAPABILITY_CONTAINER) &&
+			   (pn7150.reader_write_page != NFC_READER_WRITE_TYPE4_NDEF)) {
+				pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
+				return;
+			}
+
+			bool status = NxpNci_ReaderTagCmd(app_select_20, sizeof(app_select_20), response, &length);
+			if((status == NFC_ERROR) || (response[length - 1] != 0)) {
+				pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
+				return;
+			}
+
+			if(response[length-2] != 0x90) {
+				// If tag application selection version 2.0 fails, we try version 1.0
+				status = NxpNci_ReaderTagCmd(app_select_10, sizeof(app_select_10), response, &length);
+				if((status == NFC_ERROR) || (response[length - 1] != 0)) {
+					pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
+					return;
+				}
+
+				file_select_cc[3] = 0x00;
+			}
+
+			status = NxpNci_ReaderTagCmd(file_select_cc, sizeof(file_select_cc), response, &length);
+			if((status == NFC_ERROR) || (response[length - 1] != 0) || (response[length - 2] != 0x90)) {
+				pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
+				return;
+			}
+
+			if(pn7150.reader_write_page == NFC_READER_WRITE_TYPE4_CAPABILITY_CONTAINER) {
+				memcpy(write_data, write_file, sizeof(write_file));
+
+				write_data[2] = offset >> 8;
+				write_data[3] = offset & 0xFF;
+				write_data[4] = MIN(15, pn7150.reader_write_length);
+				memcpy(&write_data[5], pn7150.data, write_data[4]);
+
+				status = NxpNci_ReaderTagCmd(write_data, write_data[4] + 5, response, &length);
+				if((status == NFC_ERROR) || (response[length - 1] != 0) || (response[length - 2] != 0x90)) {
+					pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
+					return;
+				}
+
+				pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_READY;
+				// TODO: Write CC?
+
+				break;
+			}
+
+			status = NxpNci_ReaderTagCmd(read_file, sizeof(read_file), response, &length);
+			if((status == NFC_ERROR) || (response[length - 1] != 0) || (response[length - 2] != 0x90)) {
+				pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
+				return;
+			}
+
+			uint8_t mapping_version = response[2];
+			uint8_t file_id[2] = {response[9], response[10]};
+			uint16_t max_single_write_size = ((response[5] << 8) | response[6]) - 1;
+
+            if(mapping_version == 0x10) {
+            	file_select_ndef[3] = 0x00;
+//            	file_select_system[3] = 0x00;
+            }
+
+            file_select_ndef[5] = file_id[0];
+            file_select_ndef[6] = file_id[1];
+
+			status = NxpNci_ReaderTagCmd(file_select_ndef, sizeof(file_select_ndef), response, &length);
+			if((status == NFC_ERROR) || (response[length - 1] != 0) || (response[length - 2] != 0x90)) {
+				pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
+				return;
+			}
+
+			memcpy(write_data, write_file, sizeof(write_file));
+			do {
+				write_data[2] = offset >> 8;
+				write_data[3] = offset & 0xFF;
+				write_data[4] = MIN(max_single_write_size, pn7150.reader_write_length - offset);
+				memcpy(&write_data[5], &pn7150.data[offset], write_data[4]);
+
+				status = NxpNci_ReaderTagCmd(write_data, write_data[4] + 5, response, &length);
+				if((status == NFC_ERROR) || (response[length - 1] != 0) || (response[length - 2] != 0x90)) {
+					pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
+					return;
+				}
+
+				offset += write_data[4];
+			} while(offset < pn7150.reader_write_length);
+
+			pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_READY;
+			break;
+		}
+
 		default: {
 			pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
 			break;
@@ -393,6 +686,21 @@ void pn7150_reader_update_ndef(void) {
 }
 
 void pn7150_reader_state_machine(void) {
+#if LOGGING_LEVEL < LOGGING_NONE
+	static uint8_t last_state = 0xff;
+	if(last_state != pn7150.reader_state) {
+		last_state = pn7150.reader_state;
+		logd("Reader state: %d", last_state & 0b00111111);
+		if(last_state & 0b10000000) {
+			logwohd(" + idle");
+		}
+		if(last_state & 0b01000000) {
+			logwohd(" + error");
+		}
+		logwohd("\n\r");
+	}
+#endif
+
 	switch(pn7150.reader_state) {
 		case NFC_READER_STATE_REQUEST_TAG_ID:                   pn7150_reader_request_tag_id();                   break;
 		case NFC_READER_STATE_REQUEST_NDEF:                     pn7150_reader_request_ndef();                     break;

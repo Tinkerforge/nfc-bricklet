@@ -26,6 +26,7 @@
 #include "bricklib2/hal/system_timer/system_timer.h"
 #include "bricklib2/hal/uartbb/uartbb.h"
 #include "bricklib2/os/coop_task.h"
+#include "bricklib2/logging/logging.h"
 
 #include "communication.h"
 
@@ -68,18 +69,21 @@ bool pn7150_init_nfc(void) {
 		}
 	}
 
-    // Open connection to NXPNCI device
-    if(NxpNci_Connect() == NFC_ERROR) {
-        return false;
-    }
+	// Open connection to NXPNCI device
+	if(NxpNci_Connect() == NFC_ERROR) {
+		loge("NxpNci_Connect Error");
+		return false;
+	}
 
-    while(NxpNci_ConfigureSettings() == NFC_ERROR) {
-        return false;
-    }
+	while(NxpNci_ConfigureSettings() == NFC_ERROR) {
+		loge("NxpNci_ConfigureSettings Error");
+		return false;
+	}
 
-    while(NxpNci_ConfigureMode(configure_mask) == NFC_ERROR) {
-        return false;
-    }
+	while(NxpNci_ConfigureMode(configure_mask) == NFC_ERROR) {
+		loge("NxpNci_ConfigureSettings Error");
+		return false;
+	}
 
     return true;
 }

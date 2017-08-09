@@ -29,6 +29,7 @@
 
 #include "bricklib2/hal/system_timer/system_timer.h"
 #include "bricklib2/os/coop_task.h"
+#include "bricklib2/logging/logging.h"
 
 #include "pn7150.h"
 
@@ -164,10 +165,7 @@ void i2c_tx_irq_handler(void) {
 }
 
 bool i2c_write(uint8_t *data, const uint16_t length, bool send_stop) {
-	//uartbb_puts("i2c_write: "); uartbb_putu(length); uartbb_putnl();
-//	uartbb_puts("i2c_write data: "); uartbb_putu(data[0]); uartbb_puts(", "); uartbb_putu(data[1]); uartbb_puts(", "); uartbb_putu(data[2]); uartbb_puts(", "); uartbb_putu(data[3]); uartbb_putnl();
 	if(i2c_tx_state != I2C_TX_STATE_DONE) {
-		uartbb_puts("i2c_tx_state != I2C_TX_STATE_DONE: "); uartbb_putu(i2c_tx_state); uartbb_putnl();
 		return false;
 	}
 
@@ -199,8 +197,6 @@ bool i2c_write(uint8_t *data, const uint16_t length, bool send_stop) {
 
 			i2c_tx_state = I2C_TX_STATE_DONE;
 
-			uartbb_puts("i2c tx timeout\n\r");
-
 			return false;
 		}
 		coop_task_yield();
@@ -227,8 +223,6 @@ bool i2c_write(uint8_t *data, const uint16_t length, bool send_stop) {
 
 			i2c_tx_state = I2C_TX_STATE_DONE;
 
-			uartbb_puts("i2c tx wait timeout\n\r");
-
 			return false;
 		}
 		coop_task_yield();
@@ -238,8 +232,6 @@ bool i2c_write(uint8_t *data, const uint16_t length, bool send_stop) {
 }
 
 bool i2c_read(uint8_t *data, const uint16_t length) {
-//	uartbb_puts("i2c_read: "); uartbb_putu(length); uartbb_putnl();
-
 	i2c_tx_state = I2C_TX_STATE_START_RX;
 	i2c_tx_data_length = length;
 	i2c_tx_data_index = 0;
@@ -260,7 +252,6 @@ bool i2c_read(uint8_t *data, const uint16_t length) {
 			time = system_timer_get_ms();
 		} else if(system_timer_is_time_elapsed_ms(time, 10)) {
 			// We wait a maximum of 10ms per byte, otherwise we assume something is broken and return
-			uartbb_puts("i2c rx timeout\n\r");
 
 			return false;
 		}
@@ -287,7 +278,7 @@ bool i2c_read(uint8_t *data, const uint16_t length) {
 void tml_Connect(void) {
 	tml_Disconnect();
 
-	uartbb_puts("connect\n\r");
+	logd("NCI Connect\n\r");
 
 	const XMC_I2C_CH_CONFIG_t master_channel_config = {
 		.baudrate = PN7150_I2C_BAUDRATE,
@@ -361,7 +352,7 @@ void tml_Connect(void) {
 }
 
 void tml_Disconnect(void) {
-	uartbb_puts("disconnect\n\r");
+	logd("NCI Disconnect\n\r");
 	XMC_I2C_CH_Stop(PN7150_I2C);
 
 	const XMC_GPIO_CONFIG_t config_reset =  {
@@ -387,7 +378,6 @@ void tml_Disconnect(void) {
 }
 
 void tml_Send(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytesSent) {
-//	uartbb_puts("send: "); uartbb_putu(BufferLen); uartbb_putnl();
     if(!i2c_write(pBuffer, BufferLen, true)) {
     	coop_task_sleep_ms(5);
     	if(!i2c_write(pBuffer, BufferLen, true)) {
@@ -401,7 +391,6 @@ void tml_Send(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytesSent) {
 
 #include "xmc_wdt.h"
 void tml_Receive(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytes, uint16_t timeout) {
-//	uartbb_puts("receive: "); uartbb_putu(BufferLen); uartbb_puts(", t: "); uartbb_putu(timeout); uartbb_putnl();
 	uint32_t start = system_timer_get_ms();
 	bool elapsed = true;
 	if(timeout == 0) {
@@ -417,7 +406,6 @@ void tml_Receive(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytes, uint16_
 
 	if(!XMC_GPIO_GetInput(PN7150_IRQ_PIN)) {
 		if(elapsed) {
-//			uartbb_puts("irq low\n\r");
 			*pBytes = 0;
 			return;
 		}

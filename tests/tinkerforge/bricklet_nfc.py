@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #############################################################
-# This file was automatically generated on 2017-08-08.      #
+# This file was automatically generated on 2017-08-11.      #
 #                                                           #
 # Python Bindings Version 2.1.14                            #
 #                                                           #
@@ -18,7 +18,7 @@ try:
 except ValueError:
     from ip_connection import Device, IPConnection, Error, create_chunk_data
 
-ReaderGetTagID = namedtuple('ReaderGetTagID', ['tag_type', 'tid_length', 'tid'])
+ReaderGetTagIDLowLevel = namedtuple('ReaderGetTagIDLowLevel', ['tag_type', 'tag_id_length', 'tag_id_data'])
 ReaderGetState = namedtuple('ReaderGetState', ['state', 'idle'])
 ReaderReadNdefLowLevel = namedtuple('ReaderReadNdefLowLevel', ['ndef_length', 'ndef_chunk_offset', 'ndef_chunk_data'])
 ReaderReadPageLowLevel = namedtuple('ReaderReadPageLowLevel', ['data_length', 'data_chunk_offset', 'data_chunk_data'])
@@ -26,6 +26,7 @@ CardemuGetState = namedtuple('CardemuGetState', ['state', 'idle'])
 P2PGetState = namedtuple('P2PGetState', ['state', 'idle'])
 P2PReadNdefLowLevel = namedtuple('P2PReadNdefLowLevel', ['ndef_length', 'ndef_chunk_offset', 'ndef_chunk_data'])
 GetIdentity = namedtuple('Identity', ['uid', 'connected_uid', 'position', 'hardware_version', 'firmware_version', 'device_identifier'])
+ReaderGetTagID = namedtuple('ReaderGetTagID', ['tag_type', 'tag_id'])
 
 class BrickletNFC(Device):
     """
@@ -43,7 +44,7 @@ class BrickletNFC(Device):
     FUNCTION_SET_MODE = 1
     FUNCTION_GET_MODE = 2
     FUNCTION_READER_REQUEST_TAG_ID = 3
-    FUNCTION_READER_GET_TAG_ID = 4
+    FUNCTION_READER_GET_TAG_ID_LOW_LEVEL = 4
     FUNCTION_READER_GET_STATE = 5
     FUNCTION_READER_WRITE_NDEF_LOW_LEVEL = 6
     FUNCTION_READER_REQUEST_NDEF = 7
@@ -95,6 +96,8 @@ class BrickletNFC(Device):
     READER_STATE_REQUEST_NDEF_ERROR = 199
     KEY_A = 0
     KEY_B = 1
+    READER_WRITE_TYPE4_CAPABILITY_CONTAINER = 3
+    READER_WRITE_TYPE4_NDEF = 4
     READER_REQUEST_TYPE4_CAPABILITY_CONTAINER = 3
     READER_REQUEST_TYPE4_NDEF = 4
     CARDEMU_STATE_INITIALIZATION = 0
@@ -133,7 +136,7 @@ class BrickletNFC(Device):
         self.response_expected[BrickletNFC.FUNCTION_SET_MODE] = BrickletNFC.RESPONSE_EXPECTED_FALSE
         self.response_expected[BrickletNFC.FUNCTION_GET_MODE] = BrickletNFC.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletNFC.FUNCTION_READER_REQUEST_TAG_ID] = BrickletNFC.RESPONSE_EXPECTED_FALSE
-        self.response_expected[BrickletNFC.FUNCTION_READER_GET_TAG_ID] = BrickletNFC.RESPONSE_EXPECTED_ALWAYS_TRUE
+        self.response_expected[BrickletNFC.FUNCTION_READER_GET_TAG_ID_LOW_LEVEL] = BrickletNFC.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletNFC.FUNCTION_READER_GET_STATE] = BrickletNFC.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletNFC.FUNCTION_READER_WRITE_NDEF_LOW_LEVEL] = BrickletNFC.RESPONSE_EXPECTED_TRUE
         self.response_expected[BrickletNFC.FUNCTION_READER_REQUEST_NDEF] = BrickletNFC.RESPONSE_EXPECTED_FALSE
@@ -176,7 +179,7 @@ class BrickletNFC(Device):
         """
         self.ipcon.send_request(self, BrickletNFC.FUNCTION_READER_REQUEST_TAG_ID, (), '', '')
 
-    def reader_get_tag_id(self):
+    def reader_get_tag_id_low_level(self):
         """
         Returns the tag type, tag ID and the length of the tag ID
         (4 or 7 bytes are possible length). This function can only be called if the
@@ -190,7 +193,7 @@ class BrickletNFC(Device):
            :cb:`Reader State Changed` callback)
         3. Call :func:`Reader Get Tag ID`
         """
-        return ReaderGetTagID(*self.ipcon.send_request(self, BrickletNFC.FUNCTION_READER_GET_TAG_ID, (), '', 'B B 10B'))
+        return ReaderGetTagIDLowLevel(*self.ipcon.send_request(self, BrickletNFC.FUNCTION_READER_GET_TAG_ID_LOW_LEVEL, (), '', 'B B 32B'))
 
     def reader_get_state(self):
         """
@@ -205,7 +208,7 @@ class BrickletNFC(Device):
         Example: If you call :func:`Reader Request Page`, the state will change to
         *RequestPage* until the reading of the page is finished. Then it will change
         to either *RequestPageReady* if it worked or to *RequestPageError* if it
-        didn't. If the request worked you can get the page by calling :func:`Reader Get Page`.
+        didn't. If the request worked you can get the page by calling :func:`Reader Read Page`.
 
         The same approach is used analogously for the other API functions.
         """
@@ -213,7 +216,8 @@ class BrickletNFC(Device):
 
     def reader_write_ndef_low_level(self, ndef_length, ndef_chunk_offset, ndef_chunk_data):
         """
-
+        works with type 2 and 4
+        has to be ndef formated already
         """
         self.ipcon.send_request(self, BrickletNFC.FUNCTION_READER_WRITE_NDEF_LOW_LEVEL, (ndef_length, ndef_chunk_offset, ndef_chunk_data), 'H H 60B', '')
 
@@ -226,6 +230,8 @@ class BrickletNFC(Device):
     def reader_read_ndef_low_level(self):
         """
         TODO
+
+        works with type 1-4
         """
         return ReaderReadNdefLowLevel(*self.ipcon.send_request(self, BrickletNFC.FUNCTION_READER_READ_NDEF_LOW_LEVEL, (), '', 'H H 60B'))
 
@@ -265,6 +271,9 @@ class BrickletNFC(Device):
         * Mifare Classic page size: 16 byte (one page is written)
         * NFC Forum Type 1 page size: 8 byte (two pages are written)
         * NFC Forum Type 2 page size: 4 byte (four pages are written)
+        * NFC Forum Type 3 page size: 16 byte (one page is written)
+
+        * NFC Forum Type 4: no pages, page = file selection (cc or ndef)
 
         The general approach for writing to a tag is as follows:
 
@@ -285,7 +294,7 @@ class BrickletNFC(Device):
     def reader_request_page(self, page, length):
         """
         Reads 16 bytes starting from the given page and stores them into a buffer.
-        The buffer can then be read out with :func:`Reader Get Page`.
+        The buffer can then be read out with :func:`Reader Read Page`.
         How many pages are read depends on the tag type. The page sizes are
         as follows:
 
@@ -303,7 +312,7 @@ class BrickletNFC(Device):
         4. Call :func:`Reader Request Page` with page number
         5. Wait for state to change to *RequestPageReady* (see :func:`Reader Get State`
            or :cb:`Reader State Changed` callback)
-        6. Call :func:`Reader Get Page` to retrieve the page from the buffer
+        6. Call :func:`Reader Read Page` to retrieve the page from the buffer
 
         If you use a Mifare Classic tag you have to authenticate a page before you
         can read it. See :func:`Reader Authenticate Mifare Classic Page`.
@@ -383,9 +392,28 @@ class BrickletNFC(Device):
         """
         return GetIdentity(*self.ipcon.send_request(self, BrickletNFC.FUNCTION_GET_IDENTITY, (), '', '8s 8s c 3B 3B H'))
 
+    def reader_get_tag_id(self):
+        """
+        Returns the tag type, tag ID and the length of the tag ID
+        (4 or 7 bytes are possible length). This function can only be called if the
+        NFC Bricklet is currently in one of the *Ready* states. The returned ID
+        is the ID that was saved through the last call of :func:`Reader Request Tag ID`.
+
+        To get the tag ID of a tag the approach is as follows:
+
+        1. Call :func:`Reader Request Tag ID`
+        2. Wait for state to change to *RequestTagIDReady* (see :func:`Reader Get State` or
+           :cb:`Reader State Changed` callback)
+        3. Call :func:`Reader Get Tag ID`
+        """
+        ret = self.reader_get_tag_id_low_level()
+
+        return ReaderGetTagID(ret.tag_type, ret.tag_id_data[:ret.tag_id_length])
+
     def reader_write_ndef(self, ndef):
         """
-
+        works with type 2 and 4
+        has to be ndef formated already
         """
         if len(ndef) > 65535:
             raise Error(Error.INVALID_PARAMETER, 'Ndef can be at most 65535 items long')
@@ -409,6 +437,8 @@ class BrickletNFC(Device):
     def reader_read_ndef(self):
         """
         TODO
+
+        works with type 1-4
         """
         with self.stream_lock:
             ret = self.reader_read_ndef_low_level()
@@ -439,6 +469,9 @@ class BrickletNFC(Device):
         * Mifare Classic page size: 16 byte (one page is written)
         * NFC Forum Type 1 page size: 8 byte (two pages are written)
         * NFC Forum Type 2 page size: 4 byte (four pages are written)
+        * NFC Forum Type 3 page size: 16 byte (one page is written)
+
+        * NFC Forum Type 4: no pages, page = file selection (cc or ndef)
 
         The general approach for writing to a tag is as follows:
 

@@ -44,8 +44,8 @@ typedef struct {
 	uint8_t  reader_state;
 
 	uint8_t  reader_tag_type;
-	uint8_t  reader_tid_length;
-	uint8_t  reader_tid[10];
+	uint8_t  reader_tag_id_length;
+	uint8_t  reader_tag_id[32];
 
 	uint16_t reader_mifare_auth_page;
 	uint8_t  reader_mifare_auth_key_number;

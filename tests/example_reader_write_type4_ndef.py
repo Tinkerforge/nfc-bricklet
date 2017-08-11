@@ -22,7 +22,7 @@ def cb_state_changed(state, idle, nfc):
         print('Found tag of type ' +
               str(ret.tag_type) +
               ' with ID [' +
-              ' '.join(map(str, map(hex, ret.tid[:ret.tid_length]))) +
+              ' '.join(map(str, map(hex, ret.tag_id))) +
               "]")
 
         nfc.reader_write_page(nfc.READER_REQUEST_TYPE4_NDEF, [0, 11, 209, 1, 7, 84, 2, 101, 110, 72, 117, 104, 117])

@@ -78,8 +78,8 @@ static void pn7150_reader_request_tag_id(void) {
 	}
 
 	if((pn7150_reader_interface.ModeTech & MODE_MASK) == MODE_POLL) {
-		pn7150.reader_tid_length = pn7150_reader_interface.Info.NFC_APP.NfcIdLen;
-		memcpy(pn7150.reader_tid, pn7150_reader_interface.Info.NFC_APP.NfcId, 10);
+		pn7150.reader_tag_id_length = pn7150_reader_interface.Info.NFC_APP.NfcIdLen;
+		memcpy(pn7150.reader_tag_id, pn7150_reader_interface.Info.NFC_APP.NfcId, 10);
 
 		switch(pn7150_reader_interface.Protocol) {
 			case PROT_T1T: {
@@ -97,8 +97,8 @@ static void pn7150_reader_request_tag_id(void) {
 					return;
 				}
 
-				pn7150.reader_tid_length = 4;
-				memcpy(pn7150.reader_tid, &response[2], 4);
+				pn7150.reader_tag_id_length = 4;
+				memcpy(pn7150.reader_tag_id, &response[2], 4);
 
 				break;
 			}
@@ -115,8 +115,8 @@ static void pn7150_reader_request_tag_id(void) {
 					return;
 				}
 
-				pn7150.reader_tid_length = 8;
-				memcpy(pn7150.reader_tid, RW_NDEF_T3T_Ndef.IDm, 8);
+				pn7150.reader_tag_id_length = 8;
+				memcpy(pn7150.reader_tag_id, RW_NDEF_T3T_Ndef.IDm, 8);
 				break;
 			}
 
@@ -252,7 +252,7 @@ static void pn7150_reader_request_page(void) {
 
 			do {
 				if(page < 0xf) { // page num < 0xF are read with RALL (see Type1 spec 5.7)
-					uint8_t rall[7] = {0x00, 0x00, 0x00, pn7150.reader_tid[0], pn7150.reader_tid[1], pn7150.reader_tid[2], pn7150.reader_tid[3]};
+					uint8_t rall[7] = {0x00, 0x00, 0x00, pn7150.reader_tag_id[0], pn7150.reader_tag_id[1], pn7150.reader_tag_id[2], pn7150.reader_tag_id[3]};
 
 					bool status = NxpNci_ReaderTagCmd(rall, sizeof(rall), response, &length);
 					if((status == NFC_ERROR) || (response[length - 1] != 0)) {
@@ -265,7 +265,7 @@ static void pn7150_reader_request_page(void) {
 					page = 0xf;
 
 				} else { // page num >= 0xF are read with READ8 (see Type1 spec 5.13)
-					uint8_t read8[14] = {0x02, page, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, pn7150.reader_tid[0], pn7150.reader_tid[1], pn7150.reader_tid[2], pn7150.reader_tid[3]};
+					uint8_t read8[14] = {0x02, page, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, pn7150.reader_tag_id[0], pn7150.reader_tag_id[1], pn7150.reader_tag_id[2], pn7150.reader_tag_id[3]};
 
 					bool status = NxpNci_ReaderTagCmd(read8, sizeof(read8), response, &length);
 					if((status == NFC_ERROR) || (response[length - 1] != 0)) {
@@ -313,7 +313,7 @@ static void pn7150_reader_request_page(void) {
 		case PROT_T3T: {
 			uint8_t response[256];
 			uint8_t check_cmd[] = {0x10,0x06,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x0B,0x00,0x1,0x80,0x00};
-			memcpy(&check_cmd[2], pn7150.reader_tid, 8);
+			memcpy(&check_cmd[2], pn7150.reader_tag_id, 8);
 
 			uint8_t length;
 			uint16_t offset = 0;
@@ -489,7 +489,7 @@ void pn7150_reader_write_page(void) {
 				//       different tags), according to the datasheet we may have to use
 				//       write (one byte instead of one block) for pages 0x0-0xe.
 				//       Add special case for pages < 0xF if problems turn up!
-				uint8_t write_e8[14] = {0x54, page, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, pn7150.reader_tid[0], pn7150.reader_tid[1], pn7150.reader_tid[2], pn7150.reader_tid[3]};
+				uint8_t write_e8[14] = {0x54, page, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, pn7150.reader_tag_id[0], pn7150.reader_tag_id[1], pn7150.reader_tag_id[2], pn7150.reader_tag_id[3]};
 				memcpy(write_e8+2, pn7150.data + offset, 8);
 				bool status = NxpNci_ReaderTagCmd(write_e8, sizeof(write_e8), ret, &ret_length);
 
@@ -532,7 +532,7 @@ void pn7150_reader_write_page(void) {
 		case PROT_T3T: {
 			uint8_t response[256];
 			uint8_t check_cmd[0x20] = {0x20,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x09,0x00,0x1,0x80,0x00};
-			memcpy(&check_cmd[2], pn7150.reader_tid, 8);
+			memcpy(&check_cmd[2], pn7150.reader_tag_id, 8);
 
 			uint8_t length;
 			uint16_t offset = 0;

@@ -35,7 +35,7 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_SET_MODE: return set_mode(message);
 		case FID_GET_MODE: return get_mode(message, response);
 		case FID_READER_REQUEST_TAG_ID: return reader_request_tag_id(message);
-		case FID_READER_GET_TAG_ID: return reader_get_tag_id(message, response);
+		case FID_READER_GET_TAG_ID_LOW_LEVEL: return reader_get_tag_id_low_level(message, response);
 		case FID_READER_GET_STATE: return reader_get_state(message, response);
 		case FID_READER_WRITE_NDEF_LOW_LEVEL: return reader_write_ndef_low_level(message);
 		case FID_READER_REQUEST_NDEF: return reader_request_ndef(message);
@@ -95,12 +95,14 @@ BootloaderHandleMessageResponse reader_request_tag_id(const ReaderRequestTagID *
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 }
 
-BootloaderHandleMessageResponse reader_get_tag_id(const ReaderGetTagID *data, ReaderGetTagID_Response *response) {
-	response->header.length = sizeof(ReaderGetTagID_Response);
+BootloaderHandleMessageResponse reader_get_tag_id_low_level(const ReaderGetTagIDLowLevel *data, ReaderGetTagIDLowLevel_Response *response) {
+	response->header.length = sizeof(ReaderGetTagIDLowLevel_Response);
 	if((pn7150.mode == NFC_MODE_READER) && (pn7150.reader_state & NFC_READER_STATE_REQUEST_TAG_ID_READY)) {
 		response->tag_type = pn7150.reader_tag_type;
-		response->tid_length = pn7150.reader_tid_length;
-		memcpy(response->tid, pn7150.reader_tid, 10);
+		response->tag_id_length = pn7150.reader_tag_id_length;
+		memcpy(response->tag_id_data, pn7150.reader_tag_id, response->tag_id_length);
+		memset(&response->tag_id_data[response->tag_id_length], 0, 32-response->tag_id_length);
+
 		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 	}
 

@@ -107,7 +107,7 @@ void communication_init(void);
 #define FID_SET_MODE 1
 #define FID_GET_MODE 2
 #define FID_READER_REQUEST_TAG_ID 3
-#define FID_READER_GET_TAG_ID 4
+#define FID_READER_GET_TAG_ID_LOW_LEVEL 4
 #define FID_READER_GET_STATE 5
 #define FID_READER_WRITE_NDEF_LOW_LEVEL 6
 #define FID_READER_REQUEST_NDEF 7
@@ -150,14 +150,14 @@ typedef struct {
 
 typedef struct {
 	TFPMessageHeader header;
-} __attribute__((__packed__)) ReaderGetTagID;
+} __attribute__((__packed__)) ReaderGetTagIDLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint8_t tag_type;
-	uint8_t tid_length;
-	uint8_t tid[10];
-} __attribute__((__packed__)) ReaderGetTagID_Response;
+	uint8_t tag_id_length;
+	uint8_t tag_id_data[32];
+} __attribute__((__packed__)) ReaderGetTagIDLowLevel_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -309,7 +309,7 @@ typedef struct {
 BootloaderHandleMessageResponse set_mode(const SetMode *data);
 BootloaderHandleMessageResponse get_mode(const GetMode *data, GetMode_Response *response);
 BootloaderHandleMessageResponse reader_request_tag_id(const ReaderRequestTagID *data);
-BootloaderHandleMessageResponse reader_get_tag_id(const ReaderGetTagID *data, ReaderGetTagID_Response *response);
+BootloaderHandleMessageResponse reader_get_tag_id_low_level(const ReaderGetTagIDLowLevel *data, ReaderGetTagIDLowLevel_Response *response);
 BootloaderHandleMessageResponse reader_get_state(const ReaderGetState *data, ReaderGetState_Response *response);
 BootloaderHandleMessageResponse reader_write_ndef_low_level(const ReaderWriteNdefLowLevel *data);
 BootloaderHandleMessageResponse reader_request_ndef(const ReaderRequestNdef *data);

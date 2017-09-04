@@ -32,6 +32,7 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
+LIBS:nfc-bricklet-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
@@ -1179,4 +1180,6 @@ Wire Wire Line
 	2950 4650 3100 4650
 Wire Wire Line
 	3100 4750 2950 4750
+Text Notes 9850 4850 0    60   ~ 0
+Shield:\nLeadtek SMS-303 \nTE 2118708-2
 $EndSCHEMATC

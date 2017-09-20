@@ -39,7 +39,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "NFC Bricklet"
-Date "2017-08-31"
+Date "2017-09-20"
 Rev "1.0"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
@@ -1182,4 +1182,30 @@ Wire Wire Line
 	3100 4750 2950 4750
 Text Notes 9850 4850 0    60   ~ 0
 Shield:\nLeadtek SMS-303 \nTE 2118708-2
+$Comp
+L Conn_01x01 SHD1
+U 1 1 59C25D9B
+P 7250 4650
+F 0 "SHD1" H 7250 4750 50  0000 C CNN
+F 1 "Shield" H 7250 4550 50  0000 C CNN
+F 2 "kicad-libraries:SHIELD-261_261" H 7250 4650 50  0001 C CNN
+F 3 "" H 7250 4650 50  0001 C CNN
+	1    7250 4650
+	-1   0    0    1   
+$EndComp
+$Comp
+L GND #PWR019
+U 1 1 59C262B0
+P 7600 4700
+F 0 "#PWR019" H 7600 4700 30  0001 C CNN
+F 1 "GND" H 7600 4630 30  0001 C CNN
+F 2 "" H 7600 4700 60  0000 C CNN
+F 3 "" H 7600 4700 60  0000 C CNN
+	1    7600 4700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7450 4650 7600 4650
+Wire Wire Line
+	7600 4650 7600 4700
 $EndSCHEMATC

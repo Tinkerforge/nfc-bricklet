@@ -33,35 +33,36 @@
 #define BOOTLOADER_HW_VERSION_MINOR    0
 #define BOOTLOADER_HW_VERSION_REVISION 0
 
-#define BOOTLOADER_STATUS_LED_PIN      P4_5
-#define BOOTLOADER_BOOT_PAD_PIN        P4_6
+// TODO not there
+#define BOOTLOADER_STATUS_LED_PIN      P1_1
+#define BOOTLOADER_BOOT_PAD_PIN        P0_12
 
 #define BOOTLOADER_FLASH_EEPROM_SIZE   (4*256)
 #define BOOTLOADER_FLASH_SIZE          (64*1024 - BOOTLOADER_FLASH_EEPROM_SIZE)
 
 // --- Oscilater defines ---
-#define OSCHP_FREQUENCY 16000000
-#define DCLK_CLOCK_SRC  1
-#define DCO1_CAL_SRC    1
+//#define OSCHP_FREQUENCY 16000000
+//#define DCLK_CLOCK_SRC  1
+//#define DCO1_CAL_SRC    1
 
 // --- SPITFP ---
-#define SPITFP_USIC_CHANNEL         USIC0_CH1
-#define SPITFP_USIC                 XMC_SPI0_CH1
+#define SPITFP_USIC_CHANNEL         USIC0_CH0
+#define SPITFP_USIC                 XMC_SPI0_CH0
 
-#define SPITFP_SCLK_PIN             P1_3
+#define SPITFP_SCLK_PIN             P0_14
 #define SPITFP_SCLK_INPUT           XMC_USIC_CH_INPUT_DX1
 #define SPITFP_SCLK_SOURCE          0b000 // DX1A
 
-#define SPITFP_SELECT_PIN           P1_1
+#define SPITFP_SELECT_PIN           P0_13
 #define SPITFP_SELECT_INPUT         XMC_USIC_CH_INPUT_DX2
-#define SPITFP_SELECT_SOURCE        0b100 // DX2E
+#define SPITFP_SELECT_SOURCE        0b101 // DX2F
 
-#define SPITFP_MOSI_PIN             P1_2
+#define SPITFP_MOSI_PIN             P0_15
 #define SPITFP_MOSI_INPUT           XMC_USIC_CH_INPUT_DX0
 #define SPITFP_MOSI_SOURCE          0b001 // DX0B
 
-#define SPITFP_MISO_PIN             P1_6
-#define SPITFP_MISO_PIN_AF          (XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT2 | P1_6_AF_U0C1_DOUT0)
+#define SPITFP_MISO_PIN             P2_0
+#define SPITFP_MISO_PIN_AF          (XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT6 | P2_0_AF_U0C0_DOUT0)
 
 #define SPITFP_RECEIVE_BUFFER_SIZE  1024
 #define SPITFP_RECEIVE_BUFFER_MASK  (SPITFP_RECEIVE_BUFFER_SIZE-1) // If size is power of 2

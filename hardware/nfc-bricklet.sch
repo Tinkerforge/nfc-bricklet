@@ -983,10 +983,10 @@ Wire Wire Line
 Wire Wire Line
 	3100 5150 2950 5150
 Text Notes 3850 5600 0    43   ~ 0
-SWD\nP1.2 : CH1-SWDCLK -\nP1.3 : CH1-SWDIO - USIC0_CH1.DX0A
-Text GLabel 2950 5650 0    60   Output ~ 0
+SWD\nP1.2 : CH1-SWDIO - USIC0_CH1.DOUT0\nP1.3 : CH1-SWDCLK -USIC0_CH1.SCLKOUT
+Text GLabel 2950 5750 0    60   Output ~ 0
 SCL
-Text GLabel 2950 5750 0    60   BiDi ~ 0
+Text GLabel 2950 5650 0    60   BiDi ~ 0
 SDA
 Wire Wire Line
 	2950 5750 3100 5750

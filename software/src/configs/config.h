@@ -27,13 +27,13 @@
 #define STARTUP_SYSTEM_INIT_ALREADY_DONE
 #define SYSTEM_TIMER_FREQUENCY 1000 // Use 1 kHz system timer
 
-#define UARTBB_TX_PIN P1_5
+#define UARTBB_TX_PIN P2_10
 
 #define FIRMWARE_VERSION_MAJOR 2
 #define FIRMWARE_VERSION_MINOR 0
 #define FIRMWARE_VERSION_REVISION 0
 
-#define COOP_TASK_STACK_SIZE (4*1024)
+#define COOP_TASK_STACK_SIZE (4*1024) //???
 
 #include "config_custom_bootloader.h"
 

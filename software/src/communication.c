@@ -25,6 +25,7 @@
 #include "bricklib2/utility/util_definitions.h"
 #include "bricklib2/protocols/tfp/tfp.h"
 
+#include "configs/config_pn7150.h"
 #include "pn7150.h"
 #include "pn7150_cardemu.h"
 #include "pn7150_p2p.h"
@@ -53,6 +54,8 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_P2P_WRITE_NDEF_LOW_LEVEL: return p2p_write_ndef_low_level(message);
 		case FID_P2P_START_TRANSFER: return p2p_start_transfer(message);
 		case FID_P2P_READ_NDEF_LOW_LEVEL: return p2p_read_ndef_low_level(message, response);
+		case FID_SET_DETECTION_LED_CONFIG: return set_detection_led_config(message);
+		case FID_GET_DETECTION_LED_CONFIG: return get_detection_led_config(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -358,6 +361,28 @@ BootloaderHandleMessageResponse p2p_read_ndef_low_level(const P2PReadNdefLowLeve
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 }
 
+BootloaderHandleMessageResponse set_detection_led_config(const SetDetectionLEDConfig *data) {
+	if(data->config > NFC_DETECTION_LED_CONFIG_SHOW_DETECTION) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	pn7150.detection_led_state.config = data->config;
+
+	// Set LED according to value
+	if(pn7150.detection_led_state.config == NFC_DETECTION_LED_CONFIG_OFF) {
+		XMC_GPIO_SetOutputHigh(PN7150_DETECT_LED_PIN);
+	} else {
+		XMC_GPIO_SetOutputLow(PN7150_DETECT_LED_PIN);
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_detection_led_config(const GetDetectionLEDConfig *data, GetDetectionLEDConfig_Response *response) {
+	response->header.length = sizeof(GetDetectionLEDConfig_Response);
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
 
 bool handle_reader_state_changed_callback(void) {
 	static bool is_buffered = false;

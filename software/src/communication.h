@@ -103,6 +103,11 @@ void communication_init(void);
 #define NFC_P2P_TRANSFER_WRITE 1
 #define NFC_P2P_TRANSFER_READ 2
 
+#define NFC_DETECTION_LED_CONFIG_OFF 0
+#define NFC_DETECTION_LED_CONFIG_ON 1
+#define NFC_DETECTION_LED_CONFIG_SHOW_HEARTBEAT 2
+#define NFC_DETECTION_LED_CONFIG_SHOW_DETECTION 3
+
 // Function and callback IDs and structs
 #define FID_SET_MODE 1
 #define FID_GET_MODE 2
@@ -125,6 +130,8 @@ void communication_init(void);
 #define FID_P2P_WRITE_NDEF_LOW_LEVEL 21
 #define FID_P2P_START_TRANSFER 22
 #define FID_P2P_READ_NDEF_LOW_LEVEL 23
+#define FID_SET_DETECTION_LED_CONFIG 25
+#define FID_GET_DETECTION_LED_CONFIG 26
 
 #define FID_CALLBACK_READER_STATE_CHANGED 13
 #define FID_CALLBACK_CARDEMU_STATE_CHANGED 18
@@ -304,6 +311,20 @@ typedef struct {
 	bool idle;
 } __attribute__((__packed__)) P2PStateChanged_Callback;
 
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) SetDetectionLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetDetectionLEDConfig;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t config;
+} __attribute__((__packed__)) GetDetectionLEDConfig_Response;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse set_mode(const SetMode *data);
@@ -327,6 +348,8 @@ BootloaderHandleMessageResponse p2p_start_discovery(const P2PStartDiscovery *dat
 BootloaderHandleMessageResponse p2p_write_ndef_low_level(const P2PWriteNdefLowLevel *data);
 BootloaderHandleMessageResponse p2p_start_transfer(const P2PStartTransfer *data);
 BootloaderHandleMessageResponse p2p_read_ndef_low_level(const P2PReadNdefLowLevel *data, P2PReadNdefLowLevel_Response *response);
+BootloaderHandleMessageResponse set_detection_led_config(const SetDetectionLEDConfig *data);
+BootloaderHandleMessageResponse get_detection_led_config(const GetDetectionLEDConfig *data, GetDetectionLEDConfig_Response *response);
 
 // Callbacks
 bool handle_reader_state_changed_callback(void);

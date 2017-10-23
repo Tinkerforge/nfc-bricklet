@@ -27,6 +27,7 @@
 #include "bricklib2/hal/uartbb/uartbb.h"
 #include "bricklib2/os/coop_task.h"
 #include "bricklib2/logging/logging.h"
+#include "bricklib2/utility/led_flicker.h"
 
 #include "communication.h"
 
@@ -40,7 +41,11 @@
 
 #include "NxpNci.h"
 
+#define PN7150_DETECT_LED_ONTIME 1000 // in ms
+
 PN7150 pn7150;
+
+CoopTask pn7150_task;
 
 bool pn7150_init_nfc(void) {
 	uint8_t configure_mask = 0;
@@ -88,19 +93,7 @@ bool pn7150_init_nfc(void) {
     return true;
 }
 
-void pn7150_init(void) {
-	memset(&pn7150, 0, sizeof(PN7150));
-
-	pn7150.new_mode      = false;
-	pn7150.mode          = NFC_MODE_OFF;
-	pn7150.reader_state  = NFC_READER_STATE_INITIALIZATION;
-	pn7150.cardemu_state = NFC_CARDEMU_STATE_INITIALIZATION;
-	pn7150.p2p_state     = NFC_P2P_STATE_INITIALIZATION;
-}
-
-void pn7150_tick(void) {
-	pn7150_init();
-
+void pn7150_tick_task(void) {
 	while(true) {
 		coop_task_yield();
 
@@ -121,6 +114,43 @@ void pn7150_tick(void) {
 			case NFC_MODE_CARDEMU: pn7150_cardemu_state_machine(); break;
 			case NFC_MODE_P2P:     pn7150_p2p_state_machine(); break;
 			default: break;
+		}
+	}
+}
+
+void pn7150_init(void) {
+	memset(&pn7150, 0, sizeof(PN7150));
+
+	pn7150.new_mode      = false;
+	pn7150.mode          = NFC_MODE_OFF;
+	pn7150.reader_state  = NFC_READER_STATE_INITIALIZATION;
+	pn7150.cardemu_state = NFC_CARDEMU_STATE_INITIALIZATION;
+	pn7150.p2p_state     = NFC_P2P_STATE_INITIALIZATION;
+
+	// LED init
+	pn7150.detection_led_state.config = LED_FLICKER_CONFIG_EXTERNAL;
+	pn7150.led_state_change_time      = -PN7150_DETECT_LED_ONTIME-1;
+	XMC_GPIO_CONFIG_t led_pin_config = {
+		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
+		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
+	};
+
+	XMC_GPIO_Init(PN7150_DETECT_LED_PIN, &led_pin_config);
+
+	coop_task_init(&pn7150_task, pn7150_tick_task);
+}
+
+void pn7150_tick(void) {
+	coop_task_tick(&pn7150_task);
+	led_flicker_tick(&pn7150.detection_led_state, system_timer_get_ms(), PN7150_DETECT_LED_PIN);
+
+	if(pn7150.detection_led_state.config == LED_FLICKER_CONFIG_EXTERNAL) {
+		// pn7150.led_state_change_time is updated any time there is communication with a card/reader
+		// we enable the LED for PN7150_DETECT_LED_ONTIME ms if there was communication
+		if(system_timer_is_time_elapsed_ms(pn7150.led_state_change_time, PN7150_DETECT_LED_ONTIME)) {
+			XMC_GPIO_SetOutputHigh(PN7150_DETECT_LED_PIN);
+		} else {
+			XMC_GPIO_SetOutputLow(PN7150_DETECT_LED_PIN);
 		}
 	}
 }

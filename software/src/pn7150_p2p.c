@@ -72,6 +72,7 @@ void pn7150_p2p_discover(void) {
 		return;
 	}
 
+	pn7150.led_state_change_time = system_timer_get_ms();
 	pn7150.p2p_state = NFC_P2P_STATE_DISCOVER_READY;
 }
 
@@ -80,6 +81,7 @@ void pn7150_p2p_transfer_ndef(void) {
         NxpNci_ProcessP2pMode(pn7150_p2p_interface);
 
         if(pn7150.p2p_state == NFC_P2P_STATE_TRANSFER_NDEF_READY) {
+        	pn7150.led_state_change_time = system_timer_get_ms();
         	return;
         }
     }

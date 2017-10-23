@@ -30,10 +30,7 @@
 #include "communication.h"
 #include "pn7150.h"
 
-#include "bricklib2/os/coop_task.h"
 #include "xmc_gpio.h"
-
-CoopTask pn7150_task;
 
 uint32_t count = 0;
 
@@ -47,7 +44,7 @@ int main(void) {
 	logd("Start NFC Bricklet\n\r");
 
 	communication_init();
-	coop_task_init(&pn7150_task, pn7150_tick);
+	pn7150_init();
 
 	uint32_t t = system_timer_get_ms();
 	while(true) {
@@ -55,11 +52,11 @@ int main(void) {
 			t = system_timer_get_ms();
 
 			logi("tick: %u\n\r", count);
-			count = 0;
+			count++;
 		}
 
 		bootloader_tick();
 		communication_tick();
-		coop_task_tick(&pn7150_task);
+		pn7150_tick();
 	}
 }

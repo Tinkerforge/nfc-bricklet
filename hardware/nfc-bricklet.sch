@@ -1166,7 +1166,7 @@ Wire Wire Line
 Wire Wire Line
 	3100 4750 2950 4750
 Text Notes 9850 4850 0    60   ~ 0
-Shield:\nLeadtek SMS-303 \nTE 2118708-2
+Shield:\nTE 2118708-2
 $Comp
 L Conn_01x01 SHD1
 U 1 1 59C25D9B

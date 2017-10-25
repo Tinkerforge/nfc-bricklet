@@ -56,6 +56,7 @@ void pn7150_cardemu_discover(void) {
 		return;
 	}
 
+	pn7150.led_state_change_time = system_timer_get_ms();
 	pn7150.cardemu_state = NFC_CARDEMU_STATE_DISCOVER_READY;
 }
 
@@ -75,6 +76,7 @@ void pn7150_cardemu_transfer_ndef(void) {
         for(uint8_t i = 0; i < 100; i++) {
         	coop_task_sleep_ms(50);
         	if(pn7150.cardemu_state == NFC_CARDEMU_STATE_TRANSFER_NDEF_READY) {
+        		pn7150.led_state_change_time = system_timer_get_ms();
         		return;
         	}
         }

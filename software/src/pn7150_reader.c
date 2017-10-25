@@ -77,6 +77,8 @@ static void pn7150_reader_request_tag_id(void) {
 		return;
 	}
 
+	pn7150.led_state_change_time = system_timer_get_ms();
+
 	if((pn7150_reader_interface.ModeTech & MODE_MASK) == MODE_POLL) {
 		pn7150.reader_tag_id_length = pn7150_reader_interface.Info.NFC_APP.NfcIdLen;
 		memcpy(pn7150.reader_tag_id, pn7150_reader_interface.Info.NFC_APP.NfcId, 10);
@@ -173,6 +175,7 @@ static void pn7150_reader_write_ndef(void) {
 			if(pn7150.reader_state != NFC_READER_STATE_WRITE_NDEF_READY) {
 				pn7150.reader_state = NFC_READER_STATE_WRITE_NDEF_ERROR;
 			}
+			pn7150.led_state_change_time = system_timer_get_ms();
 			break;
 		}
 
@@ -203,6 +206,7 @@ static void pn7150_reader_authenticate_mifare_classic_page(void) {
 				return;
 			}
 
+			pn7150.led_state_change_time = system_timer_get_ms();
 			pn7150.reader_state = NFC_READER_STATE_AUTHENTICATE_MIFARE_CLASSIC_PAGE_READY;
 			break;
 		}
@@ -231,6 +235,7 @@ static void pn7150_reader_request_page(void) {
 					return;
 				}
 
+				pn7150.led_state_change_time = system_timer_get_ms();
 				memcpy(pn7150.data + offset, response+1, 16);
 
 				page += 4;
@@ -260,6 +265,7 @@ static void pn7150_reader_request_page(void) {
 						return;
 					}
 
+					pn7150.led_state_change_time = system_timer_get_ms();
 					memcpy(pn7150.data, response + 2 + page*8, 8*(0xF - page));
 					offset = 8*(0xF - page);
 					page = 0xf;
@@ -299,6 +305,7 @@ static void pn7150_reader_request_page(void) {
 					return;
 				}
 
+				pn7150.led_state_change_time = system_timer_get_ms();
 				page += 4;
 				offset += (length-1);
 			} while(offset < pn7150.reader_request_length);
@@ -326,6 +333,7 @@ static void pn7150_reader_request_page(void) {
 					return;
 				}
 
+				pn7150.led_state_change_time = system_timer_get_ms();
 				memcpy(pn7150.data + offset, &response[13], 16);
 
 				page++;
@@ -398,6 +406,7 @@ static void pn7150_reader_request_page(void) {
 				break;
 			}
 
+			pn7150.led_state_change_time = system_timer_get_ms();
 			uint8_t mapping_version = response[2];
 			uint8_t file_id[2] = {response[9], response[10]};
 			uint16_t max_single_read_size = ((response[3] << 8) | response[4]) - 1;
@@ -471,6 +480,7 @@ void pn7150_reader_write_page(void) {
 					return;
 				}
 
+				pn7150.led_state_change_time = system_timer_get_ms();
 				page++;
 				offset += 16;
 			} while(offset < pn7150.reader_write_length);
@@ -498,6 +508,7 @@ void pn7150_reader_write_page(void) {
 					return;
 				}
 
+				pn7150.led_state_change_time = system_timer_get_ms();
 				page++;
 				offset += 8;
 			} while(offset < pn7150.reader_write_length);
@@ -521,6 +532,7 @@ void pn7150_reader_write_page(void) {
 					return;
 				}
 
+				pn7150.led_state_change_time = system_timer_get_ms();
 				page++;
 				offset += 4;
 			} while(offset < pn7150.reader_write_length);
@@ -546,6 +558,7 @@ void pn7150_reader_write_page(void) {
 					return;
 				}
 
+				pn7150.led_state_change_time = system_timer_get_ms();
 				page++;
 				offset += 16;
 			} while(offset < pn7150.reader_write_length);
@@ -642,6 +655,7 @@ void pn7150_reader_write_page(void) {
 				return;
 			}
 
+			pn7150.led_state_change_time = system_timer_get_ms();
 			memcpy(write_data, write_file, sizeof(write_file));
 			do {
 				write_data[2] = offset >> 8;

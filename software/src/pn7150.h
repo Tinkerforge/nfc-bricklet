@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bricklib2/utility/led_flicker.h"
 
 #define PN7150_MAX_DATA_SIZE 8192
 
@@ -67,9 +68,14 @@ typedef struct {
 	// P2P
 	uint8_t  p2p_state;
 	uint16_t p2p_ndef_length;
+
+	// LED
+	LEDFlickerState detection_led_state;
+	uint32_t led_state_change_time;
 } PN7150;
 
-void pn7150_tick();
+void pn7150_tick(void);
+void pn7150_init(void);
 bool pn7150_init_nfc(void);
 
 #endif

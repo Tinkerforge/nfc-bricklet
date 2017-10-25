@@ -33,12 +33,12 @@
 #define PN7150_SCL_PIN              P1_3
 #define PN7150_SCL_PIN_MODE         XMC_GPIO_MODE_OUTPUT_OPEN_DRAIN_ALT6
 #define PN7150_SCL_INPUT            XMC_USIC_CH_INPUT_DX1
-#define PN7150_SCL_SOURCE           0
+#define PN7150_SCL_SOURCE           0 // DX1A
 
 #define PN7150_SDA_PIN              P1_2
 #define PN7150_SDA_PIN_MODE         XMC_GPIO_MODE_OUTPUT_OPEN_DRAIN_ALT7
 #define PN7150_SDA_INPUT            XMC_USIC_CH_INPUT_DX0
-#define PN7150_SDA_SOURCE           1
+#define PN7150_SDA_SOURCE           1 // DX0B
 
 #define PN7150_IRQ_RX               11
 #define PN7150_IRQ_RX_PRIORITY      0
@@ -50,5 +50,7 @@
 
 #define PN7150_VEN_PIN              P0_8
 #define PN7150_IRQ_PIN              P0_9
+
+#define PN7150_DETECT_LED_PIN       P1_0
 
 #endif

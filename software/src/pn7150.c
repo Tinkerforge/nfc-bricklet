@@ -76,17 +76,17 @@ bool pn7150_init_nfc(void) {
 
 	// Open connection to NXPNCI device
 	if(NxpNci_Connect() == NFC_ERROR) {
-		loge("NxpNci_Connect Error");
+		loge("NxpNci_Connect Error\n\r");
 		return false;
 	}
 
 	while(NxpNci_ConfigureSettings() == NFC_ERROR) {
-		loge("NxpNci_ConfigureSettings Error");
+		loge("NxpNci_ConfigureSettings Error\n\r");
 		return false;
 	}
 
 	while(NxpNci_ConfigureMode(configure_mask) == NFC_ERROR) {
-		loge("NxpNci_ConfigureSettings Error");
+		loge("NxpNci_ConfigureSettings Error\n\r");
 		return false;
 	}
 

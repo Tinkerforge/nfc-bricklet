@@ -651,14 +651,22 @@ bool NxpNci_ConfigureSettings(void)
     }
     else if(gNfcController_generation == 2)
     {
-        NxpNci_CONF = NxpNci_RF_CONF_2ndGen;
-        NxpNci_CONF_size = sizeof(NxpNci_RF_CONF_2ndGen);
+        NxpNci_CONF = NxpNci_RF_CONF_2ndGen_Blk1;
+        NxpNci_CONF_size = sizeof(NxpNci_RF_CONF_2ndGen_Blk1);
     }
     if (NxpNci_CONF_size != 0)
     {
         isResetRequired = true;
         NxpNci_HostTransceive(NxpNci_CONF, NxpNci_CONF_size, Answer, sizeof(Answer), &AnswerSize);
         if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
+
+        if(gNfcController_generation == 2)
+        {
+			NxpNci_CONF = NxpNci_RF_CONF_2ndGen_Blk2;
+			NxpNci_CONF_size = sizeof(NxpNci_RF_CONF_2ndGen_Blk2);
+	        NxpNci_HostTransceive(NxpNci_CONF, NxpNci_CONF_size, Answer, sizeof(Answer), &AnswerSize);
+	        if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
+        }
     }
 #endif
 

@@ -48,6 +48,13 @@ def cb_state_changed(state, idle, nfc):
         print(len(data), data)
         print '\n\n'
         nfc.reader_request_tag_id()
+
+    elif state == nfc.READER_STATE_REQUEST_TAG_ID_ERROR:
+        nfc.reader_request_tag_id()
+
+    elif state == nfc.READER_STATE_REQUEST_PAGE_ERROR:
+        nfc.reader_request_tag_id()
+
     else:
         print '\n\n'
 

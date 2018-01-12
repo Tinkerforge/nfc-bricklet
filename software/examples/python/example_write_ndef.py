@@ -18,7 +18,7 @@ def cb_state_changed(state, idle, nfc):
         for c in list(NDEF_URI):
             payload_uri.append(ord(c))
 
-        # Only short records are supported.
+        # Only short records are supported
         ndef_record_uri = [
                                 0xD1,                 # MB/ME/CF/SR=1/IL/TNF
                                 0x01,                 # TYPE LENGTH

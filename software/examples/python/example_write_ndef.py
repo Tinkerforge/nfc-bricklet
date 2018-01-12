@@ -3,7 +3,7 @@
 
 HOST = "localhost"
 PORT = 4223
-UID = "XYZ" # Change XYZ to the UID of your NFC/RFID Bricklet
+UID = "XYZ" # Change XYZ to the UID of your NFC Bricklet
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_nfc import BrickletNFC

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <head>
+    <title>Tinkerforge | JavaScript Example</title>
+  </head>
+  <body>
+    <div style="text-align:center;">
+      <h1>NFC Bricklet Scan For Tags Example</h1>
+      <p>
+        <input value="localhost" id="host" type="text" size="20">:
+        <input value="4280" id="port" type="text" size="5">,
+        <input value="uid" id="uid" type="text" size="5">
+        <input value="Start Example" id="start" type="button" onclick="startExample();">
+      </p>
+      <p>
+        <textarea readonly id="text" cols="80" rows="24" style="resize:none;">Press "Start Example" to begin ...
+        </textarea>
+      </p>
+    <div>
+      <script src="./Tinkerforge.js" type='text/javascript'></script>
+      <script type='text/javascript'>
+        var ipcon;
+        var textArea = document.getElementById("text");
+        function startExample() {
+          textArea.value = '';
+          var HOST = document.getElementById('host').value;
+          var PORT = parseInt(document.getElementById('port').value);
+          var UID = document.getElementById('uid').value;
+          if(ipcon !== undefined) {
+            ipcon.disconnect();
+          }
+          ipcon = new Tinkerforge.IPConnection(); // Create IP connection
+          var nfc = new Tinkerforge.BrickletNFC(UID, ipcon); // Create device object
+
+          ipcon.connect(HOST, PORT,
+            function(error) {
+              textArea.value += 'Error: ' + error + '\n';
+            }
+          ); // Connect to brickd
+          // Don't use device before ipcon is connected
+
+          ipcon.on(Tinkerforge.IPConnection.CALLBACK_CONNECTED,
+            function (connectReason) {
+              nfc.setMode(Tinkerforge.BrickletNFC.MODE_READER);
+            }
+          );
+
+          // Register state changed callback
+          nfc.on(Tinkerforge.BrickletNFC.CALLBACK_READER_STATE_CHANGED,
+            // Callback function for state changed callback
+            function (state, idle) {
+              if(state == Tinkerforge.BrickletNFC.READER_STATE_IDLE) {
+                nfc.readerRequestTagID();
+              }
+              else if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) {
+                nfc.readerGetTagID(
+                  function (tagType, tid) {
+                    if(tagType != Tinkerforge.BrickletNFC.TAG_TYPE_TYPE2) {
+                      return;
+                    }
+                    textArea.value += 'Found tag of type ' +
+                                      tagType +
+                                      ' with ID [' +
+                                      '0x' +
+                                      tid[0].toString(16) +
+                                      ' ' +
+                                      '0x' +
+                                      tid[1].toString(16) +
+                                      ' ' +
+                                      '0x' +
+                                      tid[2].toString(16) +
+                                      ' ' +
+                                      '0x' +
+                                      tid[3].toString(16) +
+                                      ']\n';
+
+                    nfc.readerRequestPage(1, 4);
+                  },
+                  function (error) {
+                    textArea.value += 'Error: ' + error + '\n';
+                  }
+                );
+              }
+              else if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_TAG_ID_ERROR) {
+                textArea.value += 'Request tag ID error\n';
+              }
+              else if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_PAGE_READY) {
+                nfc.readerReadPage(
+                  function (page) {
+                    textArea.value += 'Page read: ' +
+                                      '0x' +
+                                      page[0].toString(16) +
+                                      ' ' +
+                                      '0x' +
+                                      page[1].toString(16) +
+                                      ' ' +
+                                      '0x' +
+                                      page[2].toString(16) +
+                                      ' ' +
+                                      '0x' +
+                                      page[3].toString(16) +
+                                      '\n';
+                    nfc.readerWritePage(1, page);
+                  },
+                  function(error) {
+                    textArea.value += 'Error: ' + error + '\n';
+                  }
+                );
+              }
+              else if(state == Tinkerforge.BrickletNFC.READER_STATE_WRITE_PAGE_READY) {
+                textArea.value += 'Write page ready\n';
+              }
+              else if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_PAGE_ERROR) {
+                textArea.value += 'Request page error\n';
+              }
+              else if(state == Tinkerforge.BrickletNFC.READER_STATE_WRITE_PAGE_ERROR) {
+                textArea.value += 'Write page error\n';
+              }
+            }
+          );
+        }
+      </script>
+  </body>
+</html>

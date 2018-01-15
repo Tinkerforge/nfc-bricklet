@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <head>
+    <title>Tinkerforge | JavaScript Example</title>
+  </head>
+  <body>
+    <div style="text-align:center;">
+      <h1>NFC Bricklet Write NDEF Example</h1>
+      <p>
+        <input value="localhost" id="host" type="text" size="20">:
+        <input value="4280" id="port" type="text" size="5">,
+        <input value="uid" id="uid" type="text" size="5">
+        <input value="Start Example" id="start" type="button" onclick="startExample();">
+      </p>
+      <p>
+        <textarea readonly id="text" cols="80" rows="24" style="resize:none;">Press "Start Example" to begin ...
+        </textarea>
+      </p>
+    <div>
+      <script src="./Tinkerforge.js" type='text/javascript'></script>
+      <script type='text/javascript'>
+        var ipcon;
+        var textArea = document.getElementById('text');
+        function startExample() {
+          textArea.value = '';
+          var HOST = document.getElementById('host').value;
+          var PORT = parseInt(document.getElementById('port').value);
+          var UID = document.getElementById('uid').value;
+          var NDEF_URI = 'www.tinkerforge.com';
+          if(ipcon !== undefined) {
+            ipcon.disconnect();
+          }
+          ipcon = new Tinkerforge.IPConnection(); // Create IP connection
+          var nfc = new Tinkerforge.BrickletNFC(UID, ipcon); // Create device object
+
+          ipcon.connect(HOST, PORT,
+            function(error) {
+              textArea.value += 'Error: ' + error + '\n';
+            }
+          ); // Connect to brickd
+          // Don't use device before ipcon is connected
+
+          ipcon.on(Tinkerforge.IPConnection.CALLBACK_CONNECTED,
+            function (connectReason) {
+              nfc.setMode(Tinkerforge.BrickletNFC.MODE_CARDEMU);
+            }
+          );
+
+          // Register state changed callback
+          nfc.on(Tinkerforge.BrickletNFC.CALLBACK_CARDEMU_STATE_CHANGED,
+            // Callback function for state changed callback
+            function (state, idle) {
+              if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_IDLE) {
+                var payloadURI = [];
+                for(var i = 0; i < NDEF_URI.length; i++) {
+                  payloadURI.push(NDEF_URI.charCodeAt(i));
+                }
+
+                // Only short records are supported
+                var NDEFRecordURI = [
+                                      0xD1,                  // MB/ME/CF/SR=1/IL/TNF
+                                      0x01,                  // TYPE LENGTH
+                                      payloadURI.length + 1, // Length
+                                      'U'.charCodeAt(0),     // Type
+                                      4                      // Status
+                                    ];
+
+                for(var i = 0; i < payloadURI.length; i++) {
+                  NDEFRecordURI.push(payloadURI[i]);
+                }
+
+                nfc.cardemuWriteNdef(NDEFRecordURI,
+                  function() {
+                    nfc.cardemuStartDiscovery();
+                  },
+                  null
+                );
+              }
+              else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER) {
+                textArea.value += 'Discovering\n';
+              }
+              else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_READY) {
+                nfc.cardemuStartTransfer(true);
+                textArea.value += 'Start NDEF transfer\n';
+              }
+              else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF) {
+                textArea.value += 'Transferring NDEF\n';
+              }
+              else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF_READY) {
+                textArea.value += 'NDEF transferred\n';
+              }
+              else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR) {
+                textArea.value += 'Discover error\n';
+              }
+              else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF_ERROR) {
+                textArea.value += 'Transfer NDEF error\n';
+              }
+            }
+          );
+        }
+      </script>
+  </body>
+</html>

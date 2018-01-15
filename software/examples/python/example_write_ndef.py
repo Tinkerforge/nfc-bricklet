@@ -4,11 +4,10 @@
 HOST = "localhost"
 PORT = 4223
 UID = "XYZ" # Change XYZ to the UID of your NFC Bricklet
+NDEF_URI = "www.tinkerforge.com"
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_nfc import BrickletNFC
-
-NDEF_URI = "www.tinkerforge.com"
 
 # Callback function for state changed callback
 def cb_state_changed(state, idle, nfc):

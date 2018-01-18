@@ -12,22 +12,17 @@ from tinkerforge.bricklet_nfc import BrickletNFC
 # Callback function for state changed callback
 def cb_state_changed(state, idle, nfc):
     if state == nfc.CARDEMU_STATE_IDLE:
-        payload_uri = []
-
-        for c in list(NDEF_URI):
-            payload_uri.append(ord(c))
-
         # Only short records are supported
         ndef_record_uri = [
                                 0xD1,                 # MB/ME/CF/SR=1/IL/TNF
                                 0x01,                 # TYPE LENGTH
-                                len(payload_uri) + 1, # Length
+                                len(NDEF_URI) + 1, # Length
                                 ord("U"),             # Type
                                 4                     # Status
                            ]
 
-        for d in payload_uri:
-            ndef_record_uri.append(d)
+        for c in list(NDEF_URI):
+            ndef_record_uri.append(ord(c))
 
         nfc.cardemu_write_ndef(ndef_record_uri)
         nfc.cardemu_start_discovery()

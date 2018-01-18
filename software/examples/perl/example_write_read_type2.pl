@@ -24,7 +24,7 @@ sub cb_state_changed
     my @tag_id_bytes;
 
     if($ret[0] != $nfc->TAG_TYPE_TYPE2) {
-      print "Tag type is not Type-2\n";
+      print "Tag is not type-2\n";
 
       return;
     }

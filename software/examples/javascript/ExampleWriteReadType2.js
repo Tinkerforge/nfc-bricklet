@@ -31,6 +31,8 @@ nfc.on(Tinkerforge.BrickletNFC.CALLBACK_READER_STATE_CHANGED,
       nfc.readerGetTagID(
         function (tagType, tid) {
           if(tagType != Tinkerforge.BrickletNFC.TAG_TYPE_TYPE2) {
+            console.log('Tag is not type-2');
+
             return;
           }
           console.log('Found tag of type %d with ID [0x%s 0x%s 0x%s 0x%s]',

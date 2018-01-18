@@ -35,6 +35,8 @@ public class ExampleWriteReadType2 {
 						BrickletNFC.ReaderGetTagID ret = nfc.readerGetTagID();
 
 						if (ret.tagType != BrickletNFC.TAG_TYPE_TYPE2) {
+							System.out.println("Tag is not type-2");
+
 							return;
 						}
 

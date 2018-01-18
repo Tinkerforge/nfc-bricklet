@@ -23,6 +23,8 @@ function cb_stateChanged($state, $idle, $user_data)
 		$ret = $nfc->readerGetTagID();
 
 		if ($ret["tag_type"] != BrickletNFC::TAG_TYPE_TYPE2) {
+			echo "Tag is not type-2\n";
+
 			return;
 		}
 

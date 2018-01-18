@@ -29,6 +29,7 @@ void cb_state_changed(uint8_t state, bool idle, void *user_data) {
 		}
 
 		if(ret_tag_type != NFC_TAG_TYPE_TYPE2) {
+			printf("Tag is not type-2\n");
 			free(ret_tag_id);
 
 			return;

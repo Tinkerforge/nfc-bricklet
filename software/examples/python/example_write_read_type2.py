@@ -16,7 +16,7 @@ def cb_state_changed(state, idle, nfc):
         ret = nfc.reader_get_tag_id()
 
         if ret.tag_type != nfc.TAG_TYPE_TYPE2:
-            print "Tag type is not Type-2"
+            print "Tag is not type-2"
 
             nfc.reader_request_tag_id()
 

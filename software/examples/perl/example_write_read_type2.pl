@@ -26,8 +26,6 @@ sub cb_state_changed
     if($ret[0] != $nfc->TAG_TYPE_TYPE2) {
       print "Tag type is not Type-2\n";
 
-      $nfc->reader_request_tag_id();
-
       return;
     }
 

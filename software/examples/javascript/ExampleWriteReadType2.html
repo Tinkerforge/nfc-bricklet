@@ -57,7 +57,7 @@
                 nfc.readerGetTagID(
                   function (tagType, tid) {
                     if(tagType != Tinkerforge.BrickletNFC.TAG_TYPE_TYPE2) {
-                      textArea.value += 'Tag type is not Type-2\n';
+                      textArea.value += 'Tag is not type-2\n';
 
                       return;
                     }

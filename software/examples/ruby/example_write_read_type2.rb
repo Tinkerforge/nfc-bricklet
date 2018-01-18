@@ -21,32 +21,25 @@ nfc.register_callback(BrickletNFC::CALLBACK_READER_STATE_CHANGED) do |state, idl
   if state == BrickletNFC::READER_STATE_IDLE
     nfc.reader_request_tag_id
   elsif state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_READY
-    tag_id = Array.new
     ret = nfc.reader_get_tag_id
 
     if ret[0] != BrickletNFC::TAG_TYPE_TYPE2
       return
     end
 
-    ret[1].each do |v|
-      tag_id.push "0x%X" % v
-    end
-
-    puts "Found tag of type #{ret[0]} with ID [#{tag_id.join(" ")}]"
+    printf "Found tag of type #{ret[0]} with ID [0x%X 0x%X 0x%X 0x%X]\n",
+           ret[0],
+           ret[1][0],
+           ret[1][1],
+           ret[1][2],
+           ret[1][3]
 
     nfc.reader_request_page 1, 4
   elsif state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_ERROR
     puts "Request tag ID error"
   elsif state == BrickletNFC::READER_STATE_REQUEST_PAGE_READY
-    tag_id = Array.new
     page = nfc.reader_read_page
-
-    page.each do |v|
-      tag_id.push "0x%X" % v
-    end
-
-    puts "Page read: #{tag_id.join(" ")}"
-
+    printf "Page read: 0x%X 0x%X 0x%X 0x%X\n", page[0], page[1], page[2], page[3]
     nfc.reader_write_page 1, page
   elsif state == BrickletNFC::READER_STATE_WRITE_PAGE_READY
     puts "Page write OK"

@@ -46,13 +46,13 @@ function cb_stateChanged($state, $idle, $user_data)
     $nfc->readerWritePage(1, $page);
 	}
 	else if ($state == BrickletNFC::READER_STATE_WRITE_PAGE_READY) {
-		echo "Page write OK\n";
+		echo "Write page ready\n";
 	}
 	else if ($state == BrickletNFC::READER_STATE_REQUEST_PAGE_ERROR) {
 		echo "Request page error\n";
 	}
 	else if ($state == BrickletNFC::READER_STATE_WRITE_PAGE_ERROR) {
-		echo "Request write page error\n";
+		echo "Write page error\n";
 	}
 }
 

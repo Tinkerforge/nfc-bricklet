@@ -78,17 +78,14 @@
                 );
               }
               else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER) {
-                textArea.value += 'Discovering\n';
+                textArea.value += 'Discover\n';
               }
               else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_READY) {
                 nfc.cardemuStartTransfer(true);
-                textArea.value += 'Start NDEF transfer\n';
-              }
-              else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF) {
-                textArea.value += 'Transferring NDEF\n';
+                textArea.value += 'Discover ready\n';
               }
               else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF_READY) {
-                textArea.value += 'NDEF transferred\n';
+                textArea.value += 'Transfer NDEF ready\n';
               }
               else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR) {
                 textArea.value += 'Discover error\n';

@@ -29,7 +29,7 @@ sub cb_state_changed
       print "Found tag of type " . $ret[0] . " with ID [" . join(" ", @tag_id_bytes). "]\n";
     }
     elsif ($state == $nfc->READER_STATE_REQUEST_TAG_ID_ERROR) {
-      print "Tag ID error\n";
+      print "Request tag ID error\n";
     }
 }
 

@@ -68,13 +68,13 @@ nfc.on(Tinkerforge.BrickletNFC.CALLBACK_READER_STATE_CHANGED,
       );
     }
     else if(state == Tinkerforge.BrickletNFC.READER_STATE_WRITE_PAGE_READY) {
-      console.log('Page write OK');
+      console.log('Write page ready');
     }
     else if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_PAGE_ERROR) {
       console.log('Request page error');
     }
     else if(state == Tinkerforge.BrickletNFC.READER_STATE_WRITE_PAGE_ERROR) {
-      console.log('Request write page error');
+      console.log('Write page error');
     }
   }
 );

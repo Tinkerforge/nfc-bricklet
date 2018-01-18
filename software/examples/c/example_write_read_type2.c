@@ -68,13 +68,13 @@ void cb_state_changed(uint8_t state, bool idle, void *user_data) {
 		free(ret_data);
 	}
 	else if(state == NFC_READER_STATE_WRITE_PAGE_READY) {
-		printf("Page write OK\n");
+		printf("Write page ready\n");
 	}
 	else if(state == NFC_READER_STATE_REQUEST_PAGE_ERROR) {
 		printf("Request page error\n");
 	}
 	else if(state == NFC_READER_STATE_WRITE_PAGE_ERROR) {
-		printf("Request write page error\n");
+		printf("Write page error\n");
 	}
 }
 

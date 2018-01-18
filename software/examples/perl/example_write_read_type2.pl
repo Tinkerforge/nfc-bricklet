@@ -47,7 +47,7 @@ sub cb_state_changed
     $nfc->reader_write_page(1, \@page);
   }
   elsif ($state == $nfc->READER_STATE_WRITE_PAGE_READY) {
-    print "Page write OK\n";
+    print "Write page ready\n";
   }
   elsif ($state == $nfc->READER_STATE_REQUEST_PAGE_ERROR) {
     print "Request page error\n";

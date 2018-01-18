@@ -74,13 +74,13 @@ public class ExampleWriteReadType2 {
 					}
 				}
 				else if (state == BrickletNFC.READER_STATE_WRITE_PAGE_READY) {
-					System.out.println("Page write OK");
+					System.out.println("Write page ready");
 				}
 				else if (state == BrickletNFC.READER_STATE_REQUEST_PAGE_ERROR) {
 					System.out.println("Request page error");
 				}
 				else if (state == BrickletNFC.READER_STATE_WRITE_PAGE_ERROR) {
-					System.out.println("Request write page error");
+					System.out.println("Write page error");
 				}
 			}
 		});

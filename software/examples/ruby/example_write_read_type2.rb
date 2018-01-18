@@ -44,7 +44,7 @@ nfc.register_callback(BrickletNFC::CALLBACK_READER_STATE_CHANGED) do |state, idl
     printf "Page read: 0x%X 0x%X 0x%X 0x%X\n", page[0], page[1], page[2], page[3]
     nfc.reader_write_page 1, page
   elsif state == BrickletNFC::READER_STATE_WRITE_PAGE_READY
-    puts "Page write OK"
+    puts "Write page ready"
   elsif state == BrickletNFC::READER_STATE_REQUEST_PAGE_ERROR
     puts "Request page error"
   elsif state == BrickletNFC::READER_STATE_WRITE_PAGE_ERROR

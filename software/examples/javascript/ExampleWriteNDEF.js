@@ -43,7 +43,7 @@ nfc.on(Tinkerforge.BrickletNFC.CALLBACK_CARDEMU_STATE_CHANGED,
       nfc.cardemuStartDiscovery();
     }
     else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_READY) {
-      nfc.cardemuStartTransfer(true);
+      nfc.cardemuStartTransfer(1);
     }
     else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR) {
       console.log('Discover error');

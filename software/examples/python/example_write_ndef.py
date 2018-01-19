@@ -14,12 +14,12 @@ def cb_state_changed(state, idle, nfc):
     if state == nfc.CARDEMU_STATE_IDLE:
         # Only short records are supported
         ndef_record_uri = [
-                                0xD1,                 # MB/ME/CF/SR=1/IL/TNF
-                                0x01,                 # TYPE LENGTH
-                                len(NDEF_URI) + 1, # Length
-                                ord("U"),             # Type
-                                4                     # Status
-                           ]
+                            0xD1,              # MB/ME/CF/SR=1/IL/TNF
+                            0x01,              # TYPE LENGTH
+                            len(NDEF_URI) + 1, # Length
+                            ord("U"),          # Type
+                            0x04               # Status
+                          ]
 
         for c in list(NDEF_URI):
             ndef_record_uri.append(ord(c))

@@ -52,23 +52,21 @@
             // Callback function for state changed callback
             function (state, idle) {
               if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_IDLE) {
-                var payloadURI = [];
-                for(var i = 0; i < NDEF_URI.length; i++) {
-                  payloadURI.push(NDEF_URI.charCodeAt(i));
-                }
-
                 // Only short records are supported
                 var NDEFRecordURI = [
                                       0xD1,                  // MB/ME/CF/SR=1/IL/TNF
                                       0x01,                  // TYPE LENGTH
-                                      payloadURI.length + 1, // Length
+                                      NDEF_URI.length + 1, // Length
                                       'U'.charCodeAt(0),     // Type
                                       4                      // Status
                                     ];
 
-                for(var i = 0; i < payloadURI.length; i++) {
-                  NDEFRecordURI.push(payloadURI[i]);
+                for(var i = 0; i < NDEF_URI.length; i++) {
+                  NDEFRecordURI.push(NDEF_URI.charCodeAt(i));
                 }
+
+                nfc.cardemuWriteNdef(NDEFRecordURI);
+                nfc.cardemuStartDiscovery();
 
                 nfc.cardemuWriteNdef(NDEFRecordURI,
                   function() {

@@ -2,7 +2,7 @@ var Tinkerforge = require('tinkerforge');
 
 var HOST = 'localhost';
 var PORT = 4223;
-var UID = 'XYZ'; // Change XYZ to the UID of your NFC/RFID Bricklet
+var UID = 'XYZ'; // Change XYZ to the UID of your NFC Bricklet
 
 var ipcon = new Tinkerforge.IPConnection(); // Create IP connection
 var nfc = new Tinkerforge.BrickletNFC(UID, ipcon); // Create device object

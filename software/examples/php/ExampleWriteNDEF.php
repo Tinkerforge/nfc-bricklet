@@ -17,23 +17,17 @@ function cb_stateChanged($state, $idle, $user_data)
 	$nfc = $user_data;
 
 	if($state == BrickletNFC::CARDEMU_STATE_IDLE) {
-		$payloadURI = [];
-
-		foreach(str_split(NDEF_URI) as $c) {
-			array_push($payloadURI, ord($c));
-		}
-
 		// Only short records are supported
 		$NDEFRecordURI = array(
 		                        0xD1,                   // MB/ME/CF/SR=1/IL/TNF
 		                        0x01,                   // TYPE LENGTH
-		                        count($payloadURI) + 1, // Length
+		                        strlen(NDEF_URI) + 1, // Length
 		                        ord('U'),               // Type
 		                        4                       // Status
 		                      );
 
-		foreach($payloadURI as $d) {
-			array_push($NDEFRecordURI, $d);
+		foreach(str_split(NDEF_URI) as $c) {
+			array_push($NDEFRecordURI, ord($c));
 		}
 
 		$nfc->cardemuWriteNDEF($NDEFRecordURI);

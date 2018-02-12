@@ -1,16 +1,15 @@
 Imports System
 Imports Tinkerforge
 
-Module ExampleScanForTags
+Module ExampleWriteNDEF
     Const HOST As String = "localhost"
     Const PORT As Integer = 4223
     Const UID As String = "XYZ" ' Change XYZ to the UID of your NFC Bricklet
     Const NDEF_URI As String = "www.tinkerforge.com"
 
-    ' Callback subroutine for state changed callback
-    Sub StateChangedCB(ByVal sender As BrickletNFC, _
-                       ByVal state As Byte, _
-                       ByVal idle As Boolean)
+    ' Callback subroutine for cardemu state changed callback
+    Sub CardemuStateChangedCB(ByVal sender As BrickletNFC, ByVal state As Byte, _
+                              ByVal idle As Boolean)
         If state = BrickletNFC.CARDEMU_STATE_IDLE Then
             Dim i As Integer
             Dim NDEFRecordURI(NDEF_URI.Length + 5) As Byte
@@ -48,9 +47,10 @@ Module ExampleScanForTags
         ipcon.Connect(HOST, PORT) ' Connect to brickd
         ' Don't use device before ipcon is connected
 
-        ' Register state changed callback to subroutine StateChangedCB
-        AddHandler nfc.CardemuStateChangedCallback, AddressOf StateChangedCB
+        ' Register cardemu state changed callback to subroutine CardemuStateChangedCB
+        AddHandler nfc.CardemuStateChangedCallback, AddressOf CardemuStateChangedCB
 
+        ' Enable cardemu mode
         nfc.SetMode(BrickletNFC.MODE_CARDEMU)
 
         Console.WriteLine("Press key to exit")

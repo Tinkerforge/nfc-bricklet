@@ -8,8 +8,8 @@ UID = "XYZ" # Change XYZ to the UID of your NFC Bricklet
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_nfc import BrickletNFC
 
-# Callback function for state changed callback
-def cb_state_changed(state, idle, nfc):
+# Callback function for reader state changed callback
+def cb_reader_state_changed(state, idle, nfc):
     if state == nfc.READER_STATE_IDLE:
         nfc.reader_request_tag_id()
     elif state == nfc.READER_STATE_REQUEST_TAG_ID_READY:
@@ -31,10 +31,11 @@ if __name__ == "__main__":
     ipcon.connect(HOST, PORT) # Connect to brickd
     # Don't use device before ipcon is connected
 
-    # Register state changed callback to function cb_state_changed
+    # Register reader state changed callback to function cb_reader_state_changed
     nfc.register_callback(nfc.CALLBACK_READER_STATE_CHANGED,
-                          lambda x, y: cb_state_changed(x, y, nfc))
+                          lambda x, y: cb_reader_state_changed(x, y, nfc))
 
+    # Enable reader mode
     nfc.set_mode(nfc.MODE_READER)
 
     raw_input("Press key to exit\n") # Use input() in Python 3

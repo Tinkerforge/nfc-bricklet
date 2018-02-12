@@ -7,8 +7,8 @@
 #define PORT 4223
 #define UID "XYZ" // Change XYZ to the UID of your NFC Bricklet
 
-// Callback function for state changed callback
-void cb_state_changed(uint8_t state, bool idle, void *user_data) {
+// Callback function for reader state changed callback
+void cb_reader_state_changed(uint8_t state, bool idle, void *user_data) {
 	NFC *nfc = (NFC *)user_data;
 
 	if(state == NFC_READER_STATE_IDLE) {
@@ -67,23 +67,22 @@ int main(void) {
 	// Connect to brickd
 	if(ipcon_connect(&ipcon, HOST, PORT) < 0) {
 		fprintf(stderr, "Could not connect\n");
-
 		return 1;
 	}
 	// Don't use device before ipcon is connected
 
-	// Register state changed callback to function cb_state_changed
+	// Register reader state changed callback to function cb_reader_state_changed
 	nfc_register_callback(&nfc,
 	                      NFC_CALLBACK_READER_STATE_CHANGED,
-	                      (void *)cb_state_changed,
+	                      (void *)cb_reader_state_changed,
 	                      &nfc);
 
+	// Enable reader mode
 	nfc_set_mode(&nfc, NFC_MODE_READER);
 
 	printf("Press key to exit\n");
 	getchar();
 	nfc_destroy(&nfc);
 	ipcon_destroy(&ipcon); // Calls ipcon_disconnect internally
-
 	return 0;
 }

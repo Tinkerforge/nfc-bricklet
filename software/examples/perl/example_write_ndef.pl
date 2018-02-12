@@ -11,8 +11,8 @@ use constant NDEF_URI => "www.tinkerforge.com";
 my $ipcon = Tinkerforge::IPConnection->new(); # Create IP connection
 our $nfc = Tinkerforge::BrickletNFC->new(&UID, $ipcon); # Create device object
 
-# Callback subroutine for state changed callback
-sub cb_state_changed
+# Callback subroutine for cardemu state changed callback
+sub cb_cardemu_state_changed
 {
     my ($state, $idle) = @_;
 
@@ -46,9 +46,10 @@ sub cb_state_changed
 $ipcon->connect(&HOST, &PORT); # Connect to brickd
 # Don't use device before ipcon is connected
 
-# Register state changed callback to subroutine cb_state_changed
-$nfc->register_callback($nfc->CALLBACK_CARDEMU_STATE_CHANGED, 'cb_state_changed');
+# Register cardemu state changed callback to subroutine cb_cardemu_state_changed
+$nfc->register_callback($nfc->CALLBACK_CARDEMU_STATE_CHANGED, 'cb_cardemu_state_changed');
 
+# Enable cardemu mode
 $nfc->set_mode($nfc->MODE_CARDEMU);
 
 print "Press key to exit\n";

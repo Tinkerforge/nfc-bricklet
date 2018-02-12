@@ -11,8 +11,8 @@ const PORT = 4223;
 const UID = 'XYZ'; // Change XYZ to the UID of your NFC Bricklet
 const NDEF_URI = 'www.tinkerforge.com';
 
-// Callback function for state changed callback
-function cb_stateChanged($state, $idle, $user_data)
+// Callback function for cardemu state changed callback
+function cb_cardemuStateChanged($state, $idle, $user_data)
 {
 	$nfc = $user_data;
 
@@ -50,9 +50,11 @@ $nfc = new BrickletNFC(UID, $ipcon); // Create device object
 $ipcon->connect(HOST, PORT); // Connect to brickd
 // Don't use device before ipcon is connected
 
-// Register state changed callback to function cb_stateChanged
-$nfc->registerCallback(BrickletNFC::CALLBACK_CARDEMU_STATE_CHANGED, 'cb_stateChanged', $nfc);
+// Register cardemu state changed callback to function cb_cardemuStateChanged
+$nfc->registerCallback(BrickletNFC::CALLBACK_CARDEMU_STATE_CHANGED,
+                       'cb_cardemuStateChanged', $nfc);
 
+// Enable cardemu mode
 $nfc->setMode(BrickletNFC::MODE_CARDEMU);
 
 echo "Press ctrl+c to exit\n";

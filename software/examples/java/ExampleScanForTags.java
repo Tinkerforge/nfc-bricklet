@@ -17,7 +17,7 @@ public class ExampleScanForTags {
 		ipcon.connect(HOST, PORT); // Connect to brickd
 		// Don't use device before ipcon is connected
 
-		// Add state changed listener
+		// Add reader state changed listener
 		nfc.addReaderStateChangedListener(new BrickletNFC.ReaderStateChangedListener() {
 			public void readerStateChanged(int state, boolean idle) {
 				if (state == BrickletNFC.READER_STATE_IDLE) {
@@ -57,6 +57,7 @@ public class ExampleScanForTags {
 			}
 		});
 
+		// Enable reader mode
 		nfc.setMode(BrickletNFC.MODE_READER);
 
 		System.out.println("Press key to exit"); System.in.read();

@@ -8,7 +8,7 @@ include Tinkerforge
 
 HOST = 'localhost'
 PORT = 4223
-UID = 'abc' # Change XYZ to the UID of your NFC/RFID Bricklet
+UID = 'XYZ' # Change XYZ to the UID of your NFC Bricklet
 NDEF_URI = 'www.tinkerforge.com'
 
 ipcon = IPConnection.new # Create IP connection
@@ -17,7 +17,7 @@ nfc = BrickletNFC.new UID, ipcon # Create device object
 ipcon.connect HOST, PORT # Connect to brickd
 # Don't use device before ipcon is connected
 
-# Register state changed callback
+# Register cardemu state changed callback
 nfc.register_callback(BrickletNFC::CALLBACK_CARDEMU_STATE_CHANGED) do |state, idle|
   if state == BrickletNFC::CARDEMU_STATE_IDLE
     # Only short records are supported.
@@ -44,6 +44,7 @@ nfc.register_callback(BrickletNFC::CALLBACK_CARDEMU_STATE_CHANGED) do |state, id
   end
 end
 
+# Enable cardemu mode
 nfc.set_mode BrickletNFC::MODE_CARDEMU
 
 puts 'Press key to exit'

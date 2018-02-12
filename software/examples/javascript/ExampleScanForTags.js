@@ -8,19 +8,20 @@ var ipcon = new Tinkerforge.IPConnection(); // Create IP connection
 var nfc = new Tinkerforge.BrickletNFC(UID, ipcon); // Create device object
 
 ipcon.connect(HOST, PORT,
-  function (error) {
-    console.log('Error: ' + error);
-  }
+    function (error) {
+        console.log('Error: ' + error);
+    }
 ); // Connect to brickd
 // Don't use device before ipcon is connected
 
 ipcon.on(Tinkerforge.IPConnection.CALLBACK_CONNECTED,
-  function (connectReason) {
-    nfc.setMode(Tinkerforge.BrickletNFC.MODE_READER);
-  }
+    function (connectReason) {
+        // Enable reader mode
+        nfc.setMode(Tinkerforge.BrickletNFC.MODE_READER);
+    }
 );
 
-// Register state changed callback
+// Register reader state changed callback
 nfc.on(Tinkerforge.BrickletNFC.CALLBACK_READER_STATE_CHANGED,
   // Callback function for state changed callback
   function (state, idle) {
@@ -50,8 +51,8 @@ nfc.on(Tinkerforge.BrickletNFC.CALLBACK_READER_STATE_CHANGED,
 
 console.log('Press key to exit');
 process.stdin.on('data',
-  function (data) {
-    ipcon.disconnect();
-    process.exit(0);
-  }
+    function (data) {
+        ipcon.disconnect();
+        process.exit(0);
+    }
 );

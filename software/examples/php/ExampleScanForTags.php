@@ -10,8 +10,8 @@ const HOST = 'localhost';
 const PORT = 4223;
 const UID = 'XYZ'; // Change XYZ to the UID of your NFC Bricklet
 
-// Callback function for state changed callback
-function cb_stateChanged($state, $idle, $user_data)
+// Callback function for reader state changed callback
+function cb_readerStateChanged($state, $idle, $user_data)
 {
 	$nfc = $user_data;
 
@@ -44,9 +44,11 @@ $nfc = new BrickletNFC(UID, $ipcon); // Create device object
 $ipcon->connect(HOST, PORT); // Connect to brickd
 // Don't use device before ipcon is connected
 
-// Register state changed callback to function cb_stateChanged
-$nfc->registerCallback(BrickletNFC::CALLBACK_READER_STATE_CHANGED, 'cb_stateChanged', $nfc);
+// Register reader state changed callback to function cb_readerStateChanged
+$nfc->registerCallback(BrickletNFC::CALLBACK_READER_STATE_CHANGED,
+                       'cb_readerStateChanged', $nfc);
 
+// Enable reader mode
 $nfc->setMode(BrickletNFC::MODE_READER);
 
 echo "Press ctrl+c to exit\n";

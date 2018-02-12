@@ -6,7 +6,7 @@ function matlab_example_scan_for_tags()
 
     HOST = 'localhost';
     PORT = 4223;
-    UID = 'XYZ'; % Change XYZ to the UID of your NFC/RFID Bricklet
+    UID = 'XYZ'; % Change XYZ to the UID of your NFC Bricklet
 
     ipcon = IPConnection(); % Create IP connection
     nfc = handle(BrickletNFC(UID, ipcon), 'CallbackProperties'); % Create device object
@@ -14,17 +14,18 @@ function matlab_example_scan_for_tags()
     ipcon.connect(HOST, PORT); % Connect to brickd
     % Don't use device before ipcon is connected
 
-    % Register state changed callback to function cb_state_changed
-    set(nfc, 'ReaderStateChangedCallback', @(h, e) cb_state_changed(e));
+    % Register reader state changed callback to function cb_reader_state_changed
+    set(nfc, 'ReaderStateChangedCallback', @(h, e) cb_reader_state_changed(e));
 
+    % Enable reader mode
     nfc.setMode(BrickletNFC.MODE_READER);
 
     input('Press key to exit\n', 's');
     ipcon.disconnect();
 end
 
-% Callback function for state changed callback
-function cb_state_changed(e)
+% Callback function for reader state changed callback
+function cb_reader_state_changed(e)
     import com.tinkerforge.BrickletNFC;
     global nfc;
 

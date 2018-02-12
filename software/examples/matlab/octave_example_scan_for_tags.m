@@ -13,17 +13,18 @@ function octave_example_scan_for_tags()
     ipcon.connect(HOST, PORT); % Connect to brickd
     % Don't use device before ipcon is connected
 
-    % Register state changed callback to function cb_state_changed
-    nfc.addReaderStateChangedCallback(@cb_state_changed);
+    % Register reader state changed callback to function cb_reader_state_changed
+    nfc.addReaderStateChangedCallback(@cb_reader_state_changed);
 
+    % Enable reader mode
     nfc.setMode(nfc.MODE_READER);
 
     input("Press key to exit\n", "s");
     ipcon.disconnect();
 end
 
-% Callback function for state changed callback
-function cb_state_changed(e)
+% Callback function for reader state changed callback
+function cb_reader_state_changed(e)
     global nfc;
 
     if e.state == nfc.READER_STATE_IDLE

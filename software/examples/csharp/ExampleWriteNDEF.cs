@@ -8,8 +8,8 @@ class Example
 	private static string UID = "XYZ"; // Change XYZ to the UID of your NFC Bricklet
 	private static string NDEF_URI = "www.tinkerforge.com";
 
-	// Callback function for state changed callback
-	static void StateChangedCB(BrickletNFC sender, byte state, bool idle)
+	// Callback function for cardemu state changed callback
+	static void CardemuStateChangedCB(BrickletNFC sender, byte state, bool idle)
 	{
 		if(state == BrickletNFC.CARDEMU_STATE_IDLE)
 		{
@@ -50,9 +50,10 @@ class Example
 		ipcon.Connect(HOST, PORT); // Connect to brickd
 		// Don't use device before ipcon is connected
 
-		// Register state changed callback to function StateChangedCB
-		nfc.CardemuStateChangedCallback += StateChangedCB;
+		// Register cardemu state changed callback to function CardemuStateChangedCB
+		nfc.CardemuStateChangedCallback += CardemuStateChangedCB;
 
+		// Enable cardemu mode
 		nfc.SetMode(BrickletNFC.MODE_CARDEMU);
 
 		Console.WriteLine("Press enter to exit");

@@ -8,15 +8,12 @@ uses
 
 type
   TExample = class
-
   private
     ipcon: TIPConnection;
     nfc: TBrickletNFC;
-
   public
-    procedure StateChangedCB(sender: TBrickletNFC;
-                             const state: byte;
-                             const idle: boolean);
+    procedure CardemuStateChangedCB(sender: TBrickletNFC; const state: byte;
+                                    const idle: boolean);
     procedure Execute;
   end;
 
@@ -29,10 +26,9 @@ const
 var
   e: TExample;
 
-{ Callback procedure for state changed callback }
-procedure TExample.StateChangedCB(sender: TBrickletNFC;
-                                  const state: byte;
-                                  const idle: boolean);
+{ Callback procedure for cardemu state changed callback }
+procedure TExample.CardemuStateChangedCB(sender: TBrickletNFC; const state: byte;
+                                         const idle: boolean);
   var i: byte;
   var NDEFRecordURI: Array of Byte;
 
@@ -77,9 +73,10 @@ begin
   ipcon.Connect(HOST, PORT);
   { Don't use device before ipcon is connected }
 
-  { Register state changed callback to procedure StateChangedCB }
-  nfc.OnCardemuStateChanged := {$ifdef FPC}@{$endif}StateChangedCB;
+  { Register cardemu state changed callback to procedure CardemuStateChangedCB }
+  nfc.OnCardemuStateChanged := {$ifdef FPC}@{$endif}CardemuStateChangedCB;
 
+  { Enable cardemu mode }
   nfc.SetMode(BRICKLET_NFC_MODE_CARDEMU);
 
   WriteLn('Press key to exit');

@@ -9,8 +9,8 @@ NDEF_URI = "www.tinkerforge.com"
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_nfc import BrickletNFC
 
-# Callback function for state changed callback
-def cb_state_changed(state, idle, nfc):
+# Callback function for cardemu state changed callback
+def cb_cardemu_state_changed(state, idle, nfc):
     if state == nfc.CARDEMU_STATE_IDLE:
         # Only short records are supported
         ndef_record_uri = [
@@ -40,10 +40,11 @@ if __name__ == "__main__":
     ipcon.connect(HOST, PORT) # Connect to brickd
     # Don't use device before ipcon is connected
 
-    # Register state changed callback to function cb_state_changed
+    # Register cardemu state changed callback to function cb_cardemu_state_changed
     nfc.register_callback(nfc.CALLBACK_CARDEMU_STATE_CHANGED,
-                          lambda x, y: cb_state_changed(x, y, nfc))
+                          lambda x, y: cb_cardemu_state_changed(x, y, nfc))
 
+    # Enable cardemu mode
     nfc.set_mode(nfc.MODE_CARDEMU)
 
     raw_input("Press key to exit\n") # Use input() in Python 3

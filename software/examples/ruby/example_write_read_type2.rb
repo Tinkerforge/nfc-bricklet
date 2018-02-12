@@ -8,7 +8,7 @@ include Tinkerforge
 
 HOST = 'localhost'
 PORT = 4223
-UID = 'XYZ' # Change XYZ to the UID of your NFC/RFID Bricklet
+UID = 'XYZ' # Change XYZ to the UID of your NFC Bricklet
 
 ipcon = IPConnection.new # Create IP connection
 nfc = BrickletNFC.new UID, ipcon # Create device object
@@ -16,7 +16,7 @@ nfc = BrickletNFC.new UID, ipcon # Create device object
 ipcon.connect HOST, PORT # Connect to brickd
 # Don't use device before ipcon is connected
 
-# Register state changed callback
+# Register reader state changed callback
 nfc.register_callback(BrickletNFC::CALLBACK_READER_STATE_CHANGED) do |state, idle|
   if state == BrickletNFC::READER_STATE_IDLE
     nfc.reader_request_tag_id
@@ -52,6 +52,7 @@ nfc.register_callback(BrickletNFC::CALLBACK_READER_STATE_CHANGED) do |state, idl
   end
 end
 
+# Enable reader mode
 nfc.set_mode BrickletNFC::MODE_READER
 
 puts 'Press key to exit'

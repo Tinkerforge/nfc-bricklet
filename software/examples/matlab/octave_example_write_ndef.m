@@ -15,17 +15,18 @@ function octave_example_write_ndef()
     ipcon.connect(HOST, PORT); % Connect to brickd
     % Don't use device before ipcon is connected
 
-    % Register state changed callback to function cb_state_changed
-    nfc.addCardemuStateChangedCallback(@cb_state_changed);
+    % Register cardemu state changed callback to function cb_cardemu_state_changed
+    nfc.addCardemuStateChangedCallback(@cb_cardemu_state_changed);
 
+    % Enable cardemu mode
     nfc.setMode(nfc.MODE_CARDEMU);
 
     input("Press key to exit\n", "s");
     ipcon.disconnect();
 end
 
-% Callback function for state changed callback
-function cb_state_changed(e)
+% Callback function for cardemu state changed callback
+function cb_cardemu_state_changed(e)
     global nfc;
     global NDEF_URI;
 

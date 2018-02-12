@@ -8,15 +8,12 @@ uses
 
 type
   TExample = class
-
   private
     ipcon: TIPConnection;
     nfc: TBrickletNFC;
-
   public
-    procedure StateChangedCB(sender: TBrickletNFC;
-                             const state: byte;
-                             const idle: boolean);
+    procedure ReaderStateChangedCB(sender: TBrickletNFC; const state: byte;
+                                   const idle: boolean);
     procedure Execute;
   end;
 
@@ -28,10 +25,9 @@ const
 var
   e: TExample;
 
-{ Callback procedure for state changed callback }
-procedure TExample.StateChangedCB(sender: TBrickletNFC;
-                                  const state: byte;
-                                  const idle: boolean);
+{ Callback procedure for reader state changed callback }
+procedure TExample.ReaderStateChangedCB(sender: TBrickletNFC; const state: byte;
+                                        const idle: boolean);
   var tagType: byte;
   var page: TArrayOfUInt8;
   var tagID: TArrayOfUInt8;
@@ -100,9 +96,10 @@ begin
   ipcon.Connect(HOST, PORT);
   { Don't use device before ipcon is connected }
 
-  { Register state changed callback to procedure StateChangedCB }
-  nfc.OnReaderStateChanged := {$ifdef FPC}@{$endif}StateChangedCB;
+  { Register reader state changed callback to procedure ReaderStateChangedCB }
+  nfc.OnReaderStateChanged := {$ifdef FPC}@{$endif}ReaderStateChangedCB;
 
+  { Enable reader mode }
   nfc.SetMode(BRICKLET_NFC_MODE_READER);
 
   WriteLn('Press key to exit');
@@ -115,4 +112,3 @@ begin
   e.Execute;
   e.Destroy;
 end.
-

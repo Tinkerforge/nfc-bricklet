@@ -1,4 +1,4 @@
-function matlab_example_scan_for_tags()
+function matlab_example_write_ndef()
     global nfc;
     global NDEF_URI;
 
@@ -7,7 +7,7 @@ function matlab_example_scan_for_tags()
 
     HOST = 'localhost';
     PORT = 4223;
-    UID = 'XYZ'; % Change XYZ to the UID of your NFC/RFID Bricklet
+    UID = 'XYZ'; % Change XYZ to the UID of your NFC Bricklet
     NDEF_URI = 'www.tinkerforge.com';
 
     ipcon = IPConnection(); % Create IP connection
@@ -16,17 +16,18 @@ function matlab_example_scan_for_tags()
     ipcon.connect(HOST, PORT); % Connect to brickd
     % Don't use device before ipcon is connected
 
-    % Register state changed callback to function cb_state_changed
-    set(nfc, 'CardemuStateChangedCallback', @(h, e) cb_state_changed(e));
+    % Register cardemu state changed callback to function cb_cardemu_state_changed
+    set(nfc, 'CardemuStateChangedCallback', @(h, e) cb_cardemu_state_changed(e));
 
+    % Enable cardemu mode
     nfc.setMode(BrickletNFC.MODE_CARDEMU);
 
     input('Press key to exit\n', 's');
     ipcon.disconnect();
 end
 
-% Callback function for state changed callback
-function cb_state_changed(e)
+% Callback function for cardemu state changed callback
+function cb_cardemu_state_changed(e)
     import com.tinkerforge.BrickletNFC;
     global nfc;
     global NDEF_URI;

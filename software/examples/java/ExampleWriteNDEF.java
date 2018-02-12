@@ -18,7 +18,7 @@ public class ExampleWriteNDEF {
 		ipcon.connect(HOST, PORT); // Connect to brickd
 		// Don't use device before ipcon is connected
 
-		// Add state changed listener
+		// Add cardemu state changed listener
 		nfc.addCardemuStateChangedListener(new BrickletNFC.CardemuStateChangedListener() {
 			public void cardemuStateChanged(int state, boolean idle) {
 				if (state == BrickletNFC.CARDEMU_STATE_IDLE) {
@@ -63,6 +63,7 @@ public class ExampleWriteNDEF {
 			}
 		});
 
+		// Enable cardemu mode
 		nfc.setMode(BrickletNFC.MODE_CARDEMU);
 
 		System.out.println("Press key to exit"); System.in.read();

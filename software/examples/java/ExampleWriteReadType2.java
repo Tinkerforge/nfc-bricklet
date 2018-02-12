@@ -17,7 +17,7 @@ public class ExampleWriteReadType2 {
 		ipcon.connect(HOST, PORT); // Connect to brickd
 		// Don't use device before ipcon is connected
 
-		// Add state changed listener
+		// Add reader state changed listener
 		nfc.addReaderStateChangedListener(new BrickletNFC.ReaderStateChangedListener() {
 			public void readerStateChanged(int state, boolean idle) {
 				if (state == BrickletNFC.READER_STATE_IDLE) {
@@ -67,7 +67,7 @@ public class ExampleWriteReadType2 {
 						int[] page = nfc.readerReadPage();
 
 						System.out.format("Page read: 0x%X 0x%X 0x%X 0x%X\n", page[0], page[1], page[2], page[3]);
-		        nfc.readerWritePage(1, page);
+						nfc.readerWritePage(1, page);
 					}
 					catch (Exception e) {
 						return;

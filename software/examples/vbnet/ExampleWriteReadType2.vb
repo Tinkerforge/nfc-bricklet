@@ -1,15 +1,14 @@
 Imports System
 Imports Tinkerforge
 
-Module ExampleScanForTags
+Module ExampleWriteReadType2
     Const HOST As String = "localhost"
     Const PORT As Integer = 4223
     Const UID As String = "XYZ" ' Change XYZ to the UID of your NFC Bricklet
 
-    ' Callback subroutine for state changed callback
-    Sub StateChangedCB(ByVal sender As BrickletNFC, _
-                       ByVal state As Byte, _
-                       ByVal idle As Boolean)
+    ' Callback subroutine for reader state changed callback
+    Sub ReaderStateChangedCB(ByVal sender As BrickletNFC, ByVal state As Byte, _
+                             ByVal idle As Boolean)
         If state = BrickletNFC.READER_STATE_IDLE Then
             sender.ReaderRequestTagID()
         ElseIf(state = BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) Then
@@ -60,9 +59,10 @@ Module ExampleScanForTags
         ipcon.Connect(HOST, PORT) ' Connect to brickd
         ' Don't use device before ipcon is connected
 
-        ' Register state changed callback to subroutine StateChangedCB
-        AddHandler nfc.ReaderStateChangedCallback, AddressOf StateChangedCB
+        ' Register reader state changed callback to subroutine ReaderStateChangedCB
+        AddHandler nfc.ReaderStateChangedCallback, AddressOf ReaderStateChangedCB
 
+        ' Enable reader mode
         nfc.SetMode(BrickletNFC.MODE_READER)
 
         Console.WriteLine("Press key to exit")

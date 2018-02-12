@@ -1,7 +1,7 @@
 Imports System
 Imports Tinkerforge
 
-Module ExampleWriteNDEF
+Module ExampleEmulateNDEF
     Const HOST As String = "localhost"
     Const PORT As Integer = 4223
     Const UID As String = "XYZ" ' Change XYZ to the UID of your NFC Bricklet

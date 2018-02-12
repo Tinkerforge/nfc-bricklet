@@ -1,4 +1,4 @@
-function matlab_example_write_ndef()
+function matlab_example_emulate_ndef()
     global nfc;
     global NDEF_URI;
 

@@ -1,4 +1,4 @@
-function octave_example_write_ndef()
+function octave_example_emulate_ndef()
     more off;
 
     global nfc;

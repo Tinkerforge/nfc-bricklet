@@ -1,7 +1,7 @@
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.BrickletNFC;
 
-public class ExampleWriteNDEF {
+public class ExampleEmulateNDEF {
 	private static final String HOST = "localhost";
 	private static final int PORT = 4223;
 

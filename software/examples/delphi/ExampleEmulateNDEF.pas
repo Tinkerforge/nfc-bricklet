@@ -1,4 +1,4 @@
-program ExampleWriteNDEF;
+program ExampleEmulateNDEF;
 
 {$ifdef MSWINDOWS}{$apptype CONSOLE}{$endif}
 {$ifdef FPC}{$mode OBJFPC}{$H+}{$endif}

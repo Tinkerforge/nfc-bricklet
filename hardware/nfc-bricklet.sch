@@ -4,7 +4,6 @@ LIBS:power
 LIBS:device
 LIBS:switches
 LIBS:relays
-LIBS:motors
 LIBS:transistors
 LIBS:conn
 LIBS:linear
@@ -32,7 +31,6 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:nfc-bricklet-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
@@ -1165,10 +1163,10 @@ Wire Wire Line
 	2950 4650 3100 4650
 Wire Wire Line
 	3100 4750 2950 4750
-Text Notes 9850 4850 0    60   ~ 0
+Text Notes 7150 5000 0    60   ~ 0
 Shield:\nTE 2118708-2
 $Comp
-L Conn_01x01 SHD1
+L CONN_01X01 SHD1
 U 1 1 59C25D9B
 P 7250 4650
 F 0 "SHD1" H 7250 4750 50  0000 C CNN
@@ -1205,7 +1203,7 @@ F 3 "" H 2200 4900 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Conn_01x01 P3
+L CONN_01X01 P3
 U 1 1 59CCBC3E
 P 2750 6650
 F 0 "P3" H 2750 6750 50  0000 C CNN

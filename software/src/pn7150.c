@@ -24,7 +24,6 @@
 #include "configs/config_pn7150.h"
 
 #include "bricklib2/hal/system_timer/system_timer.h"
-#include "bricklib2/hal/uartbb/uartbb.h"
 #include "bricklib2/os/coop_task.h"
 #include "bricklib2/logging/logging.h"
 #include "bricklib2/utility/led_flicker.h"

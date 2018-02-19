@@ -21,7 +21,6 @@
 
 #include "pn7150_reader.h"
 
-#include "bricklib2/hal/uartbb/uartbb.h"
 #include "bricklib2/utility/crc16.h"
 #include "bricklib2/utility/util_definitions.h"
 #include "bricklib2/logging/logging.h"

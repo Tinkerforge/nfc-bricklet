@@ -325,11 +325,9 @@ void tml_Connect(void) {
 
 
 	NVIC_SetPriority((IRQn_Type)PN7150_IRQ_RX, PN7150_IRQ_RX_PRIORITY);
-	//XMC_SCU_SetInterruptControl(PN7150_IRQ_RX, PN7150_IRQCTRL_RX);
 	NVIC_EnableIRQ((IRQn_Type)PN7150_IRQ_RX);
 
 	NVIC_SetPriority((IRQn_Type)PN7150_IRQ_TX, PN7150_IRQ_TX_PRIORITY);
-	//XMC_SCU_SetInterruptControl(PN7150_IRQ_TX, PN7150_IRQCTRL_TX);
 	NVIC_EnableIRQ((IRQn_Type)PN7150_IRQ_TX);
 
 

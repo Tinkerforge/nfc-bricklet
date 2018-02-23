@@ -17,7 +17,7 @@ void cb_cardemu_state_changed(uint8_t state, bool idle, void *user_data) {
 	if(state == NFC_CARDEMU_STATE_IDLE) {
 		uint8_t i = 0;
 		uint8_t ndef_record_uri[512];
-		char *ptr_ndef_uri = NDEF_URI;
+		const char *ptr_ndef_uri = NDEF_URI;
 
 		memset(ndef_record_uri, 0, 512);
 

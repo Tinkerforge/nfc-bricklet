@@ -16,32 +16,31 @@ def cb_reader_state_changed(state, idle, nfc):
         ret = nfc.reader_get_tag_id()
 
         if ret.tag_type != nfc.TAG_TYPE_TYPE2:
-            print "Tag is not type-2"
-
+            print("Tag is not type-2")
             return
 
-        print "Found tag of type " + \
-               str(ret.tag_type) + \
-               " with ID [" + \
-               " ".join(map(str, map(hex, ret.tag_id))) + \
-               "]"
+        print("Found tag of type " +
+               str(ret.tag_type) +
+               " with ID [" +
+               " ".join(map(str, map(hex, ret.tag_id))) +
+               "]")
 
         nfc.reader_request_page(1, 4)
     elif state == nfc.READER_STATE_REQUEST_TAG_ID_ERROR:
-        print "Request tag ID error"
+        print("Request tag ID error")
     elif state == nfc.READER_STATE_REQUEST_PAGE_READY:
         page = nfc.reader_read_page()
-        print """Page read: {byte_0} {byte_1} {byte_2} {byte_3}""".format(byte_0=hex(page[0]),
+        print("""Page read: {byte_0} {byte_1} {byte_2} {byte_3}""".format(byte_0=hex(page[0]),
                                                                           byte_1=hex(page[1]),
                                                                           byte_2=hex(page[2]),
-                                                                          byte_3=hex(page[3]))
+                                                                          byte_3=hex(page[3])))
         nfc.reader_write_page(1, page)
     elif state == nfc.READER_STATE_WRITE_PAGE_READY:
-        print "Write page ready"
+        print("Write page ready")
     elif state == nfc.READER_STATE_REQUEST_PAGE_ERROR:
-        print "Request page error"
+        print("Request page error")
     elif state == nfc.READER_STATE_WRITE_PAGE_ERROR:
-        print "Write page error"
+        print("Write page error")
 
 if __name__ == "__main__":
     ipcon = IPConnection() # Create IP connection

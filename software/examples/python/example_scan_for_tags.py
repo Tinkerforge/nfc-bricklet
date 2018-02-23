@@ -15,14 +15,14 @@ def cb_reader_state_changed(state, idle, nfc):
     elif state == nfc.READER_STATE_REQUEST_TAG_ID_READY:
         ret = nfc.reader_get_tag_id()
 
-        print "Found tag of type " + \
-               str(ret.tag_type) + \
-               " with ID [" + \
-               " ".join(map(str, map(hex, ret.tag_id))) + \
-               "]"
+        print("Found tag of type " +
+              str(ret.tag_type) +
+              " with ID [" +
+              " ".join(map(str, map(hex, ret.tag_id))) +
+              "]")
 
     elif state == nfc.READER_STATE_REQUEST_TAG_ID_ERROR:
-        print "Request tag ID error"
+        print("Request tag ID error")
 
 if __name__ == "__main__":
     ipcon = IPConnection() # Create IP connection

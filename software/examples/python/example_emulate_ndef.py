@@ -29,9 +29,9 @@ def cb_cardemu_state_changed(state, idle, nfc):
     elif state == nfc.CARDEMU_STATE_DISCOVER_READY:
         nfc.cardemu_start_transfer(1)
     elif state == nfc.CARDEMU_STATE_DISCOVER_ERROR:
-        print "Discover error"
+        print("Discover error")
     elif state == nfc.CARDEMU_STATE_TRANSFER_NDEF_ERROR:
-        print "Transfer NDEF error"
+        print("Transfer NDEF error")
 
 if __name__ == "__main__":
     ipcon = IPConnection() # Create IP connection

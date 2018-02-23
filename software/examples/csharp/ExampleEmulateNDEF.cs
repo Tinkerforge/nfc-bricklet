@@ -13,21 +13,21 @@ class Example
 	{
 		if(state == BrickletNFC.CARDEMU_STATE_IDLE)
 		{
-			byte[] NDEFRecordURI = new byte[NDEF_URI.Length + 5];
+			byte[] ndefRecordURI = new byte[NDEF_URI.Length + 5];
 
-			NDEFRecordURI[0] = 0xD1;
-			NDEFRecordURI[1] = 0x01;
-			NDEFRecordURI[2] = (byte)(NDEF_URI.Length + 1);
-			NDEFRecordURI[3] = (int)'U';
-			NDEFRecordURI[4] = 0x04;
+			ndefRecordURI[0] = 0xD1;
+			ndefRecordURI[1] = 0x01;
+			ndefRecordURI[2] = (byte)(NDEF_URI.Length + 1);
+			ndefRecordURI[3] = (int)'U';
+			ndefRecordURI[4] = 0x04;
 
 			// Only short records are supported
 			for (int i = 0; i < NDEF_URI.Length; i++)
 			{
-				NDEFRecordURI[5 + i] = (byte)NDEF_URI[i];
+				ndefRecordURI[5 + i] = (byte)NDEF_URI[i];
 			}
 
-			sender.CardemuWriteNdef(NDEFRecordURI);
+			sender.CardemuWriteNdef(ndefRecordURI);
 			sender.CardemuStartDiscovery();
 		}
 		else if(state == BrickletNFC.CARDEMU_STATE_DISCOVER_READY)

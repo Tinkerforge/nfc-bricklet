@@ -10,9 +10,9 @@
 
 // Callback function for cardemu state changed callback
 void cb_cardemu_state_changed(uint8_t state, bool idle, void *user_data) {
-	(void)idle; // avoid unused parameter warning
-
 	NFC *nfc = (NFC *)user_data;
+
+	(void)idle; // avoid unused parameter warning
 
 	if(state == NFC_CARDEMU_STATE_IDLE) {
 		uint8_t i = 0;

@@ -9,6 +9,8 @@
 
 // Callback function for reader state changed callback
 void cb_reader_state_changed(uint8_t state, bool idle, void *user_data) {
+	(void)idle; // avoid unused parameter warning
+
 	NFC *nfc = (NFC *)user_data;
 
 	if(state == NFC_READER_STATE_IDLE) {

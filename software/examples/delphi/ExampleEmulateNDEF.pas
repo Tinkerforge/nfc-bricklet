@@ -31,7 +31,6 @@ procedure TExample.CardemuStateChangedCB(sender: TBrickletNFC; const state: byte
                                          const idle: boolean);
   var i: byte;
   var NDEFRecordURI: Array of Byte;
-
 begin
   if state = BRICKLET_NFC_CARDEMU_STATE_IDLE then begin
     { Only short records are supported } 
@@ -48,7 +47,7 @@ begin
     end;
 
     nfc.CardemuWriteNdef(NDEFRecordURI);
-    nfc.CardemuStartDiscovery();
+    nfc.CardemuStartDiscovery;
   end
   else if state = BRICKLET_NFC_CARDEMU_STATE_DISCOVER_READY then begin
     sender.CardemuStartTransfer(1);

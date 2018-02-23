@@ -35,7 +35,7 @@ procedure TExample.ReaderStateChangedCB(sender: TBrickletNFC; const state: byte;
 
 begin
   if state = BRICKLET_NFC_READER_STATE_IDLE then begin
-    sender.ReaderRequestTagID();
+    sender.ReaderRequestTagID;
   end
   else if state = BRICKLET_NFC_READER_STATE_REQUEST_TAG_ID_READY then begin
     sender.ReaderGetTagID(tagType, tagID);

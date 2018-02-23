@@ -31,17 +31,15 @@ procedure TExample.ReaderStateChangedCB(sender: TBrickletNFC; const state: byte;
   var tagType: byte;
   var page: TArrayOfUInt8;
   var tagID: TArrayOfUInt8;
-
 begin
   if state = BRICKLET_NFC_READER_STATE_IDLE then begin
-    sender.ReaderRequestTagID();
+    sender.ReaderRequestTagID;
   end
   else if state = BRICKLET_NFC_READER_STATE_REQUEST_TAG_ID_READY then begin
     sender.ReaderGetTagID(tagType, tagID);
 
     if (tagType <> BRICKLET_NFC_TAG_TYPE_TYPE2) then begin
       WriteLn('Tag is not type-2');
-
       exit;
     end;
 
@@ -62,7 +60,7 @@ begin
     WriteLn('Request tag ID error');
   end
   else if state = BRICKLET_NFC_READER_STATE_REQUEST_PAGE_READY then begin
-    sender.ReaderReadPage(page);
+    page := sender.ReaderReadPage;
     WriteLn('Read page: ' +
             Format('0x%X', [page[0]]) +
             ' ' +

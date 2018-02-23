@@ -12,24 +12,21 @@ Module ExampleEmulateNDEF
                               ByVal idle As Boolean)
         If state = BrickletNFC.CARDEMU_STATE_IDLE Then
             Dim i As Integer
-            Dim NDEFRecordURI(NDEF_URI.Length + 5) As Byte
+            Dim ndefURIBytes As Byte() = Text.Encoding.ASCII.GetBytes(NDEF_URI)
+            Dim ndefRecordURI(ndefURIBytes.Length + 5) As Byte
 
-            NDEFRecordURI(0) = &HD1
-            NDEFRecordURI(1) = &H01
-            NDEFRecordURI(2) = Convert.ToByte(NDEF_URI.Length + 1)
-            NDEFRecordURI(3) = Asc("U")
-            NDEFRecordURI(4) = &H04
+            ndefRecordURI(0) = &HD1
+            ndefRecordURI(1) = &H01
+            ndefRecordURI(2) = Convert.ToByte(ndefURIBytes.Length + 1)
+            ndefRecordURI(3) = Text.Encoding.ASCII.GetBytes("U")(1)
+            ndefRecordURI(4) = &H04
 
             ' Only short records are supported
-            For i = 0 To NDEF_URI.Length - 1
-                NDEFRecordURI(5 + i) = Asc(NDEF_URI(i))
+            For i = 0 To ndefURIBytes.Length - 1
+                ndefRecordURI(5 + i) = ndefURIBytes(i)
             Next
 
-            For i = 0 To NDEFRecordURI.Length - 1
-                Console.WriteLine(NDEFRecordURI(i))
-            Next
-
-            sender.CardemuWriteNdef(NDEFRecordURI)
+            sender.CardemuWriteNdef(ndefRecordURI)
             sender.CardemuStartDiscovery()
         ElseIf state = BrickletNFC.CARDEMU_STATE_DISCOVER_READY Then
             sender.CardemuStartTransfer(1)

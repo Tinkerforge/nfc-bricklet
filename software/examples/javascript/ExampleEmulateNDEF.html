@@ -65,9 +65,6 @@
                   NDEFRecordURI.push(NDEF_URI.charCodeAt(i));
                 }
 
-                nfc.cardemuWriteNdef(NDEFRecordURI);
-                nfc.cardemuStartDiscovery();
-
                 nfc.cardemuWriteNdef(NDEFRecordURI,
                   function() {
                     nfc.cardemuStartDiscovery();

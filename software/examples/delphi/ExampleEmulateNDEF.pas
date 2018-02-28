@@ -30,23 +30,23 @@ var
 procedure TExample.CardemuStateChangedCB(sender: TBrickletNFC; const state: byte;
                                          const idle: boolean);
   var i: byte;
-  var NDEFRecordURI: Array of Byte;
+  var ndefRecordURI: Array of Byte;
 begin
   if state = BRICKLET_NFC_CARDEMU_STATE_IDLE then begin
     { Only short records are supported } 
-    SetLength(NDEFRecordURI, Length(NDEF_URI) + 5);
+    SetLength(ndefRecordURI, Length(NDEF_URI) + 5);
 
-    NDEFRecordURI[0] := $D1;                  { MB/ME/CF/SR=1/IL/TNF }
-    NDEFRecordURI[1] := $01;                  { TYPE LENGTH }
-    NDEFRecordURI[2] := Length(NDEF_URI) + 1; { Length }
-    NDEFRecordURI[3] := ord('U');             { Type }
-    NDEFRecordURI[4] := $04;                  { Status }
+    ndefRecordURI[0] := $D1;                  { MB/ME/CF/SR=1/IL/TNF }
+    ndefRecordURI[1] := $01;                  { TYPE LENGTH }
+    ndefRecordURI[2] := Length(NDEF_URI) + 1; { Length }
+    ndefRecordURI[3] := ord('U');             { Type }
+    ndefRecordURI[4] := $04;                  { Status }
 
     for i := 0 to (Length(NDEF_URI) + 1) do begin
-      NDEFRecordURI[5 + i] := ord(NDEF_URI[i + 1]);
+      ndefRecordURI[5 + i] := ord(NDEF_URI[i + 1]);
     end;
 
-    nfc.CardemuWriteNdef(NDEFRecordURI);
+    nfc.CardemuWriteNDEF(ndefRecordURI);
     nfc.CardemuStartDiscovery;
   end
   else if state = BRICKLET_NFC_CARDEMU_STATE_DISCOVER_READY then begin

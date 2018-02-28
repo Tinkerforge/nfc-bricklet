@@ -27,7 +27,7 @@ class Example
 				ndefRecordURI[5 + i] = (byte)NDEF_URI[i];
 			}
 
-			sender.CardemuWriteNdef(ndefRecordURI);
+			sender.CardemuWriteNDEF(ndefRecordURI);
 			sender.CardemuStartDiscovery();
 		}
 		else if(state == BrickletNFC.CARDEMU_STATE_DISCOVER_READY)

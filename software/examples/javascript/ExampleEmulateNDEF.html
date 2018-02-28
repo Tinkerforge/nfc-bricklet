@@ -53,23 +53,22 @@
             function (state, idle) {
               if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_IDLE) {
                 // Only short records are supported
-                var NDEFRecordURI = [
-                                      0xD1,                  // MB/ME/CF/SR=1/IL/TNF
-                                      0x01,                  // TYPE LENGTH
+                var ndefRecordURI = [
+                                      0xD1,                // MB/ME/CF/SR=1/IL/TNF
+                                      0x01,                // TYPE LENGTH
                                       NDEF_URI.length + 1, // Length
-                                      'U'.charCodeAt(0),     // Type
-                                      4                      // Status
+                                      'U'.charCodeAt(0),   // Type
+                                      4                    // Status
                                     ];
 
                 for(var i = 0; i < NDEF_URI.length; i++) {
-                  NDEFRecordURI.push(NDEF_URI.charCodeAt(i));
+                  ndefRecordURI.push(NDEF_URI.charCodeAt(i));
                 }
 
-                nfc.cardemuWriteNdef(NDEFRecordURI,
+                nfc.cardemuWriteNDEF(ndefRecordURI,
                   function() {
                     nfc.cardemuStartDiscovery();
-                  },
-                  null
+                  }
                 );
               }
               else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER) {

@@ -26,7 +26,7 @@ Module ExampleEmulateNDEF
                 ndefRecordURI(5 + i) = ndefURIBytes(i)
             Next
 
-            sender.CardemuWriteNdef(ndefRecordURI)
+            sender.CardemuWriteNDEF(ndefRecordURI)
             sender.CardemuStartDiscovery()
         ElseIf state = BrickletNFC.CARDEMU_STATE_DISCOVER_READY Then
             sender.CardemuStartTransfer(1)

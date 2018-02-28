@@ -23,20 +23,20 @@ public class ExampleEmulateNDEF {
 			public void cardemuStateChanged(int state, boolean idle) {
 				if (state == BrickletNFC.CARDEMU_STATE_IDLE) {
 					try {
-						int[] NDEFRecordURI = new int[NDEF_URI.toCharArray().length + 5];
+						int[] ndefRecordURI = new int[NDEF_URI.toCharArray().length + 5];
 
 						// Only short records are supported
-						NDEFRecordURI[0] = 0xD1;                              // MB/ME/CF/SR=1/IL/TNF
-						NDEFRecordURI[1] = 0x01;                              // TYPE LENGTH
-						NDEFRecordURI[2] = NDEF_URI.toCharArray().length + 1; // Length
-						NDEFRecordURI[3] = (int)'U';                          // Type
-						NDEFRecordURI[4] = 0x04;                              // Status
+						ndefRecordURI[0] = 0xD1;                              // MB/ME/CF/SR=1/IL/TNF
+						ndefRecordURI[1] = 0x01;                              // TYPE LENGTH
+						ndefRecordURI[2] = NDEF_URI.toCharArray().length + 1; // Length
+						ndefRecordURI[3] = (int)'U';                          // Type
+						ndefRecordURI[4] = 0x04;                              // Status
 
 						for (int i = 0; i < NDEF_URI.toCharArray().length; i++) {
-							NDEFRecordURI[5 + i] = (int)NDEF_URI.toCharArray()[i];
+							ndefRecordURI[5 + i] = (int)NDEF_URI.toCharArray()[i];
 						}
 
-						nfc.cardemuWriteNdef(NDEFRecordURI);
+						nfc.cardemuWriteNDEF(ndefRecordURI);
 						nfc.cardemuStartDiscovery();
 					}
 					catch (Exception e) {

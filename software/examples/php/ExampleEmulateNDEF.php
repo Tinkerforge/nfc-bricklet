@@ -18,7 +18,7 @@ function cb_cardemuStateChanged($state, $idle, $user_data)
 
 	if($state == BrickletNFC::CARDEMU_STATE_IDLE) {
 		// Only short records are supported
-		$NDEFRecordURI = array(
+		$ndefRecordURI = array(
 		                        0xD1,                   // MB/ME/CF/SR=1/IL/TNF
 		                        0x01,                   // TYPE LENGTH
 		                        strlen(NDEF_URI) + 1, // Length
@@ -27,10 +27,10 @@ function cb_cardemuStateChanged($state, $idle, $user_data)
 		                      );
 
 		foreach(str_split(NDEF_URI) as $c) {
-			array_push($NDEFRecordURI, ord($c));
+			array_push($ndefRecordURI, ord($c));
 		}
 
-		$nfc->cardemuWriteNDEF($NDEFRecordURI);
+		$nfc->cardemuWriteNDEF($ndefRecordURI);
 		$nfc->cardemuStartDiscovery();
 	}
 	else if ($state == BrickletNFC::CARDEMU_STATE_DISCOVER_READY) {

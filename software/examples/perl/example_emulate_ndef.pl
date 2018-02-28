@@ -33,7 +33,7 @@ sub cb_cardemu_state_changed
       $nfc->cardemu_start_discovery();
     }
     elsif ($state == $nfc->CARDEMU_STATE_DISCOVER_READY) {
-      $nfc->cardemu_start_transfer(1);
+      $nfc->cardemu_start_transfer($nfc->CARDEMU_TRANSFER_WRITE);
     }
     elsif ($state == $nfc->CARDEMU_STATE_DISCOVER_ERROR) {
       print "Discover error\n";

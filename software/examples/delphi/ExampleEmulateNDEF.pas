@@ -50,7 +50,7 @@ begin
     nfc.CardemuStartDiscovery;
   end
   else if state = BRICKLET_NFC_CARDEMU_STATE_DISCOVER_READY then begin
-    sender.CardemuStartTransfer(1);
+    sender.CardemuStartTransfer(BRICKLET_NFC_CARDEMU_TRANSFER_WRITE);
   end
   else if state = BRICKLET_NFC_CARDEMU_STATE_DISCOVER_ERROR then begin
     WriteLn('Discover error');

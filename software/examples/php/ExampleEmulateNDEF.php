@@ -34,7 +34,7 @@ function cb_cardemuStateChanged($state, $idle, $user_data)
 		$nfc->cardemuStartDiscovery();
 	}
 	else if ($state == BrickletNFC::CARDEMU_STATE_DISCOVER_READY) {
-		$nfc->cardemuStartTransfer(1);
+		$nfc->cardemuStartTransfer(BrickletNFC::CARDEMU_TRANSFER_WRITE);
 	}
 	else if ($state == BrickletNFC::CARDEMU_STATE_DISCOVER_ERROR) {
 		echo 'Discover error\n';

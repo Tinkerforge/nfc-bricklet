@@ -49,7 +49,7 @@ function cb_cardemu_state_changed(e)
         nfc.cardemuWriteNDEF(ndef_record_uri);
         nfc.cardemuStartDiscovery();
     elseif e.state == BrickletNFC.CARDEMU_STATE_DISCOVER_READY
-        nfc.cardemuStartTransfer(1);
+        nfc.cardemuStartTransfer(BrickletNFC.CARDEMU_TRANSFER_WRITE);
     elseif e.state == BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR
         disp('Discover error');
     elseif e.state == BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF_ERROR

@@ -27,7 +27,7 @@ def cb_cardemu_state_changed(state, idle, nfc):
         nfc.cardemu_write_ndef(ndef_record_uri)
         nfc.cardemu_start_discovery()
     elif state == nfc.CARDEMU_STATE_DISCOVER_READY:
-        nfc.cardemu_start_transfer(1)
+        nfc.cardemu_start_transfer(nfc.CARDEMU_TRANSFER_WRITE)
     elif state == nfc.CARDEMU_STATE_DISCOVER_ERROR:
         print("Discover error")
     elif state == nfc.CARDEMU_STATE_TRANSFER_NDEF_ERROR:

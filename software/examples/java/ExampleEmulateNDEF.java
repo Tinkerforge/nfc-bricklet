@@ -44,8 +44,8 @@ public class ExampleEmulateNDEF {
 					}
 				}
 				else if(state == BrickletNFC.CARDEMU_STATE_DISCOVER_READY) {
-					try{
-						nfc.cardemuStartTransfer(1);
+					try {
+						nfc.cardemuStartTransfer(BrickletNFC.CARDEMU_TRANSFER_WRITE);
 					}
 					catch (Exception e) {
 						return;

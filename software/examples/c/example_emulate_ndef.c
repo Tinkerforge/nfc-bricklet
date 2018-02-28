@@ -38,7 +38,7 @@ void cb_cardemu_state_changed(uint8_t state, bool idle, void *user_data) {
 		nfc_cardemu_start_discovery(nfc);
 	}
 	else if(state == NFC_CARDEMU_STATE_DISCOVER_READY) {
-		nfc_cardemu_start_transfer(nfc, 1);
+		nfc_cardemu_start_transfer(nfc, NFC_CARDEMU_TRANSFER_WRITE);
 	}
 	else if(state == NFC_CARDEMU_STATE_DISCOVER_ERROR) {
 		printf("Discover error\n");

@@ -32,7 +32,7 @@ class Example
 		}
 		else if(state == BrickletNFC.CARDEMU_STATE_DISCOVER_READY)
 		{
-			sender.CardemuStartTransfer(1);
+			sender.CardemuStartTransfer(BrickletNFC.CARDEMU_TRANSFER_WRITE);
 		}
 		else if(state == BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR) {
 			Console.WriteLine("Discover error");

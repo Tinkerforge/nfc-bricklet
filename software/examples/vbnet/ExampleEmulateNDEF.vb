@@ -29,7 +29,7 @@ Module ExampleEmulateNDEF
             sender.CardemuWriteNDEF(ndefRecordURI)
             sender.CardemuStartDiscovery()
         ElseIf state = BrickletNFC.CARDEMU_STATE_DISCOVER_READY Then
-            sender.CardemuStartTransfer(1)
+            sender.CardemuStartTransfer(BrickletNFC.CARDEMU_TRANSFER_WRITE)
         ElseIf state = BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR Then
             Console.WriteLine("Discover error")
         ElseIf state = BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF_ERROR Then

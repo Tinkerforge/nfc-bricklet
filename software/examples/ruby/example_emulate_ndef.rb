@@ -36,7 +36,7 @@ nfc.register_callback(BrickletNFC::CALLBACK_CARDEMU_STATE_CHANGED) do |state, id
     nfc.cardemu_write_ndef ndef_record_uri
     nfc.cardemu_start_discovery
   elsif state == BrickletNFC::CARDEMU_STATE_DISCOVER_READY
-    nfc.cardemu_start_transfer 1
+    nfc.cardemu_start_transfer BrickletNFC::CARDEMU_TRANSFER_WRITE
   elsif state == BrickletNFC::CARDEMU_STATE_DISCOVER_ERROR
     puts "Discover error"
   elsif state == BrickletNFC::CARDEMU_STATE_TRANSFER_NDEF_ERROR

@@ -30,6 +30,7 @@
 #include "bricklib2/hal/system_timer/system_timer.h"
 #include "bricklib2/os/coop_task.h"
 #include "bricklib2/logging/logging.h"
+#include "bricklib2/utility/util_definitions.h"
 
 #include "pn7150.h"
 
@@ -71,6 +72,8 @@ I2CTXState i2c_tx_state = I2C_TX_STATE_DONE;
 uint8_t *i2c_rx_data = NULL;
 uint16_t i2c_rx_data_length = 0;
 uint16_t i2c_rx_data_index = 0;
+
+uint16_t i2c_max_timeout = 2000;
 
 void i2c_rx_irq_handler(void) {
 	//XMC_GPIO_SetOutputHigh(P4_6);
@@ -392,7 +395,10 @@ void tml_Receive(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytes, uint16_
 	bool elapsed = true;
 	if(timeout == 0) {
 		timeout = 10000;
+	} else {
+		timeout = MIN(timeout, i2c_max_timeout);
 	}
+
 	while(!system_timer_is_time_elapsed_ms(start, timeout)) {
 		if(XMC_GPIO_GetInput(PN7150_IRQ_PIN)) {
 			elapsed = false;

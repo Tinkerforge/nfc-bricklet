@@ -132,6 +132,8 @@ void communication_init(void);
 #define FID_P2P_READ_NDEF_LOW_LEVEL 23
 #define FID_SET_DETECTION_LED_CONFIG 25
 #define FID_GET_DETECTION_LED_CONFIG 26
+#define FID_SET_MAXIMUM_TIMEOUT 27
+#define FID_GET_MAXIMUM_TIMEOUT 28
 
 #define FID_CALLBACK_READER_STATE_CHANGED 13
 #define FID_CALLBACK_CARDEMU_STATE_CHANGED 18
@@ -325,6 +327,20 @@ typedef struct {
 	uint8_t config;
 } __attribute__((__packed__)) GetDetectionLEDConfig_Response;
 
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t timeout;
+} __attribute__((__packed__)) SetMaximumTimeout;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetMaximumTimeout;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t timeout;
+} __attribute__((__packed__)) GetMaximumTimeout_Response;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse set_mode(const SetMode *data);
@@ -350,6 +366,8 @@ BootloaderHandleMessageResponse p2p_start_transfer(const P2PStartTransfer *data)
 BootloaderHandleMessageResponse p2p_read_ndef_low_level(const P2PReadNdefLowLevel *data, P2PReadNdefLowLevel_Response *response);
 BootloaderHandleMessageResponse set_detection_led_config(const SetDetectionLEDConfig *data);
 BootloaderHandleMessageResponse get_detection_led_config(const GetDetectionLEDConfig *data, GetDetectionLEDConfig_Response *response);
+BootloaderHandleMessageResponse set_maximum_timeout(const SetMaximumTimeout *data);
+BootloaderHandleMessageResponse get_maximum_timeout(const GetMaximumTimeout *data, GetMaximumTimeout_Response *response);
 
 // Callbacks
 bool handle_reader_state_changed_callback(void);

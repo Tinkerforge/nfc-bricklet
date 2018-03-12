@@ -380,6 +380,20 @@ BootloaderHandleMessageResponse set_detection_led_config(const SetDetectionLEDCo
 
 BootloaderHandleMessageResponse get_detection_led_config(const GetDetectionLEDConfig *data, GetDetectionLEDConfig_Response *response) {
 	response->header.length = sizeof(GetDetectionLEDConfig_Response);
+	response->config        = pn7150.detection_led_state.config;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_maximum_timeout(const SetMaximumTimeout *data) {
+	i2c_max_timeout = data->timeout;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_maximum_timeout(const GetMaximumTimeout *data, GetMaximumTimeout_Response *response) {
+	response->header.length = sizeof(GetMaximumTimeout_Response);
+	response->timeout = i2c_max_timeout;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

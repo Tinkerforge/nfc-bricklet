@@ -68,11 +68,13 @@ static void pn7150_reader_request_tag_id(void) {
 		NxpNci_StopDiscovery();
 		if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
 			pn7150_init_nfc();
+			pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
 			return;
 		}
 	}
 
 	if(NxpNci_WaitForDiscoveryNotification(&pn7150_reader_interface) != NFC_SUCCESS) {
+		pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
 		return;
 	}
 

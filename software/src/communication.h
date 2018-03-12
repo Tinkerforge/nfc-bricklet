@@ -1,5 +1,5 @@
 /* nfc-bricklet
- * Copyright (C) 2017 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2018 Olaf Lüke <olaf@tinkerforge.com>
  *
  * communication.h: TFP protocol message handling
  *
@@ -108,6 +108,24 @@ void communication_init(void);
 #define NFC_DETECTION_LED_CONFIG_SHOW_HEARTBEAT 2
 #define NFC_DETECTION_LED_CONFIG_SHOW_DETECTION 3
 
+#define NFC_BOOTLOADER_MODE_BOOTLOADER 0
+#define NFC_BOOTLOADER_MODE_FIRMWARE 1
+#define NFC_BOOTLOADER_MODE_BOOTLOADER_WAIT_FOR_REBOOT 2
+#define NFC_BOOTLOADER_MODE_FIRMWARE_WAIT_FOR_REBOOT 3
+#define NFC_BOOTLOADER_MODE_FIRMWARE_WAIT_FOR_ERASE_AND_REBOOT 4
+
+#define NFC_BOOTLOADER_STATUS_OK 0
+#define NFC_BOOTLOADER_STATUS_INVALID_MODE 1
+#define NFC_BOOTLOADER_STATUS_NO_CHANGE 2
+#define NFC_BOOTLOADER_STATUS_ENTRY_FUNCTION_NOT_PRESENT 3
+#define NFC_BOOTLOADER_STATUS_DEVICE_IDENTIFIER_INCORRECT 4
+#define NFC_BOOTLOADER_STATUS_CRC_MISMATCH 5
+
+#define NFC_STATUS_LED_CONFIG_OFF 0
+#define NFC_STATUS_LED_CONFIG_ON 1
+#define NFC_STATUS_LED_CONFIG_SHOW_HEARTBEAT 2
+#define NFC_STATUS_LED_CONFIG_SHOW_STATUS 3
+
 // Function and callback IDs and structs
 #define FID_SET_MODE 1
 #define FID_GET_MODE 2
@@ -183,22 +201,22 @@ typedef struct {
 	uint16_t ndef_length;
 	uint16_t ndef_chunk_offset;
 	uint8_t ndef_chunk_data[60];
-} __attribute__((__packed__)) ReaderWriteNdefLowLevel;
+} __attribute__((__packed__)) ReaderWriteNDEFLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
-} __attribute__((__packed__)) ReaderRequestNdef;
+} __attribute__((__packed__)) ReaderRequestNDEF;
 
 typedef struct {
 	TFPMessageHeader header;
-} __attribute__((__packed__)) ReaderReadNdefLowLevel;
+} __attribute__((__packed__)) ReaderReadNDEFLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint16_t ndef_length;
 	uint16_t ndef_chunk_offset;
 	uint8_t ndef_chunk_data[60];
-} __attribute__((__packed__)) ReaderReadNdefLowLevel_Response;
+} __attribute__((__packed__)) ReaderReadNDEFLowLevel_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -257,7 +275,7 @@ typedef struct {
 	uint16_t ndef_length;
 	uint16_t ndef_chunk_offset;
 	uint8_t ndef_chunk_data[60];
-} __attribute__((__packed__)) CardemuWriteNdefLowLevel;
+} __attribute__((__packed__)) CardemuWriteNDEFLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -289,7 +307,7 @@ typedef struct {
 	uint16_t ndef_length;
 	uint16_t ndef_chunk_offset;
 	uint8_t ndef_chunk_data[60];
-} __attribute__((__packed__)) P2PWriteNdefLowLevel;
+} __attribute__((__packed__)) P2PWriteNDEFLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -298,14 +316,14 @@ typedef struct {
 
 typedef struct {
 	TFPMessageHeader header;
-} __attribute__((__packed__)) P2PReadNdefLowLevel;
+} __attribute__((__packed__)) P2PReadNDEFLowLevel;
 
 typedef struct {
 	TFPMessageHeader header;
 	uint16_t ndef_length;
 	uint16_t ndef_chunk_offset;
 	uint8_t ndef_chunk_data[60];
-} __attribute__((__packed__)) P2PReadNdefLowLevel_Response;
+} __attribute__((__packed__)) P2PReadNDEFLowLevel_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -348,22 +366,22 @@ BootloaderHandleMessageResponse get_mode(const GetMode *data, GetMode_Response *
 BootloaderHandleMessageResponse reader_request_tag_id(const ReaderRequestTagID *data);
 BootloaderHandleMessageResponse reader_get_tag_id_low_level(const ReaderGetTagIDLowLevel *data, ReaderGetTagIDLowLevel_Response *response);
 BootloaderHandleMessageResponse reader_get_state(const ReaderGetState *data, ReaderGetState_Response *response);
-BootloaderHandleMessageResponse reader_write_ndef_low_level(const ReaderWriteNdefLowLevel *data);
-BootloaderHandleMessageResponse reader_request_ndef(const ReaderRequestNdef *data);
-BootloaderHandleMessageResponse reader_read_ndef_low_level(const ReaderReadNdefLowLevel *data, ReaderReadNdefLowLevel_Response *response);
+BootloaderHandleMessageResponse reader_write_ndef_low_level(const ReaderWriteNDEFLowLevel *data);
+BootloaderHandleMessageResponse reader_request_ndef(const ReaderRequestNDEF *data);
+BootloaderHandleMessageResponse reader_read_ndef_low_level(const ReaderReadNDEFLowLevel *data, ReaderReadNDEFLowLevel_Response *response);
 BootloaderHandleMessageResponse reader_authenticate_mifare_classic_page(const ReaderAuthenticateMifareClassicPage *data);
 BootloaderHandleMessageResponse reader_write_page_low_level(const ReaderWritePageLowLevel *data);
 BootloaderHandleMessageResponse reader_request_page(const ReaderRequestPage *data);
 BootloaderHandleMessageResponse reader_read_page_low_level(const ReaderReadPageLowLevel *data, ReaderReadPageLowLevel_Response *response);
 BootloaderHandleMessageResponse cardemu_get_state(const CardemuGetState *data, CardemuGetState_Response *response);
 BootloaderHandleMessageResponse cardemu_start_discovery(const CardemuStartDiscovery *data);
-BootloaderHandleMessageResponse cardemu_write_ndef_low_level(const CardemuWriteNdefLowLevel *data);
+BootloaderHandleMessageResponse cardemu_write_ndef_low_level(const CardemuWriteNDEFLowLevel *data);
 BootloaderHandleMessageResponse cardemu_start_transfer(const CardemuStartTransfer *data);
 BootloaderHandleMessageResponse p2p_get_state(const P2PGetState *data, P2PGetState_Response *response);
 BootloaderHandleMessageResponse p2p_start_discovery(const P2PStartDiscovery *data);
-BootloaderHandleMessageResponse p2p_write_ndef_low_level(const P2PWriteNdefLowLevel *data);
+BootloaderHandleMessageResponse p2p_write_ndef_low_level(const P2PWriteNDEFLowLevel *data);
 BootloaderHandleMessageResponse p2p_start_transfer(const P2PStartTransfer *data);
-BootloaderHandleMessageResponse p2p_read_ndef_low_level(const P2PReadNdefLowLevel *data, P2PReadNdefLowLevel_Response *response);
+BootloaderHandleMessageResponse p2p_read_ndef_low_level(const P2PReadNDEFLowLevel *data, P2PReadNDEFLowLevel_Response *response);
 BootloaderHandleMessageResponse set_detection_led_config(const SetDetectionLEDConfig *data);
 BootloaderHandleMessageResponse get_detection_led_config(const GetDetectionLEDConfig *data, GetDetectionLEDConfig_Response *response);
 BootloaderHandleMessageResponse set_maximum_timeout(const SetMaximumTimeout *data);

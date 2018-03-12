@@ -31,6 +31,8 @@
 #include "pn7150_p2p.h"
 #include "pn7150_reader.h"
 
+extern uint16_t i2c_max_timeout;
+
 BootloaderHandleMessageResponse handle_message(const void *message, void *response) {
 	switch(tfp_get_fid_from_message(message)) {
 		case FID_SET_MODE: return set_mode(message);
@@ -56,6 +58,8 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_P2P_READ_NDEF_LOW_LEVEL: return p2p_read_ndef_low_level(message, response);
 		case FID_SET_DETECTION_LED_CONFIG: return set_detection_led_config(message);
 		case FID_GET_DETECTION_LED_CONFIG: return get_detection_led_config(message, response);
+		case FID_SET_MAXIMUM_TIMEOUT: return set_maximum_timeout(message);
+		case FID_GET_MAXIMUM_TIMEOUT: return get_maximum_timeout(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -119,7 +123,7 @@ BootloaderHandleMessageResponse reader_get_state(const ReaderGetState *data, Rea
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
-BootloaderHandleMessageResponse reader_write_ndef_low_level(const ReaderWriteNdefLowLevel *data) {
+BootloaderHandleMessageResponse reader_write_ndef_low_level(const ReaderWriteNDEFLowLevel *data) {
 	if((pn7150.mode == NFC_MODE_READER) && (pn7150.reader_state & NFC_READER_STATE_IDLE)) {
 		uint8_t length = BETWEEN(0, ((int32_t)data->ndef_length) - ((int32_t)data->ndef_chunk_offset), 60);
 		memcpy(pn7150.data + data->ndef_chunk_offset, data->ndef_chunk_data, length);
@@ -141,7 +145,7 @@ BootloaderHandleMessageResponse reader_write_ndef_low_level(const ReaderWriteNde
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 }
 
-BootloaderHandleMessageResponse reader_request_ndef(const ReaderRequestNdef *data) {
+BootloaderHandleMessageResponse reader_request_ndef(const ReaderRequestNDEF *data) {
 	if((pn7150.mode == NFC_MODE_READER) && (pn7150.reader_state & NFC_READER_STATE_IDLE)) {
 		pn7150.reader_state = NFC_READER_STATE_REQUEST_NDEF;
 
@@ -154,8 +158,8 @@ BootloaderHandleMessageResponse reader_request_ndef(const ReaderRequestNdef *dat
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 }
 
-BootloaderHandleMessageResponse reader_read_ndef_low_level(const ReaderReadNdefLowLevel *data, ReaderReadNdefLowLevel_Response *response) {
-	response->header.length = sizeof(ReaderReadNdefLowLevel_Response);
+BootloaderHandleMessageResponse reader_read_ndef_low_level(const ReaderReadNDEFLowLevel *data, ReaderReadNDEFLowLevel_Response *response) {
+	response->header.length = sizeof(ReaderReadNDEFLowLevel_Response);
 
 	if((pn7150.mode == NFC_MODE_READER) && (pn7150.reader_state == NFC_READER_STATE_REQUEST_NDEF_READY)) {
 		uint8_t length = BETWEEN(0, ((int32_t)pn7150.data_length) - ((int32_t)pn7150.data_chunk_offset), 60);
@@ -256,7 +260,7 @@ BootloaderHandleMessageResponse cardemu_start_discovery(const CardemuStartDiscov
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 }
 
-BootloaderHandleMessageResponse cardemu_write_ndef_low_level(const CardemuWriteNdefLowLevel *data) {
+BootloaderHandleMessageResponse cardemu_write_ndef_low_level(const CardemuWriteNDEFLowLevel *data) {
 	if((pn7150.mode == NFC_MODE_CARDEMU) && (pn7150.cardemu_state & NFC_CARDEMU_STATE_IDLE)) {
 		uint8_t length = BETWEEN(0, ((int32_t)data->ndef_length) - ((int32_t)data->ndef_chunk_offset), 60);
 		memcpy(pn7150.data + data->ndef_chunk_offset, data->ndef_chunk_data, length);
@@ -309,7 +313,7 @@ BootloaderHandleMessageResponse p2p_start_discovery(const P2PStartDiscovery *dat
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 }
 
-BootloaderHandleMessageResponse p2p_write_ndef_low_level(const P2PWriteNdefLowLevel *data) {
+BootloaderHandleMessageResponse p2p_write_ndef_low_level(const P2PWriteNDEFLowLevel *data) {
 	if((pn7150.mode == NFC_MODE_P2P) && (pn7150.p2p_state & NFC_P2P_STATE_IDLE)) {
 		uint8_t length = BETWEEN(0, ((int32_t)data->ndef_length) - ((int32_t)data->ndef_chunk_offset), 60);
 		memcpy(pn7150.data + data->ndef_chunk_offset, data->ndef_chunk_data, length);
@@ -344,8 +348,8 @@ BootloaderHandleMessageResponse p2p_start_transfer(const P2PStartTransfer *data)
 	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 }
 
-BootloaderHandleMessageResponse p2p_read_ndef_low_level(const P2PReadNdefLowLevel *data, P2PReadNdefLowLevel_Response *response) {
-	response->header.length = sizeof(P2PReadNdefLowLevel_Response);
+BootloaderHandleMessageResponse p2p_read_ndef_low_level(const P2PReadNDEFLowLevel *data, P2PReadNDEFLowLevel_Response *response) {
+	response->header.length = sizeof(P2PReadNDEFLowLevel_Response);
 
 	if((pn7150.mode == NFC_MODE_P2P) && (pn7150.p2p_state == NFC_P2P_STATE_TRANSFER_NDEF_READY) && (pn7150.p2p_ndef_length == 0)) {
 		uint8_t length = BETWEEN(0, ((int32_t)pn7150.data_length) - ((int32_t)pn7150.data_chunk_offset), 60);

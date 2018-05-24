@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+use strict;
 use Data::Dump;
 use Tinkerforge::IPConnection;
 use Tinkerforge::BrickletNFC;

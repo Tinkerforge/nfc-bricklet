@@ -1,9 +1,9 @@
-(kicad_pcb (version 4) (host pcbnew 4.0.2+dfsg1-stable)
+(kicad_pcb (version 4) (host pcbnew 4.0.7-e2-6376~61~ubuntu18.04.1)
 
   (general
     (links 136)
     (no_connects 0)
-    (area 110.324999 51.924999 195.475001 102.075001)
+    (area 109.544999 51.144999 275.89286 161.25)
     (thickness 1.6)
     (drawings 13)
     (tracks 1009)
@@ -9681,10 +9681,10 @@
     )
   )
 
-  (gr_text detect (at 131.7 100.5) (layer F.SilkS)
+  (gr_text Detect (at 131.7 100.5) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
-  (gr_text status (at 126.2 100.5) (layer F.SilkS)
+  (gr_text Status (at 126.2 100.5) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
   (gr_text "Copyright Tinkerforge GmbH 2017.\nThis documentation describes Open Hardware and is licensed under the\nCERN OHL v. 1.1.\nYou may redistribute and modify this documentation under the terms of the\nCERN OHL v.1.1. (http://ohwr.org/cernohl). This documentation is distributed\nWITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF\nMERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A\nPARTICULAR PURPOSE. Please see the CERN OHL v.1.1 for applicable\nconditions" (at 231 149.7) (layer Cmts.User)

@@ -36,9 +36,9 @@ modify the schematics and the PCB layout.
 Software
 --------
 
- If you want to do your own Brick/Bricklet firmware development we highly
- recommend that you use our build environment setup script and read the
- tutorial: https://www.tinkerforge.com/en/doc/Tutorials/Tutorial_Build_Environment/Tutorial.html
+If you want to do your own Brick/Bricklet firmware development we highly
+recommend that you use our build environment setup script and read the
+tutorial (https://www.tinkerforge.com/en/doc/Tutorials/Tutorial_Build_Environment/Tutorial.html).
 
 To compile the C code we recommend you to install the newest GNU Arm Embedded 
 Toolchain (https://launchpad.net/gcc-arm-embedded/+download).

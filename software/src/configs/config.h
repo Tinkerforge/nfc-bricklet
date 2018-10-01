@@ -33,7 +33,7 @@
 #define FIRMWARE_VERSION_MINOR 0
 #define FIRMWARE_VERSION_REVISION 1
 
-#define COOP_TASK_STACK_SIZE (4*1024)
+#define COOP_TASK_STACK_SIZE (3*1024 + 512)
 //#define COOP_TASK_DEBUG_STACK_LOW_WATERMARK
 
 #include "config_custom_bootloader.h"

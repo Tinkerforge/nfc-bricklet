@@ -32,7 +32,6 @@
 
 #include "xmc_gpio.h"
 
-uint32_t count = 0;
 
 void HardFault_Handler() {
 	loge("HardFault_Handler\n\r");
@@ -46,15 +45,7 @@ int main(void) {
 	communication_init();
 	pn7150_init();
 
-	uint32_t t = system_timer_get_ms();
 	while(true) {
-		if(system_timer_is_time_elapsed_ms(t, 1000)) {
-			t = system_timer_get_ms();
-
-			logi("tick: %u\n\r", count);
-			count++;
-		}
-
 		bootloader_tick();
 		communication_tick();
 		pn7150_tick();

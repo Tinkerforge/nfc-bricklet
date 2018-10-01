@@ -76,22 +76,18 @@ uint16_t i2c_rx_data_index = 0;
 uint16_t i2c_max_timeout = 2000;
 
 void i2c_rx_irq_handler(void) {
-	//XMC_GPIO_SetOutputHigh(P4_6);
 	while(!XMC_USIC_CH_RXFIFO_IsEmpty(PN7150_I2C)) {
 		if(i2c_rx_data_index <= i2c_rx_data_length) {
 			i2c_rx_data[i2c_rx_data_index] = XMC_I2C_CH_GetReceivedData(PN7150_I2C);
 			i2c_rx_data_index++;
 		} else {
 			XMC_USIC_CH_RXFIFO_Flush(PN7150_I2C);
-			//XMC_GPIO_SetOutputLow(P4_6);
 			return;
 		}
 	}
-	//XMC_GPIO_SetOutputLow(P4_6);
 }
 
 void i2c_tx_irq_handler(void) {
-	//XMC_GPIO_SetOutputHigh(P4_7);
 	while(!XMC_USIC_CH_TXFIFO_IsFull(PN7150_I2C)) {
 		switch(i2c_tx_state) {
 			case I2C_TX_STATE_START_TX: {
@@ -109,7 +105,6 @@ void i2c_tx_irq_handler(void) {
 					} else {
 						i2c_tx_state = I2C_TX_STATE_DONE;
 						XMC_USIC_CH_TXFIFO_DisableEvent(PN7150_I2C, XMC_USIC_CH_TXFIFO_EVENT_CONF_STANDARD);
-						//XMC_GPIO_SetOutputLow(P4_7);
 						return;
 					}
 				}
@@ -120,7 +115,6 @@ void i2c_tx_irq_handler(void) {
 				PN7150_I2C->IN[0] = XMC_I2C_CH_TDF_MASTER_STOP;
 				i2c_tx_state = I2C_TX_STATE_DONE;
 				XMC_USIC_CH_TXFIFO_DisableEvent(PN7150_I2C, XMC_USIC_CH_TXFIFO_EVENT_CONF_STANDARD);
-				//XMC_GPIO_SetOutputLow(P4_7);
 				return;
 			}
 
@@ -141,7 +135,6 @@ void i2c_tx_irq_handler(void) {
 					} else {
 						i2c_tx_state = I2C_TX_STATE_DONE;
 						XMC_USIC_CH_TXFIFO_DisableEvent(PN7150_I2C, XMC_USIC_CH_TXFIFO_EVENT_CONF_STANDARD);
-						//XMC_GPIO_SetOutputLow(P4_7);
 						return;
 					}
 				}
@@ -153,18 +146,15 @@ void i2c_tx_irq_handler(void) {
 				PN7150_I2C->IN[0] = XMC_I2C_CH_TDF_MASTER_STOP;
 				i2c_tx_state = I2C_TX_STATE_DONE;
 				XMC_USIC_CH_TXFIFO_DisableEvent(PN7150_I2C, XMC_USIC_CH_TXFIFO_EVENT_CONF_STANDARD);
-				//XMC_GPIO_SetOutputLow(P4_7);
 				return;
 			}
 
 			case I2C_TX_STATE_DONE: {
 				XMC_USIC_CH_TXFIFO_DisableEvent(PN7150_I2C, XMC_USIC_CH_TXFIFO_EVENT_CONF_STANDARD);
-				//XMC_GPIO_SetOutputLow(P4_7);
 				return;
 			}
 		}
 	}
-	//XMC_GPIO_SetOutputLow(P4_7);
 }
 
 bool i2c_write(uint8_t *data, const uint16_t length, bool send_stop) {

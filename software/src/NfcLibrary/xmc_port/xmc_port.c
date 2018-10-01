@@ -63,15 +63,15 @@ typedef enum XMC_I2C_CH_TDF {
 #define i2c_rx_irq_handler  IRQ_Hdlr_11
 #define i2c_tx_irq_handler  IRQ_Hdlr_12
 
-uint8_t *i2c_tx_data = NULL;
-uint16_t i2c_tx_data_length = 0;
-uint16_t i2c_tx_data_index = 0;
-bool i2c_tx_data_send_stop = false;
-I2CTXState i2c_tx_state = I2C_TX_STATE_DONE;
+volatile uint8_t *i2c_tx_data = NULL;
+volatile uint16_t i2c_tx_data_length = 0;
+volatile uint16_t i2c_tx_data_index = 0;
+volatile bool i2c_tx_data_send_stop = false;
+volatile I2CTXState i2c_tx_state = I2C_TX_STATE_DONE;
 
-uint8_t *i2c_rx_data = NULL;
-uint16_t i2c_rx_data_length = 0;
-uint16_t i2c_rx_data_index = 0;
+volatile uint8_t *i2c_rx_data = NULL;
+volatile uint16_t i2c_rx_data_length = 0;
+volatile uint16_t i2c_rx_data_index = 0;
 
 uint16_t i2c_max_timeout = 2000;
 

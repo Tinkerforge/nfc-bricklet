@@ -4,3 +4,6 @@
 2018-03-12: 2.0.1 (4f8a8b9)
 - Add function for global maximum timeout to API
 - Use RequestTagIDError state if no tag has been found after timeout
+
+2018-10-01: 2.0.2 (TBD)
+- Fix SPITFP race condition (through bootloader)

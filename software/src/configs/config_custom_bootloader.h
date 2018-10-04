@@ -1,5 +1,5 @@
 /* nfc-bricklet
- * Copyright (C) 2017 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2017-2018 Olaf Lüke <olaf@tinkerforge.com>
  *
  * config_custom_bootloader.h: Bootloader configurations for 
  *                             NFC Bricklet
@@ -36,11 +36,6 @@
 
 #define BOOTLOADER_FLASH_EEPROM_SIZE   (4*256)
 #define BOOTLOADER_FLASH_SIZE          (32*1024 - BOOTLOADER_FLASH_EEPROM_SIZE)
-
-// --- Oscilater defines ---
-//#define OSCHP_FREQUENCY 16000000
-//#define DCLK_CLOCK_SRC  1
-//#define DCO1_CAL_SRC    1
 
 // --- SPITFP ---
 #define SPITFP_USIC_CHANNEL         USIC0_CH0

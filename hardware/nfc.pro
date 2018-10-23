@@ -1,4 +1,4 @@
-update=Di 20 Feb 2018 09:58:21 CET
+update=Fr 28 Sep 2018 14:29:27 CEST
 version=1
 last_client=kicad
 [cvpcb]
@@ -27,38 +27,4 @@ BoardOutlineThickness=0.15
 ModuleOutlineThickness=0.15
 [eeschema]
 version=1
-LibDir=kicad-libraries
-[eeschema/libraries]
-LibName1=tinkerforge
-LibName2=power
-LibName3=device
-LibName4=switches
-LibName5=relays
-LibName6=motors
-LibName7=transistors
-LibName8=conn
-LibName9=linear
-LibName10=regul
-LibName11=74xx
-LibName12=cmos4000
-LibName13=adc-dac
-LibName14=memory
-LibName15=xilinx
-LibName16=microcontrollers
-LibName17=dsp
-LibName18=microchip
-LibName19=analog_switches
-LibName20=motorola
-LibName21=texas
-LibName22=intel
-LibName23=audio
-LibName24=interface
-LibName25=digital-audio
-LibName26=philips
-LibName27=display
-LibName28=cypress
-LibName29=siliconi
-LibName30=opto
-LibName31=atmel
-LibName32=contrib
-LibName33=valves
+LibDir=

@@ -13,9 +13,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     ipcon.connect((HOST, PORT)).recv()??; // Connect to brickd
                                           // Don't use device before ipcon is connected
 
-    //Create receiver for cardemu state changed events.
-    let cardemu_state_changed_receiver = nfc.get_cardemu_state_changed_receiver();
-    // Spawn thread to handle received events. This thread ends when the nfc
+    let cardemu_state_changed_receiver = nfc.get_cardemu_state_changed_callback_receiver();
+    
+    // Spawn thread to handle received events.
+    // This thread ends when the `nfc` object
     // is dropped, so there is no need for manual cleanup.
     let nfc_copy = nfc.clone(); //Device objects don't implement Sync, so they can't be shared between threads (by reference). So clone the device and move the copy.
     thread::spawn(move || {

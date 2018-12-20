@@ -11,9 +11,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     ipcon.connect((HOST, PORT)).recv()??; // Connect to brickd
                                           // Don't use device before ipcon is connected
-    
+
     let reader_state_changed_receiver = nfc.get_reader_state_changed_callback_receiver();
-    
+
     // Spawn thread to handle received events.
     // This thread ends when the `nfc` object
     // is dropped, so there is no need for manual cleanup.
@@ -37,7 +37,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else if state_change.state == NFC_BRICKLET_READER_STATE_REQUEST_PAGE_READY {
                 let page = nfc_copy.reader_read_page().unwrap();
 
-                println!("Page read: 0x{0:X} 0x{1:X} 0x{2:X} 0x{3:X}", page[0], page[1], page[2], page[3]);
+                println!(
+                    "Page read: 0x{0:X} 0x{1:X} 0x{2:X} 0x{3:X}",
+                    page[0], page[1], page[2], page[3]
+                );
 
                 nfc_copy.reader_write_page(1, &page).unwrap();
             } else if state_change.state == NFC_BRICKLET_READER_STATE_WRITE_PAGE_READY {

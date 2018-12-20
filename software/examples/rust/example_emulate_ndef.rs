@@ -22,8 +22,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     thread::spawn(move || {
         for state_change in cardemu_state_changed_receiver {
             if state_change.state == NFC_BRICKLET_CARDEMU_STATE_IDLE {
-                let mut ndef_record_udi =
-                    vec![0xd1u8, 0x01, NDEF_URI.len() as u8 + 1, 'U' as u8, 0x04];
+                let mut ndef_record_udi = vec![0xd1u8, 0x01, NDEF_URI.len() as u8 + 1, 'U' as u8, 0x04];
 
                 // Only short records are supported
                 for byte in NDEF_URI.bytes() {

@@ -8,7 +8,7 @@
 2018-10-04: 2.0.2 (21c2a94)
 - Fix SPITFP race condition (through bootloader)
 
-2019-25-01: 2.0.3 (TBD)
+2019-25-01: 2.0.3 (79ab736)
 - Update NXP NfcLibrary to v1.3
   * NfcLibrary changelog:
    * v1.3: - Add Type 4 Tag emulation write operation capabilities

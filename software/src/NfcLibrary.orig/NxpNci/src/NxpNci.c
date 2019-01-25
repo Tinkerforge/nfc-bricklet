@@ -17,11 +17,16 @@
 #include <NxpNci.h>
 #include <Nfc_settings.h>
 
-#define MAX_NCI_FRAME_SIZE    256
+#define MAX_NCI_FRAME_SIZE    258
 #define MAX(x,y)    (x > y ? x : y)
 
 static uint8_t gNfcController_generation = 0;
+static uint8_t gNfcController_fw_version[3] = {0};
 static uint8_t gNextTag_Protocol = PROT_UNDETERMINED;
+
+static uint8_t NCIStartDiscovery[30];
+static uint8_t NCIStartDiscovery_length = 0;
+
 
 static bool NxpNci_CheckDevPres(void)
 {
@@ -62,34 +67,60 @@ static bool NxpNci_HostTransceive(uint8_t *pTBuff, uint16_t TbuffLen, uint8_t *p
 
 static void NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf)
 {
-    uint8_t i;
+    uint8_t i, temp;
 
     switch(pRfIntf->ModeTech)
     {
     case (MODE_POLL | TECH_PASSIVE_NFCA):
-                    memcpy(pRfIntf->Info.NFC_APP.SensRes, &pBuf[0], 2);
-    pRfIntf->Info.NFC_APP.NfcIdLen = pBuf[2];
-    memcpy(pRfIntf->Info.NFC_APP.NfcId, &pBuf[3], pRfIntf->Info.NFC_APP.NfcIdLen);
-    pRfIntf->Info.NFC_APP.SelResLen = pBuf[3+pBuf[2]];
-    if(pRfIntf->Info.NFC_APP.SelResLen == 1) pRfIntf->Info.NFC_APP.SelRes[0] = pBuf[3+pBuf[2]+1];
-    break;
+        memcpy(pRfIntf->Info.NFC_APP.SensRes, &pBuf[0], 2);
+        temp = 2;
+        pRfIntf->Info.NFC_APP.NfcIdLen = pBuf[temp];
+        temp++;
+        memcpy(pRfIntf->Info.NFC_APP.NfcId, &pBuf[3], pRfIntf->Info.NFC_APP.NfcIdLen);
+        temp+=pBuf[2];
+        pRfIntf->Info.NFC_APP.SelResLen = pBuf[temp];
+        temp++;
+        if(pRfIntf->Info.NFC_APP.SelResLen == 1) pRfIntf->Info.NFC_APP.SelRes[0] = pBuf[temp];
+        temp+=4;
+        if(pBuf[temp] != 0)
+        {
+            temp++;
+            pRfIntf->Info.NFC_APP.RatsLen = pBuf[temp];
+            memcpy(pRfIntf->Info.NFC_APP.Rats, &pBuf[temp+1], pBuf[temp]);
+        }
+        else
+        {
+            pRfIntf->Info.NFC_APP.RatsLen = 0;
+        }
+        break;
 
     case (MODE_POLL | TECH_PASSIVE_NFCB):
-                    pRfIntf->Info.NFC_BPP.SensResLen = pBuf[0];
-    memcpy(pRfIntf->Info.NFC_BPP.SensRes, &pBuf[1], pRfIntf->Info.NFC_BPP.SensResLen);
-    break;
+        pRfIntf->Info.NFC_BPP.SensResLen = pBuf[0];
+        memcpy(pRfIntf->Info.NFC_BPP.SensRes, &pBuf[1], pRfIntf->Info.NFC_BPP.SensResLen);
+        temp = pBuf[0] + 4;
+        if(pBuf[temp] != 0)
+        {
+            temp++;
+            pRfIntf->Info.NFC_BPP.AttribResLen = pBuf[temp];
+            memcpy(pRfIntf->Info.NFC_BPP.AttribRes, &pBuf[temp+1], pBuf[temp]);
+        }
+        else
+        {
+            pRfIntf->Info.NFC_BPP.AttribResLen = 0;
+        }
+        break;
 
     case (MODE_POLL | TECH_PASSIVE_NFCF):
-                    pRfIntf->Info.NFC_FPP.BitRate = pBuf[0];
-    pRfIntf->Info.NFC_FPP.SensResLen = pBuf[1];
-    memcpy(pRfIntf->Info.NFC_FPP.SensRes, &pBuf[2], pRfIntf->Info.NFC_FPP.SensResLen);
-    break;
+        pRfIntf->Info.NFC_FPP.BitRate = pBuf[0];
+        pRfIntf->Info.NFC_FPP.SensResLen = pBuf[1];
+        memcpy(pRfIntf->Info.NFC_FPP.SensRes, &pBuf[2], pRfIntf->Info.NFC_FPP.SensResLen);
+        break;
 
     case (MODE_POLL | TECH_PASSIVE_15693):
-                    pRfIntf->Info.NFC_VPP.AFI = pBuf[0];
-    pRfIntf->Info.NFC_VPP.DSFID = pBuf[1];
-    for(i=0; i<8; i++) pRfIntf->Info.NFC_VPP.ID[7-i] = pBuf[2+i];
-    break;
+        pRfIntf->Info.NFC_VPP.AFI = pBuf[0];
+        pRfIntf->Info.NFC_VPP.DSFID = pBuf[1];
+        for(i=0; i<8; i++) pRfIntf->Info.NFC_VPP.ID[7-i] = pBuf[2+i];
+        break;
 
     default:
         break;
@@ -174,7 +205,8 @@ void NxpNci_ProcessP2pMode(NxpNci_RfIntf_t RfIntf)
 {
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
     uint16_t AnswerSize;
-    bool restart;
+    bool status;
+    bool restart = false;
     uint8_t NCILlcpSymm[] = {0x00, 0x00, 0x02, 0x00, 0x00};
     uint8_t NCIRestartDiscovery[] = {0x21, 0x06, 0x01, 0x03};
 
@@ -186,29 +218,32 @@ void NxpNci_ProcessP2pMode(NxpNci_RfIntf_t RfIntf)
     {
         /* Initiate communication (SYMM PDU) */
         NxpNci_HostTransceive(NCILlcpSymm, sizeof(NCILlcpSymm), Answer, sizeof(Answer), &AnswerSize);
+        /* Save status for discovery restart */
+        restart = true;
     }
 
+    status = NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_2S);
+
     /* Get frame from remote peer */
-    while(NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_2S) == NXPNCI_SUCCESS)
+    while(status == NXPNCI_SUCCESS)
     {
-        /* is DATA_PACKET ? */
+    	/* is DATA_PACKET ? */
         if((Answer[0] == 0x00) && (Answer[1] == 0x00))
         {
             uint8_t Cmd[MAX_NCI_FRAME_SIZE];
             uint16_t CmdSize;
-
+            /* Handle P2P communication */
             P2P_NDEF_Next(&Answer[3], Answer[2], &Cmd[3], (unsigned short *) &CmdSize);
-
             /* Compute DATA_PACKET to answer */
             Cmd[0] = 0x00;
             Cmd[1] = (CmdSize & 0xFF00) >> 8;
             Cmd[2] = CmdSize & 0x00FF;
-
-            NxpNci_HostTransceive(Cmd, CmdSize+3, Answer, sizeof(Answer), &AnswerSize);
+            status = NxpNci_HostTransceive(Cmd, CmdSize+3, Answer, sizeof(Answer), &AnswerSize);
         }
         /* is CORE_INTERFACE_ERROR_NTF ?*/
         else if ((Answer[0] == 0x60) && (Answer[1] == 0x08))
         {
+            /* Come back to discovery state */
             break;
         }
         /* is RF_DEACTIVATE_NTF ? */
@@ -220,21 +255,25 @@ void NxpNci_ProcessP2pMode(NxpNci_RfIntf_t RfIntf)
         /* is RF_DISCOVERY_NTF ? */
         else if((Answer[0] == 0x61) && ((Answer[1] == 0x05) || (Answer[1] == 0x03)))
         {
-            restart = false;
             do{
-                if((Answer[6] & MODE_LISTEN) != MODE_LISTEN) restart = true;
-                NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+                if((Answer[0] == 0x61) && ((Answer[1] == 0x05) || (Answer[1] == 0x03)))
+                {
+                    if((Answer[6] & MODE_LISTEN) != MODE_LISTEN) restart = true;
+                    else restart = false;
+                }
+                status = NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
             }
             while (AnswerSize != 0);
-            if(restart)
-            {
-                NxpNci_HostTransceive(NCIRestartDiscovery, sizeof(NCIRestartDiscovery), Answer, sizeof(Answer), &AnswerSize);
-            }
+            /* Come back to discovery state */
+            break;
         }
+
+        /* Wait for next frame from remote P2P, or notification event */
+        status = NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_2S);
     }
 
     /* Is Initiator mode ? */
-    if((RfIntf.ModeTech & MODE_LISTEN) != MODE_LISTEN)
+    if(restart)
     {
         /* Communication ended, restart discovery loop */
         NxpNci_HostTransceive(NCIRestartDiscovery, sizeof(NCIRestartDiscovery), Answer, sizeof(Answer), &AnswerSize);
@@ -273,25 +312,6 @@ bool NxpNci_ReaderTagCmd (unsigned char *pCommand, unsigned char CommandSize, un
 }
 
 #ifndef NO_NDEF_SUPPORT
-static bool NxpNci_T3TretrieveIDm (void)
-{
-    uint8_t NCIPollingCmdT3T[] = {0x21, 0x08, 0x04, 0x12, 0xFC, 0x00, 0x01};
-    uint8_t Answer[MAX_NCI_FRAME_SIZE];
-    uint16_t AnswerSize;
-
-    NxpNci_HostTransceive(NCIPollingCmdT3T, sizeof(NCIPollingCmdT3T), Answer, sizeof(Answer), &AnswerSize);
-    NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
-    if ((Answer[0] == 0x61) && (Answer[1] == 0x08) && (Answer[3] == 0x00))
-    {
-        RW_NDEF_T3T_SetIDm(&Answer[6]);
-    }
-    else
-    {
-        return NXPNCI_ERROR;
-    }
-    return NXPNCI_SUCCESS;
-}
-
 static void NxpNci_ReadNdef(NxpNci_RfIntf_t RfIntf)
 {
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
@@ -300,9 +320,6 @@ static void NxpNci_ReadNdef(NxpNci_RfIntf_t RfIntf)
     uint16_t CmdSize = 0;
 
     RW_NDEF_Reset(RfIntf.Protocol);
-
-    /* In case of T3T tag, retrieve card IDm for further operation */
-    if (RfIntf.Protocol == PROT_T3T) NxpNci_T3TretrieveIDm();
 
     while(1)
     {
@@ -321,6 +338,24 @@ static void NxpNci_ReadNdef(NxpNci_RfIntf_t RfIntf)
 
             NxpNci_HostTransceive(Cmd, CmdSize+3, Answer, sizeof(Answer), &AnswerSize);
             NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+            
+            /* Manage chaining in case of T4T */
+            if((RfIntf.Interface = INTF_ISODEP) && Answer[0] == 0x10)
+            {
+                uint8_t tmp[MAX_NCI_FRAME_SIZE];
+                uint8_t tmpSize = 0;
+                while(Answer[0] == 0x10)
+                {
+                    memcpy(&tmp[tmpSize], &Answer[3], Answer[2]);
+                    tmpSize += Answer[2];
+                    NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+                }
+                memcpy(&tmp[tmpSize], &Answer[3], Answer[2]);
+                tmpSize += Answer[2];
+                /* Compute all chained frame into one unique answer */
+                memcpy(&Answer[3], tmp, tmpSize);
+                Answer[2] = tmpSize;
+            }
         }
     }
 }
@@ -333,9 +368,6 @@ static void NxpNci_WriteNdef(NxpNci_RfIntf_t RfIntf)
     uint16_t CmdSize = 0;
 
     RW_NDEF_Reset(RfIntf.Protocol);
-
-    /* In case of T3T tag, retrieve card IDm for further operation */
-    if (RfIntf.Protocol == PROT_T3T) NxpNci_T3TretrieveIDm();
 
     while(1)
     {
@@ -361,6 +393,8 @@ static void NxpNci_WriteNdef(NxpNci_RfIntf_t RfIntf)
 
 static void NxpNci_PresenceCheck(NxpNci_RfIntf_t RfIntf)
 {
+    bool status;
+    uint8_t i;
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
     uint16_t AnswerSize;
 
@@ -368,7 +402,7 @@ static void NxpNci_PresenceCheck(NxpNci_RfIntf_t RfIntf)
     uint8_t NCIPresCheckT2T[] = {0x00, 0x00, 0x02, 0x30, 0x00};
     uint8_t NCIPresCheckT3T[] = {0x21, 0x08, 0x04, 0xFF, 0xFF, 0x00, 0x01};
     uint8_t NCIPresCheckIsoDep[] = {0x2F, 0x11, 0x00};
-    uint8_t NCIPresCheckIso15693[] = {0x00, 0x00, 0x03, 0x26, 0x01, 0x00};
+    uint8_t NCIPresCheckIso15693[] = {0x00, 0x00, 0x0B, 0x26, 0x01, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t NCIDeactivate[] = {0x21, 0x06, 0x01, 0x01};
     uint8_t NCISelectMIFARE[] = {0x21, 0x04, 0x03, 0x01, 0x80, 0x80};
 
@@ -397,7 +431,7 @@ static void NxpNci_PresenceCheck(NxpNci_RfIntf_t RfIntf)
             Sleep(500);
             NxpNci_HostTransceive(NCIPresCheckT3T, sizeof(NCIPresCheckT3T), Answer, sizeof(Answer), &AnswerSize);
             NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
-        } while ((Answer[0] == 0x61) && (Answer[1] == 0x08) && (Answer[3] == 0x00));
+        } while ((Answer[0] == 0x61) && (Answer[1] == 0x08) && ((Answer[3] == 0x00) || (Answer[4] > 0x00)));
         break;
 
     case PROT_ISODEP:
@@ -413,9 +447,10 @@ static void NxpNci_PresenceCheck(NxpNci_RfIntf_t RfIntf)
         do
         {
             Sleep(500);
+            for(i=0; i<8; i++) NCIPresCheckIso15693[i+6] = RfIntf.Info.NFC_VPP.ID[7-i];
             NxpNci_HostTransceive(NCIPresCheckIso15693, sizeof(NCIPresCheckIso15693), Answer, sizeof(Answer), &AnswerSize);
-            NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
-        } while ((Answer[0] == 0x00) && (Answer[1] == 0x00));
+            status = NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+        } while ((status == NXPNCI_SUCCESS) && (Answer[0] == 0x00) && (Answer[1] == 0x00) && (Answer[AnswerSize-1] == 0x00));
         break;
 
     case PROT_MIFARE:
@@ -487,7 +522,7 @@ bool NxpNci_ReaderActivateNext(NxpNci_RfIntf_t *pRfIntf)
     else if (gNextTag_Protocol == PROT_MIFARE) NCIRfDiscoverSelect[5] = INTF_TAGCMD;
     else NCIRfDiscoverSelect[5] = INTF_FRAME;
     NxpNci_HostTransceive(NCIRfDiscoverSelect, sizeof(NCIRfDiscoverSelect), Answer, sizeof(Answer), &AnswerSize);
-    if ((Answer[0] == 0x41) || (Answer[1] == 0x04) || (Answer[3] == 0x00))
+    if ((Answer[0] == 0x41) && (Answer[1] == 0x04) && (Answer[3] == 0x00))
     {
         NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
         if ((Answer[0] == 0x61) || (Answer[1] == 0x05))
@@ -548,7 +583,19 @@ bool NxpNci_Connect(void)
     if (Answer[17+Answer[8]] == 0x08) gNfcController_generation = 1;
     else if (Answer[17+Answer[8]] == 0x10) gNfcController_generation = 2;
 
+    /* Retrieve NXP-NCI NFC Controller FW version */
+    gNfcController_fw_version[0] = Answer[17+Answer[8]];
+    gNfcController_fw_version[1] = Answer[18+Answer[8]];
+    gNfcController_fw_version[2] = Answer[19+Answer[8]];
+
     return NXPNCI_SUCCESS;
+}
+
+void NxpNci_GetFwVersion(unsigned char fw[3])
+{
+    fw[0] = gNfcController_fw_version[0];
+    fw[1] = gNfcController_fw_version[1];
+    fw[2] = gNfcController_fw_version[2];
 }
 
 bool NxpNci_Disconnect(void)
@@ -569,6 +616,11 @@ bool NxpNci_ConfigureSettings(void)
     uint8_t *NxpNci_CONF;
     uint16_t NxpNci_CONF_size = 0;
 #endif
+#if (NXP_CORE_CONF_EXTN | NXP_CLK_CONF | NXP_TVDD_CONF | NXP_RF_CONF)
+    uint8_t currentTS[32] = __TIMESTAMP__;
+    uint8_t NCIReadTS[] = {0x20, 0x03, 0x03, 0x01, 0xA0, 0x14};
+    uint8_t NCIWriteTS[7+32] = {0x20, 0x02, 0x24, 0x01, 0xA0, 0x14, 0x20};
+#endif
     bool isResetRequired = false;
 
     /* Apply settings according definition of Nfc_settings.h header file */
@@ -582,15 +634,6 @@ bool NxpNci_ConfigureSettings(void)
     }
 #endif
 
-#if NXP_CORE_CONF_EXTN
-    if (sizeof(NxpNci_CORE_CONF_EXTN) != 0)
-    {
-        isResetRequired = true;
-        NxpNci_HostTransceive(NxpNci_CORE_CONF_EXTN, sizeof(NxpNci_CORE_CONF_EXTN), Answer, sizeof(Answer), &AnswerSize);
-        if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
-    }
-#endif
-
 #if NXP_CORE_STANDBY
     if (sizeof(NxpNci_CORE_STANDBY) != 0)
     {
@@ -600,50 +643,81 @@ bool NxpNci_ConfigureSettings(void)
     }
 #endif
 
-#if NXP_CLK_CONF
-    if (sizeof(NxpNci_CLK_CONF) != 0)
+    /* All further settings are not versatile, so configuration only applied if there are changes (application build timestamp) */
+#if (NXP_CORE_CONF_EXTN | NXP_CLK_CONF | NXP_TVDD_CONF | NXP_RF_CONF)
+    /* First read timestamp stored in NFC Controller */
+    if(gNfcController_generation == 1) NCIReadTS[5] = 0x0F;
+    NxpNci_HostTransceive(NCIReadTS, sizeof(NCIReadTS), Answer, sizeof(Answer), &AnswerSize);
+    if ((Answer[0] != 0x40) || (Answer[1] != 0x03) || (Answer[3] != 0x00)) return NXPNCI_ERROR;
+    /* Then compare with current build timestamp */
+    if(!memcmp(&Answer[8], currentTS, sizeof(currentTS)))
     {
-        isResetRequired = true;
-        NxpNci_HostTransceive(NxpNci_CLK_CONF, sizeof(NxpNci_CLK_CONF), Answer, sizeof(Answer), &AnswerSize);
-        if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
+        /* No change, nothing to do */
     }
+    else
+    {
+        /* Application changes, apply new setting */
+#if NXP_CORE_CONF_EXTN
+        if (sizeof(NxpNci_CORE_CONF_EXTN) != 0)
+        {
+            isResetRequired = true;
+            NxpNci_HostTransceive(NxpNci_CORE_CONF_EXTN, sizeof(NxpNci_CORE_CONF_EXTN), Answer, sizeof(Answer), &AnswerSize);
+            if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
+        }
+#endif
 
+#if NXP_CLK_CONF
+        if (sizeof(NxpNci_CLK_CONF) != 0)
+        {
+            isResetRequired = true;
+            NxpNci_HostTransceive(NxpNci_CLK_CONF, sizeof(NxpNci_CLK_CONF), Answer, sizeof(Answer), &AnswerSize);
+            if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
+        }
 #endif
 
 #if NXP_TVDD_CONF
-    if(gNfcController_generation == 1)
-    {
-        NxpNci_CONF = NxpNci_TVDD_CONF_1stGen;
-        NxpNci_CONF_size = sizeof(NxpNci_TVDD_CONF_1stGen);
-    }
-    else if(gNfcController_generation == 2)
-    {
-        NxpNci_CONF = NxpNci_TVDD_CONF_2ndGen;
-        NxpNci_CONF_size = sizeof(NxpNci_TVDD_CONF_2ndGen);
-    }
-    if (NxpNci_CONF_size != 0)
-    {
-        isResetRequired = true;
-        NxpNci_HostTransceive(NxpNci_CONF, NxpNci_CONF_size, Answer, sizeof(Answer), &AnswerSize);
-        if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
-    }
+        NxpNci_CONF = NULL;
+        if(gNfcController_generation == 1)
+        {
+            NxpNci_CONF = NxpNci_TVDD_CONF_1stGen;
+            NxpNci_CONF_size = sizeof(NxpNci_TVDD_CONF_1stGen);
+        }
+        else if(gNfcController_generation == 2)
+        {
+            NxpNci_CONF = NxpNci_TVDD_CONF_2ndGen;
+            NxpNci_CONF_size = sizeof(NxpNci_TVDD_CONF_2ndGen);
+        }
+        if (NxpNci_CONF != NULL)
+        {
+            isResetRequired = true;
+            NxpNci_HostTransceive(NxpNci_CONF, NxpNci_CONF_size, Answer, sizeof(Answer), &AnswerSize);
+            if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
+        }
 #endif
 
 #if NXP_RF_CONF
-    if(gNfcController_generation == 1)
-    {
-        NxpNci_CONF = NxpNci_RF_CONF_1stGen;
-        NxpNci_CONF_size = sizeof(NxpNci_RF_CONF_1stGen);
-    }
-    else if(gNfcController_generation == 2)
-    {
-        NxpNci_CONF = NxpNci_RF_CONF_2ndGen;
-        NxpNci_CONF_size = sizeof(NxpNci_RF_CONF_2ndGen);
-    }
-    if (NxpNci_CONF_size != 0)
-    {
-        isResetRequired = true;
-        NxpNci_HostTransceive(NxpNci_CONF, NxpNci_CONF_size, Answer, sizeof(Answer), &AnswerSize);
+        NxpNci_CONF = NULL;
+        if(gNfcController_generation == 1)
+        {
+            NxpNci_CONF = NxpNci_RF_CONF_1stGen;
+            NxpNci_CONF_size = sizeof(NxpNci_RF_CONF_1stGen);
+        }
+        else if(gNfcController_generation == 2)
+        {
+            NxpNci_CONF = NxpNci_RF_CONF_2ndGen;
+            NxpNci_CONF_size = sizeof(NxpNci_RF_CONF_2ndGen);
+        }
+        if (NxpNci_CONF != NULL)
+        {
+            isResetRequired = true;
+            NxpNci_HostTransceive(NxpNci_CONF, NxpNci_CONF_size, Answer, sizeof(Answer), &AnswerSize);
+            if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
+        }
+#endif
+        /* Store curent timestamp to NFC Controller memory for further checks */
+        if(gNfcController_generation == 1) NCIWriteTS[5] = 0x0F;
+        memcpy(&NCIWriteTS[7], currentTS, sizeof(currentTS));
+        NxpNci_HostTransceive(NCIWriteTS, sizeof(NCIWriteTS), Answer, sizeof(Answer), &AnswerSize);
         if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
     }
 #endif
@@ -662,12 +736,13 @@ bool NxpNci_ConfigureSettings(void)
 
 bool NxpNci_ConfigureMode(unsigned char mode)
 {
+#if defined RW_SUPPORT || defined P2P_SUPPORT || defined CARDEMU_SUPPORT
     uint8_t Command[MAX_NCI_FRAME_SIZE];
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
     uint16_t AnswerSize;
     uint8_t Item = 0;
-
     uint8_t NCIDiscoverMap[] = {0x21, 0x00};
+
 #ifdef CARDEMU_SUPPORT
     const uint8_t DM_CARDEMU[] = {0x4, 0x2, 0x2};
     const uint8_t R_CARDEMU[] = {0x1, 0x3, 0x0, 0x1, 0x4};
@@ -787,28 +862,39 @@ bool NxpNci_ConfigureMode(unsigned char mode)
         if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00)) return NXPNCI_ERROR;
     }
 #endif
+#endif
+    return NXPNCI_SUCCESS;
+}
+
+bool NxpNci_ConfigureParams(unsigned char *pCmd, unsigned short CmdSize)
+{
+    uint8_t Answer[MAX_NCI_FRAME_SIZE];
+    uint16_t AnswerSize;
+
+    NxpNci_HostTransceive(pCmd, CmdSize, Answer, sizeof(Answer), &AnswerSize);
+    if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00)) return NXPNCI_ERROR;
 
     return NXPNCI_SUCCESS;
 }
 
 bool NxpNci_StartDiscovery(unsigned char *pTechTab, unsigned char TechTabSize)
 {
-    uint8_t Buffer[MAX_NCI_FRAME_SIZE];
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
     uint16_t AnswerSize;
     uint8_t i;
 
-    Buffer[0] = 0x21;
-    Buffer[1] = 0x03;
-    Buffer[2] = (TechTabSize * 2) + 1;
-    Buffer[3] = TechTabSize;
+    NCIStartDiscovery[0] = 0x21;
+    NCIStartDiscovery[1] = 0x03;
+    NCIStartDiscovery[2] = (TechTabSize * 2) + 1;
+    NCIStartDiscovery[3] = TechTabSize;
     for (i=0; i<TechTabSize; i++)
     {
-        Buffer[(i*2)+4] = pTechTab[i];
-        Buffer[(i*2)+5] = 0x01;
+        NCIStartDiscovery[(i*2)+4] = pTechTab[i];
+        NCIStartDiscovery[(i*2)+5] = 0x01;
     }
 
-    NxpNci_HostTransceive(Buffer, (TechTabSize * 2) + 4, Answer, sizeof(Answer), &AnswerSize);
+    NCIStartDiscovery_length = (TechTabSize * 2) + 4;
+    NxpNci_HostTransceive(NCIStartDiscovery, NCIStartDiscovery_length, Answer, sizeof(Answer), &AnswerSize);
     if ((Answer[0] != 0x41) || (Answer[1] != 0x03) || (Answer[3] != 0x00)) return NXPNCI_ERROR;
 
     return NXPNCI_SUCCESS;
@@ -833,12 +919,12 @@ bool NxpNci_WaitForDiscoveryNotification(NxpNci_RfIntf_t *pRfIntf)
     uint16_t AnswerSize;
 
 #ifdef P2P_SUPPORT
+    uint8_t NCIStopDiscovery[] = {0x21, 0x06, 0x01, 0x00};
     uint8_t NCIRestartDiscovery[] = {0x21, 0x06, 0x01, 0x03};
     uint8_t saved_NTF[7];
-
 wait:
 #endif
-do
+    do
     {
         if(NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_INFINITE) == NXPNCI_ERROR) return NXPNCI_ERROR;
     }while ((Answer[0] != 0x61) || ((Answer[1] != 0x05) && (Answer[1] != 0x03)));
@@ -888,6 +974,8 @@ do
                 {
                     if (AnswerSize != 0)
                     {
+                        /* Flush any other notification  */
+                        while(Answer != 0) NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
                         /* Restart the discovery loop */ 
                         NxpNci_HostTransceive(NCIRestartDiscovery, sizeof(NCIRestartDiscovery), Answer, sizeof(Answer), &AnswerSize);
                         NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
@@ -931,6 +1019,17 @@ do
                 pRfIntf->ModeTech = Answer[6];
                 NxpNci_FillInterfaceInfo(pRfIntf, &Answer[10]);
             }
+#ifdef P2P_SUPPORT
+            /* In case of P2P target detected but lost, inform application to restart discovery */
+            else if (pRfIntf->Protocol == PROT_NFCDEP)
+            {
+                /* Restart the discovery loop */
+                NxpNci_HostTransceive(NCIStopDiscovery, sizeof(NCIStopDiscovery), Answer, sizeof(Answer), &AnswerSize);
+                NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+                NxpNci_HostTransceive(NCIStartDiscovery, NCIStartDiscovery_length, Answer, sizeof(Answer), &AnswerSize);
+                goto wait;
+            }
+#endif
         }
     }
 
@@ -939,3 +1038,55 @@ do
 
     return NXPNCI_SUCCESS;
 }
+
+#ifdef NFC_FACTORY_TEST
+bool NxpNci_FactoryTest_Prbs(NxpNci_TechType_t type, NxpNci_Bitrate_t bitrate)
+{
+	uint8_t NCIPrbs_1stGen[] = {0x2F, 0x30, 0x04, 0x00, 0x00, 0x01, 0x01};
+	uint8_t NCIPrbs_2ndGen[] = {0x2F, 0x30, 0x06, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01};
+    uint8_t *NxpNci_cmd;
+    uint16_t NxpNci_cmd_size = 0;
+    uint8_t Answer[MAX_NCI_FRAME_SIZE];
+    uint16_t AnswerSize;
+
+    if(gNfcController_generation == 1)
+    {
+    	NxpNci_cmd = NCIPrbs_1stGen;
+    	NxpNci_cmd_size = sizeof(NCIPrbs_1stGen);
+    	NxpNci_cmd[3] = type;
+    	NxpNci_cmd[4] = bitrate;
+    }
+    else if(gNfcController_generation == 2)
+    {
+    	NxpNci_cmd = NCIPrbs_2ndGen;
+    	NxpNci_cmd_size = sizeof(NCIPrbs_2ndGen);
+    	NxpNci_cmd[5] = type;
+    	NxpNci_cmd[6] = bitrate;
+    }
+
+    if (NxpNci_cmd_size != 0)
+    {
+        NxpNci_HostTransceive(NxpNci_cmd, NxpNci_cmd_size, Answer, sizeof(Answer), &AnswerSize);
+        if ((Answer[0] != 0x4F) || (Answer[1] != 0x30) || (Answer[3] != 0x00)) return NXPNCI_ERROR;
+    }
+    else
+    {
+    	return NXPNCI_ERROR;
+    }
+
+    return NXPNCI_SUCCESS;
+}
+
+
+bool NxpNci_FactoryTest_RfOn(void)
+{
+	uint8_t NCIRfOn[] = {0x2F, 0x3D, 0x02, 0x20, 0x01};
+    uint8_t Answer[MAX_NCI_FRAME_SIZE];
+    uint16_t AnswerSize;
+
+    NxpNci_HostTransceive(NCIRfOn, sizeof(NCIRfOn), Answer, sizeof(Answer), &AnswerSize);
+    if ((Answer[0] != 0x4F) || (Answer[1] != 0x3D) || (Answer[3] != 0x00)) return NXPNCI_ERROR;
+
+    return NXPNCI_SUCCESS;
+}
+#endif

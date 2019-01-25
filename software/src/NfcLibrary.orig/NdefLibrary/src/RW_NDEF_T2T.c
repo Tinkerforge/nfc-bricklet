@@ -95,8 +95,8 @@ void RW_NDEF_T2T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
             }
             else RW_NDEF_T2T_Ndef.MessageSize = pRsp[Tmp+1];
 
-            /* If provisioned buffer is not large enough, notify the application and stop reading */
-            if (RW_NDEF_T2T_Ndef.MessageSize > RW_MAX_NDEF_FILE_SIZE)
+            /* If provisioned buffer is not large enough or message is empty, notify the application and stop reading */
+            if ((RW_NDEF_T2T_Ndef.MessageSize > RW_MAX_NDEF_FILE_SIZE) || (RW_NDEF_T2T_Ndef.MessageSize == 0))
             {
                 if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(NULL, 0);
                 break;

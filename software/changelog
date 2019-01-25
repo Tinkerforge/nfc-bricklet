@@ -7,3 +7,15 @@
 
 2018-10-04: 2.0.2 (21c2a94)
 - Fix SPITFP race condition (through bootloader)
+
+2019-25-01: 2.0.3 (TBD)
+- Update NXP NfcLibrary to v1.3
+  * NfcLibrary changelog:
+   * v1.3: - Add Type 4 Tag emulation write operation capabilities
+           - Updated TVDD default configuration for PN7150 demokit support
+           - Fix unfrequent issue preventing P2P communication between devices
+   * v1.2: - Add mechanism to prevent applying settings if no change
+           - Add API to allow configuring settings and retrieving FW version
+           - Add possibility to send successive NDEF messages in P2P mode
+           - Fix issue in T2T reader mode in case NDEF message size is null
+           - Fix issue in T4T reader mode in case card makes use of data chaining

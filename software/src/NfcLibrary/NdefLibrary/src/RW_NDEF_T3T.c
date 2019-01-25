@@ -74,8 +74,8 @@ void RW_NDEF_T3T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
             /* Fill File structure */
             RW_NDEF_T3T_Ndef.Size = (pRsp[24] << 16) + (pRsp[25] << 16) + pRsp[26];
 
-            /* If provisioned buffer is not large enough, notify the application and stop reading */
-            if (RW_NDEF_T3T_Ndef.Size > RW_MAX_NDEF_FILE_SIZE)
+            /* If provisioned buffer is not large enough or size is null, notify the application and stop reading */
+            if ((RW_NDEF_T3T_Ndef.Size > RW_MAX_NDEF_FILE_SIZE) || (RW_NDEF_T3T_Ndef.Size == 0))
             {
                 if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(NULL, 0);
                 break;

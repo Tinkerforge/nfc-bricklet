@@ -16,7 +16,6 @@
 //extern unsigned char NdefBuffer[RW_MAX_NDEF_FILE_SIZE];
 
 #include "pn7150.h"
-
 #define RW_MAX_NDEF_FILE_SIZE PN7150_MAX_DATA_SIZE
 extern unsigned char *NdefBuffer;
 

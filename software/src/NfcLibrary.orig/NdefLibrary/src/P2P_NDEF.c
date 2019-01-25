@@ -144,6 +144,11 @@ bool P2P_NDEF_SetMessage(unsigned char *pMessage, unsigned short Message_size, v
         pNdefMessage = pMessage;
         NdefMessage_size = Message_size;
         pP2P_NDEF_PushCb = (P2P_NDEF_Callback_t*) pCb;
+        /* Trigger sending dynamically new message */
+        if (eP2P_SnepClient_State == NdefMsgSent)
+        {
+            eP2P_SnepClient_State = SnepClientConnected;
+        }
         return true;
     }
     else
@@ -263,7 +268,7 @@ void P2P_NDEF_Next(unsigned char *pCmd, unsigned short Cmd_size, unsigned char *
             {
                 P2P_SnepClient_DelayCount++;
                 /* Wait then send a SYMM */
-                Sleep (1000);
+                Sleep (SYMM_FREQ);
                 memcpy(pRsp, LLCP_SYMM, sizeof(LLCP_SYMM));
                 *pRsp_size = sizeof(LLCP_SYMM);
             }

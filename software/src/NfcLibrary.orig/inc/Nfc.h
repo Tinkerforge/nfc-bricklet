@@ -88,6 +88,8 @@ typedef struct
     unsigned char NfcId[10];
     unsigned char SelResLen;
     unsigned char SelRes[1];
+    unsigned char RatsLen;
+    unsigned char Rats[20];
 } NxpNci_RfIntf_info_APP_t;
 
 /* POLL passive type B */
@@ -95,6 +97,8 @@ typedef struct
 {
     unsigned char SensResLen;
     unsigned char SensRes[12];
+    unsigned char AttribResLen;
+    unsigned char AttribRes[17];
 } NxpNci_RfIntf_info_BPP_t;
 
 /* POLL passive type F */
@@ -135,7 +139,6 @@ typedef struct
 
 /**********************************************************************/
 
-
 /***** NFC dedicated API **********************************************/
 
 /*
@@ -149,6 +152,11 @@ bool NxpNci_Connect(void);
  * return NFC_SUCCESS or NFC_ERROR
  */
 bool NxpNci_Disconnect(void);
+
+/*
+ * Return NXP-NCI device FW version (3 bytes)
+ */
+void NxpNci_GetFwVersion(unsigned char fw[3]);
 
 /*
  * Configure NXP-NCI device settings
@@ -166,9 +174,17 @@ bool NxpNci_ConfigureSettings(void);
 bool NxpNci_ConfigureMode(unsigned char mode);
 
 /*
+ * Configure NXP-NCI device parameters
+ * - pCmd: NCI CORE_SET_CONFIG_CMD frame
+ * - CmdSize: NCI CORE_SET_CONFIG_CMD frame size
+ * return NFC_SUCCESS or NFC_ERROR
+ */
+bool NxpNci_ConfigureParams(unsigned char *pCmd, unsigned short CmdSize);
+
+/*
  * Start NFC Discovery loop for remote NFC device detection
  * - pTechTab: list of NFC technologies to look for (see TECH_xxx_xxx flags)
- * \param TechTabSize: number of items in the list
+ * - TechTabSize: number of items in the list
  * return NFC_SUCCESS or NFC_ERROR
  */
 bool NxpNci_StartDiscovery(unsigned char *pTechTab, unsigned char TechTabSize);
@@ -187,7 +203,6 @@ bool NxpNci_StopDiscovery(void);
 bool NxpNci_WaitForDiscoveryNotification(NxpNci_RfIntf_t *pRfIntf);
 
 /**********************************************************************/
-
 
 /***** Reader/writer dedicated APIs ***********************************/
 #ifdef RW_SUPPORT
@@ -244,7 +259,6 @@ bool NxpNci_ReaderReActivate(NxpNci_RfIntf_t *pRfIntf);
 #endif
 /**********************************************************************/
 
-
 /***** Card Emulation dedicated APIs **********************************/
 #ifdef CARDEMU_SUPPORT
 #ifndef NO_NDEF_SUPPORT
@@ -282,7 +296,6 @@ bool NxpNci_CardModeSend (unsigned char *pData, unsigned char DataSize);
 #endif
 /**********************************************************************/
 
-
 /***** P2P dedicated APIs *********************************************/
 #ifdef P2P_SUPPORT
 /*
@@ -308,3 +321,44 @@ void P2P_NDEF_RegisterPullCallback(void *pCb);
 void NxpNci_ProcessP2pMode(NxpNci_RfIntf_t RfIntf);
 #endif
 /**********************************************************************/
+
+/***** Factory Test dedicated APIs *********************************************/
+#ifdef NFC_FACTORY_TEST
+
+/*
+ * Definition of technology types
+ */
+typedef enum
+{
+    NFC_A,
+    NFC_B,
+    NFC_F
+} NxpNci_TechType_t;
+
+/*
+ * Definition of bitrate
+ */
+typedef enum
+{
+    BR_106,
+	BR_212,
+	BR_424,
+	BR_848
+} NxpNci_Bitrate_t;
+
+/*
+ * Set the NFC Controller in continuous modulated field mode
+ * - type: modulation type
+ * - bitrate: modulation bitrate
+ * return NFC_SUCCESS or NFC_ERROR
+ */
+bool NxpNci_FactoryTest_Prbs(NxpNci_TechType_t type, NxpNci_Bitrate_t bitrate);
+
+/*
+ * Set the NFC Controller in continuous unmodulated field mode
+ * return NFC_SUCCESS or NFC_ERROR
+ */
+bool NxpNci_FactoryTest_RfOn(void);
+
+#endif
+/********************************************************************************/

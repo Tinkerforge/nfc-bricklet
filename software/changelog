@@ -20,5 +20,5 @@
            - Fix issue in T2T reader mode in case NDEF message size is null
            - Fix issue in T4T reader mode in case card makes use of data chaining
 
-2019-05-29: 2.0.4 (TBD)
+2019-05-29: 2.0.4 (32cb1a9)
 - Fix SPITFP IRQ race condition with other higher prio IRQs (through bricklib2)

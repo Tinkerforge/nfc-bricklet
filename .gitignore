@@ -11,3 +11,5 @@ software/src/bricklib
 software/src/bricklib2
 hardware/kicad-libraries
 nxp_examples
+nxp
+software/src_save

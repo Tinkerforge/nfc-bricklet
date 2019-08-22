@@ -68,7 +68,7 @@ int main(void) {
 	// Register cardemu state changed callback to function cb_cardemu_state_changed
 	nfc_register_callback(&nfc,
 	                      NFC_CALLBACK_CARDEMU_STATE_CHANGED,
-	                      (void *)cb_cardemu_state_changed,
+	                      (void (*)(void))cb_cardemu_state_changed,
 	                      &nfc);
 
 	// Enable cardemu mode

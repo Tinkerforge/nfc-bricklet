@@ -76,7 +76,7 @@ int main(void) {
 	// Register reader state changed callback to function cb_reader_state_changed
 	nfc_register_callback(&nfc,
 	                      NFC_CALLBACK_READER_STATE_CHANGED,
-	                      (void *)cb_reader_state_changed,
+	                      (void (*)(void))cb_reader_state_changed,
 	                      &nfc);
 
 	// Enable reader mode

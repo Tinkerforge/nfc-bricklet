@@ -85,6 +85,7 @@ public class ExampleWriteReadType2 {
 			}
 		});
 
+		// Enable reader mode
 		nfc.setMode(BrickletNFC.MODE_READER);
 
 		System.out.println("Press key to exit"); System.in.read();

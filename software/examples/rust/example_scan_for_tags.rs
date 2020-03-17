@@ -1,20 +1,20 @@
 use std::{error::Error, io, thread};
 use tinkerforge::{ip_connection::IpConnection, nfc_bricklet::*};
 
-const HOST: &str = "127.0.0.1";
+const HOST: &str = "localhost";
 const PORT: u16 = 4223;
-const UID: &str = "XYZ"; // Change XYZ to the UID of your NFC Bricklet
+const UID: &str = "XYZ"; // Change XYZ to the UID of your NFC Bricklet.
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let ipcon = IpConnection::new(); // Create IP connection
-    let nfc = NfcBricklet::new(UID, &ipcon); // Create device object
+    let ipcon = IpConnection::new(); // Create IP connection.
+    let nfc = NfcBricklet::new(UID, &ipcon); // Create device object.
 
-    ipcon.connect((HOST, PORT)).recv()??; // Connect to brickd
-                                          // Don't use device before ipcon is connected
+    ipcon.connect((HOST, PORT)).recv()??; // Connect to brickd.
+                                          // Don't use device before ipcon is connected.
 
     let reader_state_changed_receiver = nfc.get_reader_state_changed_callback_receiver();
 
-    // Spawn thread to handle received events.
+    // Spawn thread to handle received callback messages.
     // This thread ends when the `nfc` object
     // is dropped, so there is no need for manual cleanup.
     let nfc_copy = nfc.clone(); //Device objects don't implement Sync, so they can't be shared between threads (by reference). So clone the device and move the copy.

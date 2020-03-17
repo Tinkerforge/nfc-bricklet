@@ -3,27 +3,28 @@
 setup:
 	# Handle incoming reader state changed callbacks
 	subscribe to tinkerforge/callback/nfc_bricklet/XYZ/reader_state_changed
-        if a message is received
-            # message contains the current state as int with symbols and idle as bool
-            
-            if state == "RequestTagIDReady"
-                subscribe to tinkerforge/response/nfc_bricklet/XYZ/reader_get_tag_id
-                    if a message is received
-                        # message contains tag_type, id_length and tag_id
-                        print tag_type, id_length and tag_id
-                    endif
-                endsubscribe
-                publish '' to tinkerforge/response/nfc_bricklet/XYZ/reader_get_tag_id
-            elseif state == "RequestTagIDError"
-                print "Request tag ID error."
-            endif
-            
-            if idle
-                publish '' to tinkerforge/request/nfc_bricklet/XYZ/reader_request_tag_id 
-            endif
-        endif
+		if a message is received
+			# message contains the current state as int with symbols and idle as bool
+
+			if state == "RequestTagIDReady"
+				subscribe to tinkerforge/response/nfc_bricklet/XYZ/reader_get_tag_id
+					if a message is received
+						# message contains tag_type, id_length and tag_id
+						print tag_type, id_length and tag_id
+					endif
+				endsubscribe
+				publish '' to tinkerforge/response/nfc_bricklet/XYZ/reader_get_tag_id
+			elseif state == "RequestTagIDError"
+				print "Request tag ID error."
+			endif
+
+			if idle
+				publish '' to tinkerforge/request/nfc_bricklet/XYZ/reader_request_tag_id
+			endif
+		endif
 	endsubscribe
-	publish '{"register": true}' to tinkerforge/register/nfc_bricklet/XYZ/state_changed
-	
+
+	publish '{"register": true}' to tinkerforge/register/nfc_bricklet/XYZ/reader_state_changed # Register reader_state_changed callback
+
 	# Enable reader mode
-	publish '{"mode": "reader"}' to tinkerforge/request/nfc_bricklet/XYZ/set_mode 
+	publish '{"mode": "reader"}' to tinkerforge/request/nfc_bricklet/XYZ/set_mode

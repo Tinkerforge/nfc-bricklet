@@ -14,34 +14,34 @@ const NDEF_URI = 'www.tinkerforge.com';
 // Callback function for cardemu state changed callback
 function cb_cardemuStateChanged($state, $idle, $user_data)
 {
-	$nfc = $user_data;
+    $nfc = $user_data;
 
-	if($state == BrickletNFC::CARDEMU_STATE_IDLE) {
-		// Only short records are supported
-		$ndefRecordURI = array(
-		                        0xD1,                   // MB/ME/CF/SR=1/IL/TNF
-		                        0x01,                   // TYPE LENGTH
-		                        strlen(NDEF_URI) + 1, // Length
-		                        ord('U'),               // Type
-		                        4                       // Status
-		                      );
+    if ($state == BrickletNFC::CARDEMU_STATE_IDLE) {
+        // Only short records are supported
+        $ndefRecordURI = array(
+            0xD1,                 // MB/ME/CF/SR=1/IL/TNF
+            0x01,                 // TYPE LENGTH
+            strlen(NDEF_URI) + 1, // Length
+            ord('U'),             // Type
+            4                     // Status
+        );
 
-		foreach(str_split(NDEF_URI) as $c) {
-			array_push($ndefRecordURI, ord($c));
-		}
+        foreach(str_split(NDEF_URI) as $c) {
+            array_push($ndefRecordURI, ord($c));
+        }
 
-		$nfc->cardemuWriteNDEF($ndefRecordURI);
-		$nfc->cardemuStartDiscovery();
-	}
-	else if ($state == BrickletNFC::CARDEMU_STATE_DISCOVER_READY) {
-		$nfc->cardemuStartTransfer(BrickletNFC::CARDEMU_TRANSFER_WRITE);
-	}
-	else if ($state == BrickletNFC::CARDEMU_STATE_DISCOVER_ERROR) {
-		echo 'Discover error\n';
-	}
-	else if ($state == BrickletNFC::CARDEMU_STATE_TRANSFER_NDEF_ERROR) {
-		echo 'Transfer NDEF error\n';
-	}
+        $nfc->cardemuWriteNDEF($ndefRecordURI);
+        $nfc->cardemuStartDiscovery();
+    }
+    else if ($state == BrickletNFC::CARDEMU_STATE_DISCOVER_READY) {
+        $nfc->cardemuStartTransfer(BrickletNFC::CARDEMU_TRANSFER_WRITE);
+    }
+    else if ($state == BrickletNFC::CARDEMU_STATE_DISCOVER_ERROR) {
+        echo 'Discover error\n';
+    }
+    else if ($state == BrickletNFC::CARDEMU_STATE_TRANSFER_NDEF_ERROR) {
+        echo 'Transfer NDEF error\n';
+    }
 }
 
 $ipcon = new IPConnection(); // Create IP connection

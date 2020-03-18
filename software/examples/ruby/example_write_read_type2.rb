@@ -25,7 +25,6 @@ nfc.register_callback(BrickletNFC::CALLBACK_READER_STATE_CHANGED) do |state, idl
 
     if ret[0] != BrickletNFC::TAG_TYPE_TYPE2
       puts "Tag is not type-2"
-
       return
     end
 

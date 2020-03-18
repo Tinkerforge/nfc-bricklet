@@ -20,20 +20,20 @@ def cb_reader_state_changed(state, idle, nfc):
             return
 
         print("Found tag of type " +
-               str(ret.tag_type) +
-               " with ID [" +
-               " ".join(map(str, map(hex, ret.tag_id))) +
-               "]")
+              str(ret.tag_type) +
+              " with ID [" +
+              " ".join(map(str, map(hex, ret.tag_id))) +
+              "]")
 
         nfc.reader_request_page(1, 4)
     elif state == nfc.READER_STATE_REQUEST_TAG_ID_ERROR:
         print("Request tag ID error")
     elif state == nfc.READER_STATE_REQUEST_PAGE_READY:
         page = nfc.reader_read_page()
-        print("""Page read: {byte_0} {byte_1} {byte_2} {byte_3}""".format(byte_0=hex(page[0]),
-                                                                          byte_1=hex(page[1]),
-                                                                          byte_2=hex(page[2]),
-                                                                          byte_3=hex(page[3])))
+        print("Page read: {0} {1} {2} {3}".format(hex(page[0]),
+                                                  hex(page[1]),
+                                                  hex(page[2]),
+                                                  hex(page[3])))
         nfc.reader_write_page(1, page)
     elif state == nfc.READER_STATE_WRITE_PAGE_READY:
         print("Write page ready")

@@ -28,9 +28,10 @@ end
 
 % Callback function for cardemu state changed callback
 function cb_cardemu_state_changed(e)
-    import com.tinkerforge.BrickletNFC;
     global nfc;
     global NDEF_URI;
+
+    import com.tinkerforge.BrickletNFC;
 
     if e.state == BrickletNFC.CARDEMU_STATE_IDLE
         ndef_record_uri = [];

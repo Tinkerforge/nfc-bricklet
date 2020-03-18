@@ -26,8 +26,9 @@ end
 
 % Callback function for reader state changed callback
 function cb_reader_state_changed(e)
-    import com.tinkerforge.BrickletNFC;
     global nfc;
+
+    import com.tinkerforge.BrickletNFC;
 
     if e.state == BrickletNFC.READER_STATE_IDLE
         nfc.readerRequestTagID();
@@ -36,13 +37,13 @@ function cb_reader_state_changed(e)
         ret = nfc.readerGetTagID();
 
         for i = 1:length(ret.tagID)
-          tmp_tag = sprintf('0x%x', ret.tagID(i));
+            tmp_tag = sprintf('0x%x', ret.tagID(i));
 
-          if i < length(ret.tagID)
-            tmp_tag = strcat(tmp_tag, " ");
-          end
+            if i < length(ret.tagID)
+                tmp_tag = strcat(tmp_tag, " ");
+            end
 
-          tag = strcat(tag, tmp_tag);
+            tag = strcat(tag, tmp_tag);
         end
 
         fprintf('Found tag of type %d with ID [%s]\n', ret.tagType, tag);

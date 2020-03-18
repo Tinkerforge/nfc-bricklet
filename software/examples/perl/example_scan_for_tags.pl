@@ -16,21 +16,21 @@ sub cb_reader_state_changed
 {
     my ($state, $idle) = @_;
 
-    if($state == $nfc->READER_STATE_IDLE) {
+    if ($state == $nfc->READER_STATE_IDLE) {
         $nfc->reader_request_tag_id();
     }
     elsif ($state == $nfc->READER_STATE_REQUEST_TAG_ID_READY) {
-      my @ret = $nfc->reader_get_tag_id();
-      my @tag_id_bytes;
+        my @ret = $nfc->reader_get_tag_id();
+        my @tag_id_bytes;
 
-      for my $v (@{$ret[1]}) {
-        push(@tag_id_bytes, sprintf("0x%X", $v));
-      }
+        for my $v (@{$ret[1]}) {
+            push(@tag_id_bytes, sprintf("0x%X", $v));
+        }
 
-      print "Found tag of type " . $ret[0] . " with ID [" . join(" ", @tag_id_bytes). "]\n";
+        print "Found tag of type " . $ret[0] . " with ID [" . join(" ", @tag_id_bytes). "]\n";
     }
     elsif ($state == $nfc->READER_STATE_REQUEST_TAG_ID_ERROR) {
-      print "Request tag ID error\n";
+        print "Request tag ID error\n";
     }
 }
 

@@ -17,30 +17,30 @@ sub cb_cardemu_state_changed
 {
     my ($state, $idle) = @_;
 
-    if($state == $nfc->CARDEMU_STATE_IDLE) {
-      my @ndef_record_uri = (
-                              0xD1,                  # MB/ME/CF/SR=1/IL/TNF
-                              0x01,                  # TYPE LENGTH
-                              length(&NDEF_URI) + 1, # Length
-                              ord("U"),              # Type
-                              4                      # Status
-                            );
+    if ($state == $nfc->CARDEMU_STATE_IDLE) {
+        my @ndef_record_uri = (
+            0xD1,                  # MB/ME/CF/SR=1/IL/TNF
+            0x01,                  # TYPE LENGTH
+            length(&NDEF_URI) + 1, # Length
+            ord("U"),              # Type
+            4                      # Status
+        );
 
-      for my $v (split('', &NDEF_URI)) {
-        push(@ndef_record_uri, ord($v));
-      }
+        for my $v (split('', &NDEF_URI)) {
+            push(@ndef_record_uri, ord($v));
+        }
 
-      $nfc->cardemu_write_ndef(\@ndef_record_uri);
-      $nfc->cardemu_start_discovery();
+        $nfc->cardemu_write_ndef(\@ndef_record_uri);
+        $nfc->cardemu_start_discovery();
     }
     elsif ($state == $nfc->CARDEMU_STATE_DISCOVER_READY) {
-      $nfc->cardemu_start_transfer($nfc->CARDEMU_TRANSFER_WRITE);
+        $nfc->cardemu_start_transfer($nfc->CARDEMU_TRANSFER_WRITE);
     }
     elsif ($state == $nfc->CARDEMU_STATE_DISCOVER_ERROR) {
-      print "Discover error\n";
+        print "Discover error\n";
     }
     elsif ($state == $nfc->CARDEMU_STATE_TRANSFER_NDEF_ERROR) {
-      print "Transfer NDEF error\n";
+        print "Transfer NDEF error\n";
     }
 }
 

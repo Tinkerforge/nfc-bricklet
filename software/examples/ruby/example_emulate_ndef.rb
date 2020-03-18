@@ -22,12 +22,12 @@ nfc.register_callback(BrickletNFC::CALLBACK_CARDEMU_STATE_CHANGED) do |state, id
   if state == BrickletNFC::CARDEMU_STATE_IDLE
     # Only short records are supported.
     ndef_record_uri = [
-                        0xD1,                # MB/ME/CF/SR=1/IL/TNF
-                        0x01,                # TYPE LENGTH
-                        NDEF_URI.length + 1, # Length
-                        'U'.ord,             # Type
-                        4                    # Status
-                      ]
+        0xD1,                # MB/ME/CF/SR=1/IL/TNF
+        0x01,                # TYPE LENGTH
+        NDEF_URI.length + 1, # Length
+        'U'.ord,             # Type
+        4                    # Status
+    ]
 
     NDEF_URI.split('').each do |c|
       ndef_record_uri.push c.ord

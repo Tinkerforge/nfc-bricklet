@@ -43,17 +43,11 @@ begin
       exit;
     end;
 
-    WriteLn('Found tag of type ' +
-            IntToStr(tagType) +
-            ' with ID [' +
-            Format('0x%X', [tagID[0]]) +
-            ' ' +
-            Format('0x%X', [tagID[1]]) +
-            ' ' +
-            Format('0x%X', [tagID[2]]) +
-            ' ' +
-            Format('0x%X', [tagID[3]]) +
-            ']');
+    WriteLn('Found tag of type ' + IntToStr(tagType) + ' with ID [' +
+            Format('0x%X', [tagID[0]]) + ' ' +
+            Format('0x%X', [tagID[1]]) + ' ' +
+            Format('0x%X', [tagID[2]]) + ' ' +
+            Format('0x%X', [tagID[3]]) + ']');
     sender.readerRequestPage(1, 4);
   end
   else if state = BRICKLET_NFC_READER_STATE_REQUEST_TAG_ID_ERROR then begin
@@ -62,12 +56,9 @@ begin
   else if state = BRICKLET_NFC_READER_STATE_REQUEST_PAGE_READY then begin
     page := sender.ReaderReadPage;
     WriteLn('Read page: ' +
-            Format('0x%X', [page[0]]) +
-            ' ' +
-            Format('0x%X', [page[1]]) +
-            ' ' +
-            Format('0x%X', [page[2]]) +
-            ' ' +
+            Format('0x%X', [page[0]]) + ' ' +
+            Format('0x%X', [page[1]]) + ' ' +
+            Format('0x%X', [page[2]]) + ' ' +
             Format('0x%X', [page[3]]));
     sender.ReaderWritePage(1, page);
   end

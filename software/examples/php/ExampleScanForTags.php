@@ -13,29 +13,29 @@ const UID = 'XYZ'; // Change XYZ to the UID of your NFC Bricklet
 // Callback function for reader state changed callback
 function cb_readerStateChanged($state, $idle, $user_data)
 {
-	$nfc = $user_data;
+    $nfc = $user_data;
 
-	if($state == BrickletNFC::READER_STATE_IDLE) {
-		$nfc->readerRequestTagID();
-	}
-	else if ($state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_READY) {
-		$tag_id = [];
-		$ret = $nfc->readerGetTagID();
+    if ($state == BrickletNFC::READER_STATE_IDLE) {
+        $nfc->readerRequestTagID();
+    }
+    else if ($state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_READY) {
+        $tag_id = [];
+        $ret = $nfc->readerGetTagID();
 
-		if ($ret["tag_type"] != BrickletNFC::TAG_TYPE_TYPE2) {
-			return;
-		}
+        if ($ret["tag_type"] != BrickletNFC::TAG_TYPE_TYPE2) {
+            return;
+        }
 
-    printf("Found tag of type %u with ID [0x%X 0x%X 0x%X 0x%X]\n",
-		       $ret["tag_type"],
-					 $ret["tag_id"][0],
-					 $ret["tag_id"][1],
-					 $ret["tag_id"][2],
-					 $ret["tag_id"][3]);
-	}
-	else if ($state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_ERROR) {
-		echo "Request tag ID error\n";
-	}
+        printf("Found tag of type %u with ID [0x%X 0x%X 0x%X 0x%X]\n",
+               $ret["tag_type"],
+               $ret["tag_id"][0],
+               $ret["tag_id"][1],
+               $ret["tag_id"][2],
+               $ret["tag_id"][3]);
+    }
+    else if ($state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_ERROR) {
+        echo "Request tag ID error\n";
+    }
 }
 
 $ipcon = new IPConnection(); // Create IP connection

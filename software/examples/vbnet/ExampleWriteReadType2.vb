@@ -19,7 +19,6 @@ Module ExampleWriteReadType2
 
             If tagType <> BrickletNFC.TAG_TYPE_TYPE2 Then
                 Console.WriteLine("Tag is not type-2")
-
                 return
             End If
 

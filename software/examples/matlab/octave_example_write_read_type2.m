@@ -33,9 +33,8 @@ function cb_reader_state_changed(e)
         ret = nfc.readerGetTagID();
 
         if java_get(ret, "tagType") ~= nfc.TAG_TYPE_TYPE2
-          disp("Tag is not type-2");
-
-          return;
+            disp("Tag is not type-2");
+            return;
         end
 
         fprintf("Found tag of type %d with ID [0x%X 0x%X 0x%X 0x%X]\n", ...

@@ -60,7 +60,6 @@ int main(void) {
 	// Connect to brickd
 	if(ipcon_connect(&ipcon, HOST, PORT) < 0) {
 		fprintf(stderr, "Could not connect\n");
-
 		return 1;
 	}
 	// Don't use device before ipcon is connected

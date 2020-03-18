@@ -26,8 +26,9 @@ end
 
 % Callback function for reader state changed callback
 function cb_reader_state_changed(e)
-    import com.tinkerforge.BrickletNFC;
     global nfc;
+
+    import com.tinkerforge.BrickletNFC;
 
     if e.state == BrickletNFC.READER_STATE_IDLE
         nfc.readerRequestTagID();
@@ -36,7 +37,6 @@ function cb_reader_state_changed(e)
 
         if ret.tagType ~= BrickletNFC.TAG_TYPE_TYPE2
             disp('Tag is not type-2');
-
             return;
         end
 

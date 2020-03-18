@@ -29,7 +29,7 @@ public class ExampleScanForTags {
 					}
 				}
 				else if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) {
-					try{
+					try {
 						int i = 0;
 						StringBuilder tag = new StringBuilder();
 						BrickletNFC.ReaderGetTagID ret = nfc.readerGetTagID();

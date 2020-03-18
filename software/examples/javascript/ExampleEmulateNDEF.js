@@ -24,38 +24,38 @@ ipcon.on(Tinkerforge.IPConnection.CALLBACK_CONNECTED,
 
 // Register cardemu state changed callback
 nfc.on(Tinkerforge.BrickletNFC.CALLBACK_CARDEMU_STATE_CHANGED,
-  // Callback function for state changed callback
-  function (state, idle) {
-    if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_IDLE) {
-      // Only short records are supported
-      var ndefRecordURI = [
-                            0xD1,                // MB/ME/CF/SR=1/IL/TNF
-                            0x01,                // TYPE LENGTH
-                            NDEF_URI.length + 1, // Length
-                            'U'.charCodeAt(0),   // Type
-                            4                    // Status
-                          ];
+    // Callback function for cardemu state changed callback
+    function (state, idle) {
+        if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_IDLE) {
+            // Only short records are supported
+            var ndefRecordURI = [
+                0xD1,                // MB/ME/CF/SR=1/IL/TNF
+                0x01,                // TYPE LENGTH
+                NDEF_URI.length + 1, // Length
+                'U'.charCodeAt(0),   // Type
+                4                    // Status
+            ];
 
-      for(var i = 0; i < NDEF_URI.length; i++) {
-        ndefRecordURI.push(NDEF_URI.charCodeAt(i));
-      }
+            for(var i = 0; i < NDEF_URI.length; i++) {
+                ndefRecordURI.push(NDEF_URI.charCodeAt(i));
+            }
 
-      nfc.cardemuWriteNDEF(ndefRecordURI,
-        function() {
-          nfc.cardemuStartDiscovery();
+            nfc.cardemuWriteNDEF(ndefRecordURI,
+                function() {
+                    nfc.cardemuStartDiscovery();
+                }
+            );
         }
-      );
+        else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_READY) {
+            nfc.cardemuStartTransfer(Tinkerforge.BrickletNFC.CARDEMU_TRANSFER_WRITE);
+        }
+        else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR) {
+            console.log('Discover error');
+        }
+        else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF_ERROR) {
+            console.log('Transfer NDEF error');
+        }
     }
-    else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_READY) {
-      nfc.cardemuStartTransfer(Tinkerforge.BrickletNFC.CARDEMU_TRANSFER_WRITE);
-    }
-    else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR) {
-      console.log('Discover error');
-    }
-    else if(state == Tinkerforge.BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF_ERROR) {
-      console.log('Transfer NDEF error');
-    }
-  }
 );
 
 console.log('Press key to exit');

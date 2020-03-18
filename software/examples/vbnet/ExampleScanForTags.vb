@@ -25,7 +25,7 @@ Module ExampleScanForTags
                 If i < tagID.Length - 1 Then
                     tagInfo += String.Format("0x{0:X} ", tagID(i))
                 Else
-                    tagInfo +=  String.Format("0x{0:X}]", tagID(i))
+                    tagInfo += String.Format("0x{0:X}]", tagID(i))
                 End If
             Next
 

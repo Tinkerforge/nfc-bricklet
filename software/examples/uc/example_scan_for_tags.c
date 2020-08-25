@@ -20,13 +20,11 @@ void reader_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
 	valid = true;
 }
 
-
 TF_NFC nfc;
 
 void example_setup(TF_HalContext *hal) {
 	// Create device object
 	check(tf_nfc_create(&nfc, UID, hal), "create device object");
-
 
 	// Register reader state changed callback to function reader_state_changed_handler
 	tf_nfc_register_reader_state_changed_callback(&nfc,
@@ -35,7 +33,6 @@ void example_setup(TF_HalContext *hal) {
 
 	// Enable reader mode
 	check(tf_nfc_set_mode(&nfc, TF_NFC_MODE_READER), "call set_mode");
-
 }
 
 int ret = 0;

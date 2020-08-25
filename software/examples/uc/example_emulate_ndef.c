@@ -1,5 +1,3 @@
-//FIXME: This example is incomplete
-
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -7,6 +5,8 @@
 
 #include "bindings/hal_common.h"
 #include "bindings/bricklet_nfc.h"
+
+// FIXME: This example is incomplete
 
 #define UID "XYZ" // Change XYZ to the UID of your NFC Bricklet
 const char *ndef_uri = "www.tinkerforge.com";
@@ -27,7 +27,6 @@ void cardemu_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
 	valid = true;
 }
 
-
 TF_NFC nfc;
 
 char ndef_record_uri[255] = {0};
@@ -39,8 +38,8 @@ void example_setup(TF_HalContext *hal) {
 
 	// Register cardemu state changed callback to function cardemu_state_changed_handler
 	tf_nfc_register_cardemu_state_changed_callback(&nfc,
-	                                              cardemu_state_changed_handler,
-	                                              NULL);
+	                                               cardemu_state_changed_handler,
+	                                               NULL);
 
 	// Enable cardemu mode
 	check(tf_nfc_set_mode(&nfc, TF_NFC_MODE_CARDEMU), "call set_mode");

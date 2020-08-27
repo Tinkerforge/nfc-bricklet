@@ -4,14 +4,17 @@
 
 #define UID "XYZ" // Change XYZ to the UID of your NFC Bricklet
 
+void example_setup(TF_HalContext *hal);
+void example_loop(TF_HalContext *hal);
+
 void check(int rc, const char* msg);
 
-uint8_t nfc_state;
-bool nfc_idle;
-bool valid = false;
+static uint8_t nfc_state;
+static bool nfc_idle;
+static bool valid = false;
 
 // Callback function for reader state changed callback
-void reader_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
+static void reader_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
                                   void *user_data) {
 	(void)device; (void)user_data; // avoid unused parameter warning
 
@@ -20,7 +23,7 @@ void reader_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
 	valid = true;
 }
 
-TF_NFC nfc;
+static TF_NFC nfc;
 
 void example_setup(TF_HalContext *hal) {
 	// Create device object
@@ -35,10 +38,10 @@ void example_setup(TF_HalContext *hal) {
 	check(tf_nfc_set_mode(&nfc, TF_NFC_MODE_READER), "call set_mode");
 }
 
-int ret = 0;
-uint8_t ret_tag_type = 0;
-uint8_t ret_tag_id_length = 0;
-uint8_t ret_tag_id[32];
+static int ret = 0;
+static uint8_t ret_tag_type = 0;
+static uint8_t ret_tag_id_length = 0;
+static uint8_t ret_tag_id[32];
 
 void example_loop(TF_HalContext *hal) {
 	// Poll for callbacks

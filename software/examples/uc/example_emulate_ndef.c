@@ -9,16 +9,20 @@
 // FIXME: This example is incomplete
 
 #define UID "XYZ" // Change XYZ to the UID of your NFC Bricklet
-const char *ndef_uri = "www.tinkerforge.com";
+
+void example_setup(TF_HalContext *hal);
+void example_loop(TF_HalContext *hal);
 
 void check(int rc, const char* msg);
 
-uint8_t nfc_state;
-bool nfc_idle;
-bool valid = false;
+static const char *ndef_uri = "www.tinkerforge.com";
+
+static uint8_t nfc_state;
+static bool nfc_idle;
+static bool valid = false;
 
 // Callback function for cardemu state changed callback
-void cardemu_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
+static void cardemu_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
                                    void *user_data) {
 	(void)device; (void)user_data; // avoid unused parameter warning
 
@@ -27,10 +31,10 @@ void cardemu_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
 	valid = true;
 }
 
-TF_NFC nfc;
+static TF_NFC nfc;
 
-char ndef_record_uri[255] = {0};
-uint8_t ndef_record_size = 0;
+static char ndef_record_uri[255] = {0};
+static uint8_t ndef_record_size = 0;
 
 void example_setup(TF_HalContext *hal) {
 	// Create device object
@@ -46,13 +50,13 @@ void example_setup(TF_HalContext *hal) {
 
 	// Prepare ndef record buffer
 	uint8_t header_size = 5;
-	uint8_t uri_len = strlen(ndef_uri) + 1; // + 1 for the null terminator
+	uint8_t uri_len = (uint8_t)(strlen(ndef_uri)) + 1; // + 1 for the null terminator
 	ndef_record_size = header_size + uri_len;
 
 	// Only short records are supported
-	ndef_record_uri[0] = 0xD1;
+	ndef_record_uri[0] = (char) 0xD1;
 	ndef_record_uri[1] = 0x01;
-	ndef_record_uri[2] = uri_len;
+	ndef_record_uri[2] = (char) uri_len;
 	ndef_record_uri[3] = 'U';
 	ndef_record_uri[4] = 0x04;
 

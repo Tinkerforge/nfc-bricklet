@@ -63,10 +63,10 @@ void example_loop(TF_HalContext *hal) {
 			return;
 		}
 
-		tf_hal_printf("Found tag of type %d with ID [", ret_tag_type);
+		tf_hal_printf("Found tag of type %I8d with ID [", ret_tag_type);
 
 		for(uint8_t i = 0; i < ret_tag_id_length; i++) {
-			tf_hal_printf("%X", ret_tag_id[i]);
+			tf_hal_printf("%I8X", ret_tag_id[i]);
 		}
 		tf_hal_printf("]\n");
 	}

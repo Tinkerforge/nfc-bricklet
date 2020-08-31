@@ -68,7 +68,7 @@ void example_loop(TF_HalContext *hal) {
 			return;
 		}
 
-		tf_hal_printf("Found tag of type %d with ID [0x%X 0x%X 0x%X 0x%X]\n",
+		tf_hal_printf("Found tag of type %d with ID [0x%I8X 0x%I8X 0x%I8X 0x%I8X]\n",
 		       ret_tag_type,
 		       ret_tag_id[0],
 		       ret_tag_id[1],
@@ -89,7 +89,7 @@ void example_loop(TF_HalContext *hal) {
 		if(ret != TF_E_OK) {
 			return;
 		}
-		tf_hal_printf("Page read: 0x%X 0x%X 0x%X 0x%X\n",
+		tf_hal_printf("Page read: 0x%I8X 0x%I8X 0x%I8X 0x%I8X\n",
 		       ret_data[0],
 		       ret_data[1],
 		       ret_data[2],

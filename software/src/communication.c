@@ -370,7 +370,11 @@ BootloaderHandleMessageResponse set_detection_led_config(const SetDetectionLEDCo
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
-	pn7150.detection_led_state.config = data->config;
+	if(data->config == NFC_DETECTION_LED_CONFIG_SHOW_DETECTION) {
+		pn7150.detection_led_state.config = LED_FLICKER_CONFIG_EXTERNAL;
+	} else {
+		pn7150.detection_led_state.config = data->config;
+	}
 
 	// Set LED according to value
 	if(pn7150.detection_led_state.config == NFC_DETECTION_LED_CONFIG_OFF) {
@@ -384,7 +388,11 @@ BootloaderHandleMessageResponse set_detection_led_config(const SetDetectionLEDCo
 
 BootloaderHandleMessageResponse get_detection_led_config(const GetDetectionLEDConfig *data, GetDetectionLEDConfig_Response *response) {
 	response->header.length = sizeof(GetDetectionLEDConfig_Response);
-	response->config        = pn7150.detection_led_state.config;
+	if(pn7150.detection_led_state.config == LED_FLICKER_CONFIG_EXTERNAL) {
+		response->config    = NFC_DETECTION_LED_CONFIG_SHOW_DETECTION;
+	} else {
+		response->config    = pn7150.detection_led_state.config;
+	}
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

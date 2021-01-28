@@ -22,3 +22,6 @@
 
 2019-05-29: 2.0.4 (32cb1a9)
 - Fix SPITFP IRQ race condition with other higher prio IRQs (through bricklib2)
+
+2020-01-28: 2.0.5 (TBD)
+- Fix detection LED API return value

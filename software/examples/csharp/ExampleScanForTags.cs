@@ -26,17 +26,20 @@ class Example
 
 			for (int i = 0; i < tagID.Length; i++)
 			{
-				if (i < tagID.Length - 1) {
+				if (i < tagID.Length - 1)
+				{
 					tagInfo += String.Format("0x{0:X} ", tagID[i]);
 				}
-				else {
+				else
+				{
 					tagInfo += String.Format("0x{0:X}]", tagID[i]);
 				}
 			}
 
 			Console.WriteLine(tagInfo);
 		}
-		else if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_ERROR) {
+		else if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_ERROR)
+		{
 			Console.WriteLine("Request tag ID error");
 		}
 	}

@@ -20,8 +20,9 @@ class Example
 			byte[] tagID;
 
 			sender.ReaderGetTagID(out tagType, out tagID);
-			
-			if(tagType != BrickletNFC.TAG_TYPE_TYPE2) {
+
+			if(tagType != BrickletNFC.TAG_TYPE_TYPE2)
+			{
 				Console.WriteLine("Tag is not type-2");
 
 				return;
@@ -35,10 +36,12 @@ class Example
 			                  tagID[3]);
 			sender.ReaderRequestPage(1, 4);
 		}
-		else if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_ERROR) {
+		else if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_ERROR)
+		{
 			Console.WriteLine("Request tag ID error");
 		}
-		else if(state == BrickletNFC.READER_STATE_REQUEST_PAGE_READY) {
+		else if(state == BrickletNFC.READER_STATE_REQUEST_PAGE_READY)
+		{
 			byte[] page = sender.ReaderReadPage();
 
 			Console.WriteLine("Page read: 0x{0:X} 0x{1:X} 0x{2:X} 0x{3:X}",
@@ -49,13 +52,16 @@ class Example
 
 			sender.ReaderWritePage(1, page);
 		}
-		else if(state == BrickletNFC.READER_STATE_WRITE_PAGE_READY) {
+		else if(state == BrickletNFC.READER_STATE_WRITE_PAGE_READY)
+		{
 			Console.WriteLine("Write page ready");
 		}
-		else if(state == BrickletNFC.READER_STATE_REQUEST_PAGE_ERROR) {
+		else if(state == BrickletNFC.READER_STATE_REQUEST_PAGE_ERROR)
+		{
 			Console.WriteLine("Request page error");
 		}
-		else if(state == BrickletNFC.READER_STATE_WRITE_PAGE_ERROR) {
+		else if(state == BrickletNFC.READER_STATE_WRITE_PAGE_ERROR)
+		{
 			Console.WriteLine("Write page error");
 		}
 	}

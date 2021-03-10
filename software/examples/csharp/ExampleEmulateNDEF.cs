@@ -34,10 +34,12 @@ class Example
 		{
 			sender.CardemuStartTransfer(BrickletNFC.CARDEMU_TRANSFER_WRITE);
 		}
-		else if(state == BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR) {
+		else if(state == BrickletNFC.CARDEMU_STATE_DISCOVER_ERROR)
+		{
 			Console.WriteLine("Discover error");
 		}
-		else if(state == BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF_ERROR) {
+		else if(state == BrickletNFC.CARDEMU_STATE_TRANSFER_NDEF_ERROR)
+		{
 			Console.WriteLine("Transfer NDEF error");
 		}
 	}

@@ -15,26 +15,19 @@ function cb_readerStateChanged($state, $idle, $user_data)
 {
     $nfc = $user_data;
 
-    if ($state == BrickletNFC::READER_STATE_IDLE) {
-        $nfc->readerRequestTagID();
-    }
-    else if ($state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_READY) {
+    if ($state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_READY) {
         $tag_id = [];
         $ret = $nfc->readerGetTagID();
 
-        if ($ret["tag_type"] != BrickletNFC::TAG_TYPE_TYPE2) {
-            return;
+        foreach ($ret["tag_id"] as $value) {
+            array_push($tag_id, sprintf("0x%02X", $value));
         }
 
-        printf("Found tag of type %u with ID [0x%X 0x%X 0x%X 0x%X]\n",
-               $ret["tag_type"],
-               $ret["tag_id"][0],
-               $ret["tag_id"][1],
-               $ret["tag_id"][2],
-               $ret["tag_id"][3]);
+        printf("Found tag of type %u with ID [%s]\n", $ret["tag_type"], join(" ", $tag_id));
     }
-    else if ($state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_ERROR) {
-        echo "Request tag ID error\n";
+
+    if ($idle) {
+        $nfc->readerRequestTagID();
     }
 }
 

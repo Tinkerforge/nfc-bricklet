@@ -28,33 +28,27 @@ var
 { Callback procedure for reader state changed callback }
 procedure TExample.ReaderStateChangedCB(sender: TBrickletNFC; const state: byte;
                                         const idle: boolean);
-  var i: byte;
-  var tagType: byte;
-  var tagInfo: string;
-  var tagID: TArrayOfUInt8;
-
+var i: byte; var tagType: byte; var tagInfo: string; var tagID: TArrayOfUInt8;
 begin
-  if state = BRICKLET_NFC_READER_STATE_IDLE then begin
-    sender.ReaderRequestTagID;
-  end
-  else if state = BRICKLET_NFC_READER_STATE_REQUEST_TAG_ID_READY then begin
+  if (state = BRICKLET_NFC_READER_STATE_REQUEST_TAG_ID_READY) then begin
     sender.ReaderGetTagID(tagType, tagID);
 
     tagInfo := 'Found tag of type ' + IntToStr(tagType) + ' with ID [';
 
-    for i := 0 to (length(tagID) - 1) do begin
+    for i := 0 to (Length(tagID) - 1) do begin
+      tagInfo := tagInfo + '0x' + IntToHex(tagID[i], 2);
+
       if i < Length(tagID) - 1 then begin
-        tagInfo := tagInfo + '0x' + IntToHex(tagID[i], 2) + ' ';
-      end
-      else begin
-        tagInfo := tagInfo + '0x' + IntToHex(tagID[i], 2) + ']';
+        tagInfo := tagInfo + ' ';
       end;
     end;
 
+    tagInfo := tagInfo + ']';
+
     WriteLn(tagInfo);
-  end
-  else if state = BRICKLET_NFC_READER_STATE_REQUEST_TAG_ID_ERROR then begin
-    WriteLn('Request tag ID error');
+  end;
+  if (idle) then begin
+    sender.ReaderRequestTagID;
   end;
 end;
 

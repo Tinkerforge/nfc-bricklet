@@ -10,11 +10,7 @@ class Example
 	// Callback function for reader state changed callback
 	static void ReaderStateChangedCB(BrickletNFC sender, byte state, bool idle)
 	{
-		if(state == BrickletNFC.READER_STATE_IDLE)
-		{
-			sender.ReaderRequestTagID();
-		}
-		else if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY)
+		if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY)
 		{
 			byte tagType;
 			byte[] tagID;
@@ -26,21 +22,22 @@ class Example
 
 			for (int i = 0; i < tagID.Length; i++)
 			{
+				tagInfo += String.Format("0x{0:02X}", tagID[i]);
+
 				if (i < tagID.Length - 1)
 				{
-					tagInfo += String.Format("0x{0:X} ", tagID[i]);
-				}
-				else
-				{
-					tagInfo += String.Format("0x{0:X}]", tagID[i]);
+					tagInfo += " ";
 				}
 			}
 
+			tagInfo += "]";
+
 			Console.WriteLine(tagInfo);
 		}
-		else if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_ERROR)
+
+		if(idle)
 		{
-			Console.WriteLine("Request tag ID error");
+			sender.ReaderRequestTagID();
 		}
 	}
 

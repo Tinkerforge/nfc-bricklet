@@ -10,19 +10,17 @@ from tinkerforge.bricklet_nfc import BrickletNFC
 
 # Callback function for reader state changed callback
 def cb_reader_state_changed(state, idle, nfc):
-    if state == nfc.READER_STATE_IDLE:
-        nfc.reader_request_tag_id()
-    elif state == nfc.READER_STATE_REQUEST_TAG_ID_READY:
+    if state == nfc.READER_STATE_REQUEST_TAG_ID_READY:
         ret = nfc.reader_get_tag_id()
 
         print("Found tag of type " +
               str(ret.tag_type) +
               " with ID [" +
-              " ".join(map(str, map(hex, ret.tag_id))) +
+              " ".join(map(str, map('0x{:02X}'.format, ret.tag_id))) +
               "]")
 
-    elif state == nfc.READER_STATE_REQUEST_TAG_ID_ERROR:
-        print("Request tag ID error")
+    if idle:
+        nfc.reader_request_tag_id()
 
 if __name__ == "__main__":
     ipcon = IPConnection() # Create IP connection

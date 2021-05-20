@@ -9,9 +9,7 @@ Module ExampleScanForTags
     ' Callback subroutine for reader state changed callback
     Sub ReaderStateChangedCB(ByVal sender As BrickletNFC, ByVal state As Byte, _
                              ByVal idle As Boolean)
-        If state = BrickletNFC.READER_STATE_IDLE Then
-            sender.ReaderRequestTagID()
-        ElseIf state = BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY Then
+        If state = BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY Then
             Dim i As Integer
             Dim tagType As Byte
             Dim tagID() As Byte
@@ -22,16 +20,20 @@ Module ExampleScanForTags
             tagInfo = String.Format("Found tag of type {0} with ID [", tagType)
 
             For i = 0 To tagID.Length - 1
+                tagInfo += String.Format("0x{0:X}", tagID(i))
+
                 If i < tagID.Length - 1 Then
-                    tagInfo += String.Format("0x{0:X} ", tagID(i))
-                Else
-                    tagInfo += String.Format("0x{0:X}]", tagID(i))
+                    tagInfo += " "
                 End If
             Next
 
+            tagInfo += "]"
+
             Console.WriteLine(tagInfo)
-        ElseIf state = BrickletNFC.READER_STATE_REQUEST_TAG_ID_ERROR Then
-            Console.WriteLine("Request tag ID error")
+        End If
+
+        If idle Then
+            sender.ReaderRequestTagID()
         End If
     End Sub
 

@@ -50,25 +50,33 @@
                 nfc.on(Tinkerforge.BrickletNFC.CALLBACK_READER_STATE_CHANGED,
                     // Callback function for reader state changed callback
                     function (state, idle) {
-                        if(state == Tinkerforge.BrickletNFC.READER_STATE_IDLE) {
+                        if(idle) {
                             nfc.readerRequestTagID();
                         }
-                        else if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) {
+
+                        if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) {
                             nfc.readerGetTagID(
-                                function (tagType, tid) {
-                                    textArea.value += 'Found tag of type ' + tagType + ' with ID [' +
-                                                      '0x' + tid[0].toString(16) + ' ' +
-                                                      '0x' + tid[1].toString(16) + ' ' +
-                                                      '0x' + tid[2].toString(16) + ' ' +
-                                                      '0x' + tid[3].toString(16) +']\n';
+                                function (tagType, tagID) {
+                                    var tagInfo = ''
+
+                                    for (var i = 0; i < tagID.length; i++) {
+                                        tagInfo += '0x' + ('0' + tagID[i].toString(16).toUpperCase()).substr(-2)
+
+                                        if (i < tagID.length - 1) {
+                                            tagInfo += ' '
+                                        }
+                                    }
+
+                                    textArea.value += 'Found tag of type ' + tagType + ' with ID [' + tagInfo + ']\n')
                                 },
                                 function (error) {
-                                    textArea.value += 'Error: ' + error + '\n';
+                                    textArea.value += 'Could not get tag ID: ' + error + '\n')
                                 }
                             );
                         }
-                        else if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_TAG_ID_ERROR) {
-                            textArea.value += 'Request tag ID error\n';
+
+                        if(idle) {
+                            nfc.readerRequestTagID()
                         }
                     }
                 );

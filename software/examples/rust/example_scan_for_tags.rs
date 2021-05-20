@@ -23,9 +23,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             if state_change.state == NFC_BRICKLET_READER_STATE_REQUEST_TAG_ID_READY {
                 let (tag_id, tag_type) = nfc_copy.reader_get_tag_id().unwrap();
                 println!("Found tag of type {} with ID {:x?}", tag_type, tag_id);
-            } else if state_change.state == NFC_BRICKLET_READER_STATE_REQUEST_TAG_ID_ERROR {
-                println!("Request tag ID error");
             }
+
             if state_change.idle {
                 nfc_copy.reader_request_tag_id();
             }

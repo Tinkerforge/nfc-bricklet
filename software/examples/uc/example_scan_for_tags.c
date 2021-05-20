@@ -57,24 +57,25 @@ void example_loop(TF_HalContext *hal) {
 
 	valid = false;
 
-	if(nfc_state == TF_NFC_READER_STATE_IDLE) {
-		tf_nfc_reader_request_tag_id(&nfc);
-	}
-	else if(nfc_state == TF_NFC_READER_STATE_REQUEST_TAG_ID_READY) {
+	if(nfc_state == TF_NFC_READER_STATE_REQUEST_TAG_ID_READY) {
 		ret = tf_nfc_reader_get_tag_id(&nfc, &ret_tag_type, ret_tag_id, &ret_tag_id_length);
 
-		if(ret != TF_E_OK) {
-			return;
-		}
+		if(ret == TF_E_OK) {
+			tf_hal_printf("Found tag of type %I8d with ID [", ret_tag_type);
 
-		tf_hal_printf("Found tag of type %I8d with ID [", ret_tag_type);
+			for(uint8_t i = 0; i < ret_tag_id_length; i++) {
+				tf_hal_printf("%I8X", ret_tag_id[i]);
 
-		for(uint8_t i = 0; i < ret_tag_id_length; i++) {
-			tf_hal_printf("%I8X", ret_tag_id[i]);
+				if (i < ret_tag_id_length - 1) {
+					tf_hal_printf(" ");
+				}
+			}
+
+			tf_hal_printf("]\n");
 		}
-		tf_hal_printf("]\n");
 	}
-	else if(nfc_state == TF_NFC_READER_STATE_REQUEST_TAG_ID_ERROR) {
-		tf_hal_printf("Request tag ID error\n");
+
+	if(nfc_idle) {
+		tf_nfc_reader_request_tag_id(&nfc);
 	}
 }

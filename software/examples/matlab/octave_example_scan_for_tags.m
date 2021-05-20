@@ -27,14 +27,12 @@ end
 function cb_reader_state_changed(e)
     global nfc;
 
-    if e.state == nfc.READER_STATE_IDLE
-        nfc.readerRequestTagID();
-    elseif e.state == nfc.READER_STATE_REQUEST_TAG_ID_READY
+    if e.state == nfc.READER_STATE_REQUEST_TAG_ID_READY
         tag = "";
         ret = nfc.readerGetTagID();
 
         for i = 1:length(java_get(ret, "tagID"))
-            tmp_tag = sprintf("0x%X", java_get(ret, "tagID")(i));
+            tmp_tag = sprintf("0x%02X", java_get(ret, "tagID")(i));
 
             if i < length(java_get(ret, "tagID"))
               tmp_tag = cstrcat(tmp_tag, " ");
@@ -44,7 +42,9 @@ function cb_reader_state_changed(e)
         end
 
         fprintf("Found tag of type %d with ID [%s]\n", java_get(ret, "tagType"), tag);
-    elseif e.state == nfc.READER_STATE_REQUEST_TAG_ID_ERROR
-        disp("Request tag ID error");
+    end
+
+    if e.state == nfc.READER_STATE_IDLE
+        nfc.readerRequestTagID();
     end
 end

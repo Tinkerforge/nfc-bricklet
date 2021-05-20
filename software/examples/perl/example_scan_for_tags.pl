@@ -16,21 +16,19 @@ sub cb_reader_state_changed
 {
     my ($state, $idle) = @_;
 
-    if ($state == $nfc->READER_STATE_IDLE) {
-        $nfc->reader_request_tag_id();
-    }
-    elsif ($state == $nfc->READER_STATE_REQUEST_TAG_ID_READY) {
-        my @ret = $nfc->reader_get_tag_id();
-        my @tag_id_bytes;
+    if ($state == Tinkerforge::BrickletNFC->READER_STATE_REQUEST_TAG_ID_READY) {
+        my ($tag_type, $tag_id) = $nfc->reader_get_tag_id();
+        my @tag_info;
 
-        for my $v (@{$ret[1]}) {
-            push(@tag_id_bytes, sprintf("0x%X", $v));
+        for my $v (@{$tag_id}) {
+            push(@tag_info, sprintf("0x%02X", $v));
         }
 
-        print "Found tag of type " . $ret[0] . " with ID [" . join(" ", @tag_id_bytes). "]\n";
+        print "Found tag of type " . $tag_type . " with ID [" . join(" ", @tag_info) . "]\n";
     }
-    elsif ($state == $nfc->READER_STATE_REQUEST_TAG_ID_ERROR) {
-        print "Request tag ID error\n";
+
+    if ($idle) {
+        $nfc->reader_request_tag_id();
     }
 }
 

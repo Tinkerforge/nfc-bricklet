@@ -18,20 +18,19 @@ ipcon.connect HOST, PORT # Connect to brickd
 
 # Register reader state changed callback
 nfc.register_callback(BrickletNFC::CALLBACK_READER_STATE_CHANGED) do |state, idle|
-  if state == BrickletNFC::READER_STATE_IDLE
-    nfc.reader_request_tag_id
-  elsif state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_READY
-    tag_id = Array.new
+  if state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_READY
     ret = nfc.reader_get_tag_id
+    tag_id = Array.new
 
-    ret[1].each do |v|
-      tag_id.push "0x%X" % v
+    ret[1].each do |value|
+      tag_id.push "0x%02X" % value
     end
 
-    puts ret.class
     puts "Found tag of type #{ret[0]} with ID [#{tag_id.join(" ")}]"
-  elsif state == BrickletNFC::READER_STATE_REQUEST_TAG_ID_ERROR
-    puts 'Request tag ID error'
+  end
+
+  if idle
+    nfc.reader_request_tag_id
   end
 end
 

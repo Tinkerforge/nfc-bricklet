@@ -9,13 +9,11 @@ setup:
 			if state == "RequestTagIDReady"
 				subscribe to tinkerforge/response/nfc_bricklet/XYZ/reader_get_tag_id
 					if a message is received
-						# message contains tag_type, id_length and tag_id
-						print tag_type, id_length and tag_id
+						# message contains tag_type and tag_id
+						print tag_type and tag_id
 					endif
 				endsubscribe
 				publish '' to tinkerforge/response/nfc_bricklet/XYZ/reader_get_tag_id
-			elseif state == "RequestTagIDError"
-				print "Request tag ID error."
 			endif
 
 			if idle

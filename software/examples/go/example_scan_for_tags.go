@@ -22,9 +22,8 @@ func main() {
 		if state == nfc_bricklet.ReaderStateRequestTagIDReady {
 			tagID, tagType, _ := nfc.ReaderGetTagID()
 			fmt.Printf("Found tag of type %d with ID %v", tagType, tagID)
-		} else if state == nfc_bricklet.ReaderStateRequestTagIDError {
-			fmt.Println("Request tag ID error")
 		}
+
 		if idle {
 			nfc.ReaderRequestTagID()
 		}

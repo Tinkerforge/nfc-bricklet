@@ -12,7 +12,8 @@ public class ExampleScanForTags {
 	//       you might normally want to catch are described in the documentation
 	public static void main(String args[]) throws Exception {
 		IPConnection ipcon = new IPConnection(); // Create IP connection
-		BrickletNFC nfc = new BrickletNFC(UID, ipcon); // Create device object
+		// Note: Declare nfc as final, so the listener can access it
+		final BrickletNFC nfc = new BrickletNFC(UID, ipcon); // Create device object
 
 		ipcon.connect(HOST, PORT); // Connect to brickd
 		// Don't use device before ipcon is connected
@@ -20,26 +21,17 @@ public class ExampleScanForTags {
 		// Add reader state changed listener
 		nfc.addReaderStateChangedListener(new BrickletNFC.ReaderStateChangedListener() {
 			public void readerStateChanged(int state, boolean idle) {
-				if (state == BrickletNFC.READER_STATE_IDLE) {
-					try {
-						nfc.readerRequestTagID();
-					}
-					catch (Exception e) {
-						return;
-					}
-				}
-				else if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) {
+				if(state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) {
 					try {
 						int i = 0;
 						StringBuilder tag = new StringBuilder();
 						BrickletNFC.ReaderGetTagID ret = nfc.readerGetTagID();
 
-						for (int v : ret.tagID) {
+						for (int v: ret.tagID) {
+							tag.append(String.format("0x%02X", v));
+
 							if (i < ret.tagID.length - 1) {
-								tag.append(String.format("0x%X ", v));
-							}
-							else {
-								tag.append(String.format("0x%X", v));
+								tag.append(" ");
 							}
 
 							i++;
@@ -51,8 +43,14 @@ public class ExampleScanForTags {
 						return;
 					}
 				}
-				else if (state == BrickletNFC.READER_STATE_REQUEST_TAG_ID_ERROR) {
-					System.out.println("Request tag ID error");
+
+				if (idle) {
+					try {
+						nfc.readerRequestTagID();
+					}
+					catch (Exception e) {
+						return;
+					}
 				}
 			}
 		});

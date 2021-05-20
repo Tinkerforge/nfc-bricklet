@@ -11,49 +11,31 @@
 void cb_reader_state_changed(uint8_t state, bool idle, void *user_data) {
 	NFC *nfc = (NFC *)user_data;
 
-	(void)idle; // avoid unused parameter warning
+	if(state == NFC_READER_STATE_REQUEST_TAG_ID_READY) {
+		uint8_t ret_tag_type;
+		uint8_t ret_tag_id_length;
+		uint8_t ret_tag_id[32];
 
-	if(state == NFC_READER_STATE_IDLE) {
-		nfc_reader_request_tag_id(nfc);
-	}
-	else if(state == NFC_READER_STATE_REQUEST_TAG_ID_READY) {
-		int ret = 0;
-		char tag_byte[8];
-		char tag_info[256];
-		uint8_t ret_tag_type = 0;
-		uint8_t ret_tag_id_length = 0;
-		uint8_t *ret_tag_id = (uint8_t *)malloc(32);
-
-		ret = nfc_reader_get_tag_id(nfc, &ret_tag_type, ret_tag_id, &ret_tag_id_length);
-
-		if(ret != E_OK) {
-			free(ret_tag_id);
-
+		if(nfc_reader_get_tag_id(nfc, &ret_tag_type, ret_tag_id, &ret_tag_id_length) < 0) {
+			fprintf(stderr, "Could not get tag ID\n");
 			return;
 		}
 
-		memset(tag_info, 0, 256);
-		sprintf(tag_info, "Found tag of type %d with ID [", ret_tag_type);
+		printf("Found tag of type %d with ID [", ret_tag_type);
 
 		for(uint8_t i = 0; i < ret_tag_id_length; i++) {
-			memset(tag_byte, 0, 8);
+			printf("0x%02X", ret_tag_id[i]);
 
-			if(i < ret_tag_id_length - 1){
-				sprintf(tag_byte, "0x%X ", ret_tag_id[i]);
+			if(i < ret_tag_id_length - 1) {
+				printf(" ");
 			}
-			else {
-				sprintf(tag_byte, "0x%X", ret_tag_id[i]);
-				strcat(tag_byte, "]");
-			}
-
-			strcat(tag_info, tag_byte);
 		}
 
-		free(ret_tag_id);
-		printf("%s\n", tag_info);
+		printf("]\n");
 	}
-	else if(state == NFC_READER_STATE_REQUEST_TAG_ID_ERROR) {
-		printf("Request tag ID error\n");
+
+	if(state == NFC_READER_STATE_IDLE) {
+		nfc_reader_request_tag_id(nfc);
 	}
 }
 

@@ -53,20 +53,20 @@
                         if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) {
                             nfc.readerGetTagID(
                                 function (tagType, tagID) {
-                                    var tagInfo = ''
+                                    var tagInfo = '';
 
                                     for (var i = 0; i < tagID.length; i++) {
-                                        tagInfo += '0x' + ('0' + tagID[i].toString(16).toUpperCase()).substr(-2)
+                                        tagInfo += '0x' + ('0' + tagID[i].toString(16).toUpperCase()).substr(-2);
 
                                         if (i < tagID.length - 1) {
-                                            tagInfo += ' '
+                                            tagInfo += ' ';
                                         }
                                     }
 
-                                    textArea.value += 'Found tag of type ' + tagType + ' with ID [' + tagInfo + ']\n')
+                                    textArea.value += 'Found tag of type ' + tagType + ' with ID [' + tagInfo + ']\n');
                                 },
                                 function (error) {
-                                    textArea.value += 'Could not get tag ID: ' + error + '\n')
+                                    textArea.value += 'Could not get tag ID: ' + error + '\n');
                                 }
                             );
                         }

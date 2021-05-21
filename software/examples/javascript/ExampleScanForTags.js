@@ -28,20 +28,20 @@ nfc.on(Tinkerforge.BrickletNFC.CALLBACK_READER_STATE_CHANGED,
         if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) {
             nfc.readerGetTagID(
                 function (tagType, tagID) {
-                    var tagInfo = ''
+                    var tagInfo = '';
 
                     for (var i = 0; i < tagID.length; i++) {
-                        tagInfo += '0x' + ('0' + tagID[i].toString(16).toUpperCase()).substr(-2)
+                        tagInfo += '0x' + ('0' + tagID[i].toString(16).toUpperCase()).substr(-2);
 
                         if (i < tagID.length - 1) {
-                            tagInfo += ' '
+                            tagInfo += ' ';
                         }
                     }
 
-                    console.log('Found tag of type %d with ID [%s]', tagType, tagInfo)
+                    console.log('Found tag of type %d with ID [%s]', tagType, tagInfo);
                 },
                 function (error) {
-                    console.log('Could not get tag ID: ' + error)
+                    console.log('Could not get tag ID: ' + error);
                 }
             );
         }

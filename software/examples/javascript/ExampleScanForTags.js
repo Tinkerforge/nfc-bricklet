@@ -47,7 +47,7 @@ nfc.on(Tinkerforge.BrickletNFC.CALLBACK_READER_STATE_CHANGED,
         }
 
         if(idle) {
-            nfc.readerRequestTagID()
+            nfc.readerRequestTagID();
         }
     }
 );

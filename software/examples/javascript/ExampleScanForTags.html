@@ -50,10 +50,6 @@
                 nfc.on(Tinkerforge.BrickletNFC.CALLBACK_READER_STATE_CHANGED,
                     // Callback function for reader state changed callback
                     function (state, idle) {
-                        if(idle) {
-                            nfc.readerRequestTagID();
-                        }
-
                         if(state == Tinkerforge.BrickletNFC.READER_STATE_REQUEST_TAG_ID_READY) {
                             nfc.readerGetTagID(
                                 function (tagType, tagID) {
@@ -76,7 +72,7 @@
                         }
 
                         if(idle) {
-                            nfc.readerRequestTagID()
+                            nfc.readerRequestTagID();
                         }
                     }
                 );

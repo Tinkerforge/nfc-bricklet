@@ -34,7 +34,7 @@ void cb_reader_state_changed(uint8_t state, bool idle, void *user_data) {
 		printf("]\n");
 	}
 
-	if(state == NFC_READER_STATE_IDLE) {
+	if(idle) {
 		nfc_reader_request_tag_id(nfc);
 	}
 }

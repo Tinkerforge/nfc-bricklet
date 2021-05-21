@@ -44,7 +44,7 @@ function cb_reader_state_changed(e)
         fprintf("Found tag of type %d with ID [%s]\n", java_get(ret, "tagType"), tag);
     end
 
-    if e.state == nfc.READER_STATE_IDLE
+    if e.idle
         nfc.readerRequestTagID();
     end
 end

@@ -20,6 +20,7 @@
  */
 
 #include "pn7150_p2p.h"
+#include "pn7150_simple.h"
 
 #include "bricklib2/os/coop_task.h"
 #include "bricklib2/hal/system_timer/system_timer.h"
@@ -59,16 +60,7 @@ void pn7150_p2p_discover(void) {
 //	    MODE_LISTEN | TECH_ACTIVE_NFCF,
 	};
 
-	if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
-		// Discovery failed. Perhaps there was still a discovery running? Lets stop and try again!
-		NxpNci_StopDiscovery();
-		if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
-			pn7150_init_nfc();
-			return;
-		}
-	}
-
-	if(NxpNci_WaitForDiscoveryNotification(&pn7150_p2p_interface) != NFC_SUCCESS) {
+	if(!pn7150_simple_discovery(discovery_technologies, &pn7150_p2p_interface)) {
 		return;
 	}
 

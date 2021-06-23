@@ -20,6 +20,7 @@
  */
 
 #include "pn7150_reader.h"
+#include "pn7150_simple.h"
 
 #include "bricklib2/utility/crc16.h"
 #include "bricklib2/utility/util_definitions.h"
@@ -29,22 +30,9 @@
 #include "communication.h"
 #include "NxpNci.h"
 
-typedef struct
-{
-    unsigned char IDm[8];
-    unsigned char BlkNb;
-    unsigned short Ptr;
-    unsigned short Size;
-    unsigned char *p;
-} RW_NDEF_T3T_Ndef_t;
-
-bool NxpNci_T3TretrieveIDm(void);
-extern RW_NDEF_T3T_Ndef_t RW_NDEF_T3T_Ndef;
-
 extern PN7150 pn7150;
 
 static NxpNci_RfIntf_t pn7150_reader_interface;
-
 void pn7150_reader_push_cb(unsigned char *ndef, unsigned short ndef_length) {
 	pn7150.reader_state = NFC_READER_STATE_WRITE_NDEF_READY;
 }
@@ -56,94 +44,16 @@ void pn7150_reader_pull_cb(unsigned char *ndef, unsigned short ndef_length) {
 }
 
 static void pn7150_reader_request_tag_id(void) {
-	uint8_t discovery_technologies[] = {
-		MODE_POLL | TECH_PASSIVE_NFCA,
-		MODE_POLL | TECH_PASSIVE_NFCF,
-		MODE_POLL | TECH_PASSIVE_NFCB,
-		MODE_POLL | TECH_PASSIVE_15693
-	};
+	bool ok = pn7150_simple_request_tag_id(&pn7150_reader_interface);
 
-	if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
-		// Discovery failed. Perhaps there was still a discovery running? Lets stop and try again!
-		NxpNci_StopDiscovery();
-		if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
-			pn7150_init_nfc();
-			pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
-			return;
-		}
-	}
-
-	if(NxpNci_WaitForDiscoveryNotification(&pn7150_reader_interface) != NFC_SUCCESS) {
-		pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
-		return;
-	}
-
-	pn7150.led_state_change_time = system_timer_get_ms();
-
-	if((pn7150_reader_interface.ModeTech & MODE_MASK) == MODE_POLL) {
-		pn7150.reader_tag_id_length = pn7150_reader_interface.Info.NFC_APP.NfcIdLen;
-		memcpy(pn7150.reader_tag_id, pn7150_reader_interface.Info.NFC_APP.NfcId, 10);
-
-		switch(pn7150_reader_interface.Protocol) {
-			case PROT_T1T: {
-				pn7150.reader_tag_type = NFC_TAG_TYPE_TYPE1;
-				// If Type 1 Tag is detected there is no identifier in the discovery response
-				// (see NCI specification: 7.1 Starting RF Discovery, table 54)
-
-				// We use Read Identifier command instead (see Digital Protocol Specification: 8.6)
-				uint8_t t1t_rid[] = {0x78,0x00,0x00,0x00,0x00,0x00,0x00};
-				uint8_t response[256];
-				uint8_t length;
-				bool status = NxpNci_ReaderTagCmd(t1t_rid, sizeof(t1t_rid), response, &length);
-				if((status == NFC_ERROR) || (response[length - 1] != 0)) {
-					pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
-					return;
-				}
-
-				pn7150.reader_tag_id_length = 4;
-				memcpy(pn7150.reader_tag_id, &response[2], 4);
-
-				break;
-			}
-
-			case PROT_T2T: {
-				pn7150.reader_tag_type = NFC_TAG_TYPE_TYPE2;
-				break;
-			}
-
-			case PROT_T3T: {
-				pn7150.reader_tag_type = NFC_TAG_TYPE_TYPE3;
-				if(NxpNci_T3TretrieveIDm() == NFC_ERROR) {
-					pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
-					return;
-				}
-
-				pn7150.reader_tag_id_length = 8;
-				memcpy(pn7150.reader_tag_id, RW_NDEF_T3T_Ndef.IDm, 8);
-				break;
-			}
-
-			case PROT_ISODEP: {
-				pn7150.reader_tag_type = NFC_TAG_TYPE_TYPE4;
-				break;
-			}
-
-			case PROT_MIFARE: {
-				pn7150.reader_tag_type = NFC_TAG_TYPE_MIFARE_CLASSIC;
-				break;
-			}
-
-			default: {
-				pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
-				return;
-			}
-		}
+	if(ok) {
+		pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_READY;
+		pn7150.reader_tag_id_length = pn7150.simple_tag_id_length;
+		pn7150.reader_tag_type = pn7150.simple_tag_type;
+		memcpy(pn7150.reader_tag_id, pn7150.simple_tag_id, pn7150.simple_tag_id_length);
 	} else {
 		pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_ERROR;
-		return;
 	}
-
-	pn7150.reader_state = NFC_READER_STATE_REQUEST_TAG_ID_READY;
 }
 
 static void pn7150_reader_request_ndef(void) {

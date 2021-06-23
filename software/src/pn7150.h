@@ -34,44 +34,44 @@
 #define PN7150_MAX_OVERHEAD 32
 
 typedef struct {
-	// General
-	bool     new_mode;
-	uint8_t  mode;
 	uint8_t  data[PN7150_MAX_DATA_SIZE + PN7150_MAX_OVERHEAD];
-	uint16_t data_length;
-	uint16_t data_chunk_offset;
+	uint8_t  simple_tag_id[32];
+	uint8_t  simple_tag_type;
+	uint8_t  simple_tag_id_length;
 
-	// Reader
+	uint8_t  p2p_state;
+
+	uint8_t  mode;
+
 	uint8_t  reader_state;
+	uint8_t  cardemu_state;
 
 	uint8_t  reader_tag_type;
 	uint8_t  reader_tag_id_length;
 	uint8_t  reader_tag_id[32];
 
-	uint16_t reader_mifare_auth_page;
 	uint8_t  reader_mifare_auth_key_number;
 	uint8_t  reader_mifare_auth_key[6];
 
+	uint16_t reader_mifare_auth_page;
 	uint16_t reader_request_page;
 	uint16_t reader_request_length;
-
 	uint16_t reader_write_page;
 	uint16_t reader_write_length;
-
 	uint16_t reader_ndef_length;
 
-	// Cardemu
-	uint8_t  cardemu_state;
-	bool     cardemu_ndef_ready;
 	uint16_t cardemu_ndef_length;
 
-	// P2P
-	uint8_t  p2p_state;
 	uint16_t p2p_ndef_length;
 
-	// LED
-	LEDFlickerState detection_led_state;
+	uint16_t data_length;
+	uint16_t data_chunk_offset;
+
 	uint32_t led_state_change_time;
+
+	bool     new_mode;
+	bool     cardemu_ndef_ready;
+	LEDFlickerState detection_led_state;
 } PN7150;
 
 void pn7150_tick(void);

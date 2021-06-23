@@ -32,6 +32,7 @@
 
 #include "xmc_gpio.h"
 
+#if LOGGING_LEVEL != LOGGING_NONE
 void HardFault_Handler(void) {
 	__asm("MOVS   R0, #4  \n"
 	      "MOV    R1, LR  \n"
@@ -46,7 +47,6 @@ void HardFault_Handler(void) {
 }
 
 void HardFault_HandlerC(unsigned int *hardfault_args) {
-#if LOGGING_LEVEL != LOGGING_NONE
     volatile unsigned long stacked_r0;
     volatile unsigned long stacked_r1;
     volatile unsigned long stacked_r2;
@@ -116,11 +116,8 @@ void HardFault_HandlerC(unsigned int *hardfault_args) {
 	while(true) {
 		XMC_WDT_Service();
 	}
-
-#else
-	while(true);
-#endif
 }
+#endif
 
 int main(void) {
 	logging_init();

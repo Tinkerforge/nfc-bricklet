@@ -75,6 +75,7 @@ volatile uint16_t i2c_rx_data_index = 0;
 
 uint16_t i2c_max_timeout = 2000;
 
+__attribute__((optimize("-Os")))
 void i2c_rx_irq_handler(void) {
 	while(!XMC_USIC_CH_RXFIFO_IsEmpty(PN7150_I2C)) {
 		if(i2c_rx_data_index <= i2c_rx_data_length) {
@@ -87,6 +88,7 @@ void i2c_rx_irq_handler(void) {
 	}
 }
 
+__attribute__((optimize("-Os")))
 void i2c_tx_irq_handler(void) {
 	while(!XMC_USIC_CH_TXFIFO_IsFull(PN7150_I2C)) {
 		switch(i2c_tx_state) {
@@ -157,6 +159,7 @@ void i2c_tx_irq_handler(void) {
 	}
 }
 
+__attribute__((optimize("-Os")))
 bool i2c_write(uint8_t *data, const uint16_t length, bool send_stop) {
 	if(i2c_tx_state != I2C_TX_STATE_DONE) {
 		return false;
@@ -224,6 +227,7 @@ bool i2c_write(uint8_t *data, const uint16_t length, bool send_stop) {
 	return true;
 }
 
+__attribute__((optimize("-Os")))
 bool i2c_read(uint8_t *data, const uint16_t length) {
 	i2c_tx_state = I2C_TX_STATE_START_RX;
 	i2c_tx_data_length = length;
@@ -268,6 +272,7 @@ bool i2c_read(uint8_t *data, const uint16_t length) {
 }
 
 
+__attribute__((optimize("-Os")))
 void tml_Connect(void) {
 	tml_Disconnect();
 
@@ -342,6 +347,7 @@ void tml_Connect(void) {
 	system_timer_sleep_ms(10);
 }
 
+__attribute__((optimize("-Os")))
 void tml_Disconnect(void) {
 	logd("NCI Disconnect\n\r");
 	XMC_I2C_CH_Stop(PN7150_I2C);
@@ -368,6 +374,7 @@ void tml_Disconnect(void) {
 	XMC_GPIO_Init(PN7150_VEN_PIN, &config_input);
 }
 
+__attribute__((optimize("-Os")))
 void tml_Send(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytesSent) {
     if(!i2c_write(pBuffer, BufferLen, true)) {
     	coop_task_sleep_ms(5);
@@ -380,6 +387,7 @@ void tml_Send(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytesSent) {
     *pBytesSent = BufferLen;
 }
 
+__attribute__((optimize("-Os")))
 void tml_Receive(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytes, uint16_t timeout) {
 	uint32_t start = system_timer_get_ms();
 	bool elapsed = true;

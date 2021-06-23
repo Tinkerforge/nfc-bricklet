@@ -636,6 +636,7 @@ bool NxpNci_Disconnect(void)
     return NXPNCI_SUCCESS;
 }
 
+__attribute__((optimize("-Os")))
 bool NxpNci_ConfigureSettings(void)
 {
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
@@ -764,6 +765,7 @@ bool NxpNci_ConfigureSettings(void)
     return NXPNCI_SUCCESS;
 }
 
+__attribute__((optimize("-Os")))
 bool NxpNci_ConfigureMode(unsigned char mode)
 {
 #if defined RW_SUPPORT || defined P2P_SUPPORT || defined CARDEMU_SUPPORT
@@ -896,6 +898,7 @@ bool NxpNci_ConfigureMode(unsigned char mode)
     return NXPNCI_SUCCESS;
 }
 
+__attribute__((optimize("-Os")))
 bool NxpNci_ConfigureParams(unsigned char *pCmd, unsigned short CmdSize)
 {
     uint8_t Answer[MAX_NCI_FRAME_SIZE];

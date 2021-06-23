@@ -14,6 +14,9 @@
 
 /***** NFC dedicated interface ****************************************/
 
+#ifndef NFC_H
+#define NFC_H
+
 /*
  * Status code definition used as API returned values
  */
@@ -362,3 +365,5 @@ bool NxpNci_FactoryTest_RfOn(void);
 
 #endif
 /********************************************************************************/
+
+#endif

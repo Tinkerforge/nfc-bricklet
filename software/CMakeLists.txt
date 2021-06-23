@@ -38,6 +38,7 @@ SET(SOURCES
 	"${PROJECT_SOURCE_DIR}/src/pn7150_reader.c"
 	"${PROJECT_SOURCE_DIR}/src/pn7150_cardemu.c"
 	"${PROJECT_SOURCE_DIR}/src/pn7150_p2p.c"
+	"${PROJECT_SOURCE_DIR}/src/pn7150_simple.c"
 	
 	"${PROJECT_SOURCE_DIR}/src/bricklib2/hal/uartbb/uartbb.c"
 	"${PROJECT_SOURCE_DIR}/src/bricklib2/hal/system_timer/system_timer.c"

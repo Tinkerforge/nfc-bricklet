@@ -23,6 +23,7 @@
 
 #include "bricklib2/utility/communication_callback.h"
 #include "bricklib2/utility/util_definitions.h"
+#include "bricklib2/hal/system_timer/system_timer.h"
 #include "bricklib2/protocols/tfp/tfp.h"
 
 #include "configs/config_pn7150.h"
@@ -30,6 +31,7 @@
 #include "pn7150_cardemu.h"
 #include "pn7150_p2p.h"
 #include "pn7150_reader.h"
+#include "pn7150_simple.h"
 
 extern uint16_t i2c_max_timeout;
 
@@ -60,15 +62,17 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_DETECTION_LED_CONFIG: return get_detection_led_config(message, response);
 		case FID_SET_MAXIMUM_TIMEOUT: return set_maximum_timeout(message);
 		case FID_GET_MAXIMUM_TIMEOUT: return get_maximum_timeout(message, response);
+		case FID_SIMPLE_GET_TAG_ID_LOW_LEVEL: return simple_get_tag_id_low_level(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
 
 
 extern PN7150 pn7150;
+extern SimpleTag pn7150_simple_tags[SIMPLE_TAGS_NUM];
 
 BootloaderHandleMessageResponse set_mode(const SetMode *data) {
-	if(data->mode > NFC_MODE_READER) {
+	if(data->mode > NFC_MODE_SIMPLE) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -406,6 +410,31 @@ BootloaderHandleMessageResponse set_maximum_timeout(const SetMaximumTimeout *dat
 BootloaderHandleMessageResponse get_maximum_timeout(const GetMaximumTimeout *data, GetMaximumTimeout_Response *response) {
 	response->header.length = sizeof(GetMaximumTimeout_Response);
 	response->timeout = i2c_max_timeout;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse simple_get_tag_id_low_level(const SimpleGetTagIDLowLevel *data, SimpleGetTagIDLowLevel_Response *response) {
+	if(data->index >= SIMPLE_TAGS_NUM) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if(pn7150.mode != NFC_MODE_SIMPLE) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	response->header.length = sizeof(SimpleGetTagIDLowLevel_Response);
+	response->last_seen     = 0;
+	response->tag_id_length = 0;
+	response->tag_type      = 0;
+	memset(response->tag_id_data, 0, 32);
+
+	if(pn7150_simple_tags[data->index].id_length > 0) {
+		response->last_seen     = system_timer_get_ms() - pn7150_simple_tags[data->index].last_seen;
+		response->tag_id_length = pn7150_simple_tags[data->index].id_length;
+		response->tag_type      = pn7150_simple_tags[data->index].type;
+		memcpy(response->tag_id_data, pn7150_simple_tags[data->index].id, pn7150_simple_tags[data->index].id_length);
+	}
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

@@ -1,7 +1,7 @@
 /* nfc-bricklet
- * Copyright (C) 2017 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2021 Olaf Lüke <olaf@tinkerforge.com>
  *
- * config.h: All configurations for NFC Bricklet
+ * pn7150_simple.h: Driver for PN7150 NFC simple ID discovery mode
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,23 +19,26 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef CONFIG_GENERAL_H
-#define CONFIG_GENERAL_H
+#ifndef PN7150_SIMPLE_H
+#define PN7150_SIMPLE_H
 
-#include "xmc_device.h"
+#include <stdint.h>
+#include <stdbool.h>
 
-#define STARTUP_SYSTEM_INIT_ALREADY_DONE
-#define SYSTEM_TIMER_FREQUENCY 1000 // Use 1 kHz system timer
+#include "Nfc.h"
 
-#define UARTBB_TX_PIN P2_10
+#define SIMPLE_TAGS_NUM 8
+#define SIMPLE_TAG_ID_MAX_LENGTH 10
 
-#define FIRMWARE_VERSION_MAJOR 2
-#define FIRMWARE_VERSION_MINOR 0
-#define FIRMWARE_VERSION_REVISION 6
+typedef struct {
+	uint8_t type;
+	uint8_t id_length;
+	uint8_t id[SIMPLE_TAG_ID_MAX_LENGTH];
+	uint32_t last_seen;
+} SimpleTag;
 
-#define COOP_TASK_STACK_SIZE (3*1024 + 512)
-//#define COOP_TASK_DEBUG_STACK_LOW_WATERMARK
-
-#include "config_custom_bootloader.h"
+bool pn7150_simple_discovery(uint8_t *discovery_technologies, NxpNci_RfIntf_t *interface);
+bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface);
+void pn7150_simple_state_machine(void);
 
 #endif

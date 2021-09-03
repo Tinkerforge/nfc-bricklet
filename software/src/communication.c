@@ -415,7 +415,7 @@ BootloaderHandleMessageResponse get_maximum_timeout(const GetMaximumTimeout *dat
 }
 
 BootloaderHandleMessageResponse simple_get_tag_id_low_level(const SimpleGetTagIDLowLevel *data, SimpleGetTagIDLowLevel_Response *response) {
-	if(data->index >= SIMPLE_TAGS_NUM) {
+	if((data->index != 255) && (data->index >= SIMPLE_TAGS_NUM)) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -429,11 +429,16 @@ BootloaderHandleMessageResponse simple_get_tag_id_low_level(const SimpleGetTagID
 	response->tag_type      = 0;
 	memset(response->tag_id_data, 0, 32);
 
-	if(pn7150_simple_tags[data->index].id_length > 0) {
-		response->last_seen     = system_timer_get_ms() - pn7150_simple_tags[data->index].last_seen;
-		response->tag_id_length = pn7150_simple_tags[data->index].id_length;
-		response->tag_type      = pn7150_simple_tags[data->index].type;
-		memcpy(response->tag_id_data, pn7150_simple_tags[data->index].id, pn7150_simple_tags[data->index].id_length);
+	// index = 255 => zero out simple tag data
+	if(data->index == 255) {
+		memset(pn7150_simple_tags, 0, SIMPLE_TAGS_NUM*sizeof(SimpleTag));
+	} else {
+		if(pn7150_simple_tags[data->index].id_length > 0) {
+			response->last_seen     = MAX(1, (uint32_t)(system_timer_get_ms() - pn7150_simple_tags[data->index].last_seen));
+			response->tag_id_length = pn7150_simple_tags[data->index].id_length;
+			response->tag_type      = pn7150_simple_tags[data->index].type;
+			memcpy(response->tag_id_data, pn7150_simple_tags[data->index].id, pn7150_simple_tags[data->index].id_length);
+		}
 	}
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;

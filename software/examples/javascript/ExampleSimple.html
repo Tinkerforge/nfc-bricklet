@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <head>
+        <title>Tinkerforge | JavaScript Example</title>
+    </head>
+    <body>
+        <div style="text-align:center;">
+            <h1>NFC Bricklet Scan For Tags Example</h1>
+            <p>
+                <input value="localhost" id="host" type="text" size="20">:
+                <input value="4280" id="port" type="text" size="5">,
+                <input value="uid" id="uid" type="text" size="5">
+                <input value="Start Example" id="start" type="button" onclick="startExample();">
+            </p>
+            <p>
+                <textarea readonly id="text" cols="120" rows="24" style="resize:none;"
+                          >Press "Start Example" to begin ...</textarea>
+            </p>
+        </div>
+        <script src="./Tinkerforge.js" type='text/javascript'></script>
+        <script type='text/javascript'>
+            var ipcon;
+            var interval;
+            var textArea = document.getElementById("text");
+            function printTagID(nfc, index) {
+                nfc.simpleGetTagID(
+                    index,
+                    function (tagType, tagID, lastSeen) {
+                        if (tagID.length == 0) {
+                            return;
+                        }
+
+                        var tagInfo = '';
+
+                        for (var i = 0; i < tagID.length; i++) {
+                            tagInfo += '0x' + ('0' + tagID[i].toString(16).toUpperCase()).substr(-2);
+
+                            if (i < tagID.length - 1) {
+                                tagInfo += ' ';
+                            }
+                        }
+
+                        textArea.value += '  Index: ' + index + ', Tag Type: ' + tagType + ', Tag ID: [' + tagInfo + '], Last Seen: ' + (lastSeen / 1000.0) + ' seconds ago\n';
+                        textArea.scrollTop = textArea.scrollHeight;
+                    },
+                    function () {
+                        // On error enable simple mode again
+                        nfc.setMode(Tinkerforge.BrickletNFC.MODE_SIMPLE);
+                    }
+                );
+            }
+            function startExample() {
+                textArea.value = "";
+                var HOST = document.getElementById("host").value;
+                var PORT = parseInt(document.getElementById("port").value);
+                var UID = document.getElementById("uid").value;
+                if(ipcon !== undefined) {
+                    ipcon.disconnect();
+                }
+                ipcon = new Tinkerforge.IPConnection(); // Create IP connection
+                var nfc = new Tinkerforge.BrickletNFC(UID, ipcon); // Create device object
+                var cycle = 1;
+                ipcon.connect(HOST, PORT,
+                    function(error) {
+                        textArea.value += 'Error: ' + error + '\n';
+                    }
+                ); // Connect to brickd
+                // Don't use device before ipcon is connected
+
+                ipcon.on(Tinkerforge.IPConnection.CALLBACK_CONNECTED,
+                    function (connectReason) {
+                        // Enable reader mode
+                        nfc.setMode(Tinkerforge.BrickletNFC.MODE_SIMPLE);
+
+                        // Get current tag IDs every second
+                        if (interval !== undefined) {
+                            clearInterval(interval);
+                        }
+
+                        interval = setInterval(function () {
+                            textArea.value += '\nCycle: ' + (cycle++) + '\n';
+                            textArea.scrollTop = textArea.scrollHeight;
+
+                            for(var index = 0; index < 8; ++index) {
+                                printTagID(nfc, index);
+                            }
+                        }, 1000);
+                    }
+                );
+            }
+        </script>
+    </body>
+</html>

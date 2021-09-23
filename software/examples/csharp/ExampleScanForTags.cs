@@ -22,7 +22,7 @@ class Example
 
 			for (int i = 0; i < tagID.Length; i++)
 			{
-				tagInfo += String.Format("0x{0:02X}", tagID[i]);
+				tagInfo += String.Format("0x{0:X2}", tagID[i]);
 
 				if (i < tagID.Length - 1)
 				{

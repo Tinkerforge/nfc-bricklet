@@ -20,7 +20,7 @@ Module ExampleScanForTags
             tagInfo = String.Format("Found tag of type {0} with ID [", tagType)
 
             For i = 0 To tagID.Length - 1
-                tagInfo += String.Format("0x{0:02X}", tagID(i))
+                tagInfo += String.Format("0x{0:X2}", tagID(i))
 
                 If i < tagID.Length - 1 Then
                     tagInfo += " "

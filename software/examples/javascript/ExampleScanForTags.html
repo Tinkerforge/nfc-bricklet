@@ -63,10 +63,12 @@
                                         }
                                     }
 
-                                    textArea.value += 'Found tag of type ' + tagType + ' with ID [' + tagInfo + ']\n');
+                                    textArea.value += 'Found tag of type ' + tagType + ' with ID [' + tagInfo + ']\n';
+                                    textArea.scrollTop = textArea.scrollHeight;
                                 },
                                 function (error) {
-                                    textArea.value += 'Could not get tag ID: ' + error + '\n');
+                                    textArea.value += 'Could not get tag ID: ' + error + '\n';
+                                    textArea.scrollTop = textArea.scrollHeight;
                                 }
                             );
                         }

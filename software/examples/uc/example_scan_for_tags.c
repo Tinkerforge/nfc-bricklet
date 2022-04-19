@@ -8,8 +8,8 @@
 
 #define UID "XYZ" // Change XYZ to the UID of your NFC Bricklet
 
-void example_setup(TF_HalContext *hal);
-void example_loop(TF_HalContext *hal);
+void example_setup(TF_HAL *hal);
+void example_loop(TF_HAL *hal);
 
 void check(int rc, const char* msg);
 
@@ -29,7 +29,7 @@ static void reader_state_changed_handler(TF_NFC *device, uint8_t state, bool idl
 
 static TF_NFC nfc;
 
-void example_setup(TF_HalContext *hal) {
+void example_setup(TF_HAL *hal) {
 	// Create device object
 	check(tf_nfc_create(&nfc, UID, hal), "create device object");
 
@@ -47,7 +47,7 @@ static uint8_t ret_tag_type = 0;
 static uint8_t ret_tag_id_length = 0;
 static uint8_t ret_tag_id[32];
 
-void example_loop(TF_HalContext *hal) {
+void example_loop(TF_HAL *hal) {
 	// Poll for callbacks
 	// Polling with 0 will process one packet at most, so we can't miss a state change.
 	tf_hal_callback_tick(hal, 0);

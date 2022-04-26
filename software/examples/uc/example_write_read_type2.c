@@ -1,17 +1,14 @@
 // This example is not self-contained.
-// It requres usage of the example driver specific to your platform.
+// It requires usage of the example driver specific to your platform.
 // See the HAL documentation.
 
-#include "bindings/hal_common.h"
-#include "bindings/bricklet_nfc.h"
-#include "bindings/errors.h"
+#include "src/bindings/hal_common.h"
+#include "src/bindings/bricklet_nfc.h"
+#include "src/bindings/errors.h"
 
-#define UID "XYZ" // Change XYZ to the UID of your NFC Bricklet
-
+void check(int rc, const char *msg);
 void example_setup(TF_HAL *hal);
 void example_loop(TF_HAL *hal);
-
-void check(int rc, const char* msg);
 
 static uint8_t nfc_state;
 static bool nfc_idle;
@@ -19,7 +16,7 @@ static bool valid = false;
 
 // Callback function for reader state changed callback
 static void reader_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
-                                  void *user_data) {
+                                         void *user_data) {
 	(void)device; (void)user_data; // avoid unused parameter warning
 
 	nfc_state = state;
@@ -31,7 +28,7 @@ static TF_NFC nfc;
 
 void example_setup(TF_HAL *hal) {
 	// Create device object
-	check(tf_nfc_create(&nfc, UID, hal), "create device object");
+	check(tf_nfc_create(&nfc, NULL, hal), "create device object");
 
 	// Register reader state changed callback to function reader_state_changed_handler
 	tf_nfc_register_reader_state_changed_callback(&nfc,

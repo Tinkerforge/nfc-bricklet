@@ -1,5 +1,5 @@
 // This example is not self-contained.
-// It requres usage of the example driver specific to your platform.
+// It requires usage of the example driver specific to your platform.
 // See the HAL documentation.
 
 #include <string.h>
@@ -7,17 +7,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "bindings/hal_common.h"
-#include "bindings/bricklet_nfc.h"
+#include "src/bindings/hal_common.h"
+#include "src/bindings/bricklet_nfc.h"
 
-// FIXME: This example is incomplete
-
-#define UID "XYZ" // Change XYZ to the UID of your NFC Bricklet
-
+void check(int rc, const char *msg);
 void example_setup(TF_HAL *hal);
 void example_loop(TF_HAL *hal);
-
-void check(int rc, const char* msg);
 
 static const char *ndef_uri = "www.tinkerforge.com";
 
@@ -27,7 +22,7 @@ static bool valid = false;
 
 // Callback function for cardemu state changed callback
 static void cardemu_state_changed_handler(TF_NFC *device, uint8_t state, bool idle,
-                                   void *user_data) {
+                                          void *user_data) {
 	(void)device; (void)user_data; // avoid unused parameter warning
 
 	nfc_state = state;
@@ -42,7 +37,7 @@ static uint8_t ndef_record_size = 0;
 
 void example_setup(TF_HAL *hal) {
 	// Create device object
-	check(tf_nfc_create(&nfc, UID, hal), "create device object");
+	check(tf_nfc_create(&nfc, NULL, hal), "create device object");
 
 	// Register cardemu state changed callback to function cardemu_state_changed_handler
 	tf_nfc_register_cardemu_state_changed_callback(&nfc,

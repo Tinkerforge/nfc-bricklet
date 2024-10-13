@@ -39,7 +39,7 @@ typedef struct
 } RW_NDEF_T3T_Ndef_t;
 
 static RW_NDEF_T3T_state_t eRW_NDEF_T3T_State = Initial;
-static RW_NDEF_T3T_Ndef_t RW_NDEF_T3T_Ndef;
+RW_NDEF_T3T_Ndef_t RW_NDEF_T3T_Ndef;
 
 void RW_NDEF_T3T_Reset(void)
 {

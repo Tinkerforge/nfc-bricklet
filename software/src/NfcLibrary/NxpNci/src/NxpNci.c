@@ -17,6 +17,12 @@
 #include <NxpNci.h>
 #include <Nfc_settings.h>
 
+#include "pn7150.h"
+#include "communication.h"
+#include "bricklib2/utility/util_definitions.h"
+
+extern PN7150 pn7150;
+
 #define MAX_NCI_FRAME_SIZE    258
 
 static bool gRfSettingsRestored_flag = false;
@@ -148,34 +154,35 @@ static void NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf)
 }
 
 #ifdef CARDEMU_SUPPORT
-void NxpNci_ProcessCardMode(NxpNci_RfIntf_t RfIntf)
+uint16_t NxpNci_ProcessCardMode(NxpNci_RfIntf_t RfIntf)
 {
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
     uint16_t AnswerSize;
     uint8_t NCIStopDiscovery[] = {0x21, 0x06, 0x01, 0x00};
     bool FirstCmd = true;
+    uint16_t data_count = 0;
 
     /* Reset Card emulation state */
     T4T_NDEF_EMU_Reset();
 
     while(NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_2S) == NXPNCI_SUCCESS)
     {
-    	/* is RF_DEACTIVATE_NTF ? */
+         /* is RF_DEACTIVATE_NTF ? */
         if((Answer[0] == 0x61) && (Answer[1] == 0x06))
         {
             if(FirstCmd)
             {
-            	/* Restart the discovery loop */
-				NxpNci_HostTransceive(NCIStopDiscovery, sizeof(NCIStopDiscovery), Answer, sizeof(Answer), &AnswerSize);
-				do
-				{
-					if ((Answer[0] == 0x41) && (Answer[1] == 0x06)) break;
-					NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
-				} while (AnswerSize != 0);
-				NxpNci_HostTransceive(NCIStartDiscovery, NCIStartDiscovery_length, Answer, sizeof(Answer), &AnswerSize);
+                 /* Restart the discovery loop */
+                    NxpNci_HostTransceive(NCIStopDiscovery, sizeof(NCIStopDiscovery), Answer, sizeof(Answer), &AnswerSize);
+                    do
+                    {
+                         if ((Answer[0] == 0x41) && (Answer[1] == 0x06)) break;
+                         NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+                    } while (AnswerSize != 0);
+                    NxpNci_HostTransceive(NCIStartDiscovery, NCIStartDiscovery_length, Answer, sizeof(Answer), &AnswerSize);
             }
             /* Come back to discovery state */
-            break;
+            return data_count;
         }
         /* is DATA_PACKET ? */
         else if((Answer[0] == 0x00) && (Answer[1] == 0x00))
@@ -191,9 +198,11 @@ void NxpNci_ProcessCardMode(NxpNci_RfIntf_t RfIntf)
             Cmd[2] = CmdSize & 0x00FF;
 
             NxpNci_HostTransceive(Cmd, CmdSize+3, Answer, sizeof(Answer), &AnswerSize);
+            data_count++;
         }
         FirstCmd = false;
     }
+    return data_count;
 }
 
 bool NxpNci_CardModeReceive (unsigned char *pData, unsigned char *pDataSize)
@@ -346,6 +355,25 @@ bool NxpNci_ReaderTagCmd (unsigned char *pCommand, unsigned char CommandSize, un
 }
 
 #ifndef NO_NDEF_SUPPORT
+bool NxpNci_T3TretrieveIDm (void)
+{
+    uint8_t NCIPollingCmdT3T[] = {0x21, 0x08, 0x04, 0x12, 0xFC, 0x00, 0x01};
+    uint8_t Answer[MAX_NCI_FRAME_SIZE];
+    uint16_t AnswerSize;
+
+    NxpNci_HostTransceive(NCIPollingCmdT3T, sizeof(NCIPollingCmdT3T), Answer, sizeof(Answer), &AnswerSize);
+    NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+    if ((Answer[0] == 0x61) && (Answer[1] == 0x08) && (Answer[3] == 0x00))
+    {
+        RW_NDEF_T3T_SetIDm(&Answer[6]);
+    }
+    else
+    {
+        return NXPNCI_ERROR;
+    }
+    return NXPNCI_SUCCESS;
+}
+
 static void NxpNci_ReadNdef(NxpNci_RfIntf_t RfIntf)
 {
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
@@ -647,6 +675,7 @@ bool NxpNci_Disconnect(void)
     return NXPNCI_SUCCESS;
 }
 
+__attribute__((optimize("-Os")))
 bool NxpNci_ConfigureSettings(void)
 {
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
@@ -774,6 +803,7 @@ bool NxpNci_ConfigureSettings(void)
     return NXPNCI_SUCCESS;
 }
 
+__attribute__((optimize("-Os")))
 bool NxpNci_ConfigureMode(unsigned char mode)
 {
 #if defined RW_SUPPORT || defined P2P_SUPPORT || defined CARDEMU_SUPPORT
@@ -911,6 +941,7 @@ bool NxpNci_ConfigureMode(unsigned char mode)
     return NXPNCI_SUCCESS;
 }
 
+__attribute__((optimize("-Os")))
 bool NxpNci_ConfigureParams(unsigned char *pCmd, unsigned short CmdSize)
 {
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
@@ -1087,8 +1118,8 @@ wait:
 #ifdef NFC_FACTORY_TEST
 bool NxpNci_FactoryTest_Prbs(NxpNci_TechType_t type, NxpNci_Bitrate_t bitrate)
 {
-	uint8_t NCIPrbs_1stGen[] = {0x2F, 0x30, 0x04, 0x00, 0x00, 0x01, 0x01};
-	uint8_t NCIPrbs_2ndGen[] = {0x2F, 0x30, 0x06, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01};
+     uint8_t NCIPrbs_1stGen[] = {0x2F, 0x30, 0x04, 0x00, 0x00, 0x01, 0x01};
+     uint8_t NCIPrbs_2ndGen[] = {0x2F, 0x30, 0x06, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01};
     uint8_t *NxpNci_cmd;
     uint16_t NxpNci_cmd_size = 0;
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
@@ -1096,17 +1127,17 @@ bool NxpNci_FactoryTest_Prbs(NxpNci_TechType_t type, NxpNci_Bitrate_t bitrate)
 
     if(gNfcController_generation == 1)
     {
-    	NxpNci_cmd = NCIPrbs_1stGen;
-    	NxpNci_cmd_size = sizeof(NCIPrbs_1stGen);
-    	NxpNci_cmd[3] = type;
-    	NxpNci_cmd[4] = bitrate;
+         NxpNci_cmd = NCIPrbs_1stGen;
+         NxpNci_cmd_size = sizeof(NCIPrbs_1stGen);
+         NxpNci_cmd[3] = type;
+         NxpNci_cmd[4] = bitrate;
     }
     else if(gNfcController_generation == 2)
     {
-    	NxpNci_cmd = NCIPrbs_2ndGen;
-    	NxpNci_cmd_size = sizeof(NCIPrbs_2ndGen);
-    	NxpNci_cmd[5] = type;
-    	NxpNci_cmd[6] = bitrate;
+         NxpNci_cmd = NCIPrbs_2ndGen;
+         NxpNci_cmd_size = sizeof(NCIPrbs_2ndGen);
+         NxpNci_cmd[5] = type;
+         NxpNci_cmd[6] = bitrate;
     }
 
     if (NxpNci_cmd_size != 0)
@@ -1116,7 +1147,7 @@ bool NxpNci_FactoryTest_Prbs(NxpNci_TechType_t type, NxpNci_Bitrate_t bitrate)
     }
     else
     {
-    	return NXPNCI_ERROR;
+         return NXPNCI_ERROR;
     }
 
     return NXPNCI_SUCCESS;
@@ -1125,7 +1156,7 @@ bool NxpNci_FactoryTest_Prbs(NxpNci_TechType_t type, NxpNci_Bitrate_t bitrate)
 
 bool NxpNci_FactoryTest_RfOn(void)
 {
-	uint8_t NCIRfOn[] = {0x2F, 0x3D, 0x02, 0x20, 0x01};
+    uint8_t NCIRfOn[] = {0x2F, 0x3D, 0x02, 0x20, 0x01};
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
     uint16_t AnswerSize;
 

@@ -32,20 +32,20 @@
 
 #ifdef NCI_DEBUG
 #include <stdio.h>
-#define NCI_PRINT(...)        {PRINTF(__VA_ARGS__);}
+#define NCI_PRINT(...)        {printf(__VA_ARGS__);}
 unsigned short debug_loop;
-#define NCI_PRINT_LOOP(x,y)   {for(debug_loop=0; debug_loop<y; debug_loop++) PRINTF("%.2x ", x[debug_loop]);}
+#define NCI_PRINT_LOOP(x,y)   {for(debug_loop=0; debug_loop<y; debug_loop++) printf("%.2x ", x[debug_loop]);}
 #ifdef _WIN32
-#define NCI_PRINT_BUF(x,y,z)  {PRINTF(x); \
-                               for(debug_loop=0;debug_loop<z;debug_loop++) PRINTF("%.2x ", y[debug_loop]); \
-                               PRINTF("\n"); \
+#define NCI_PRINT_BUF(x,y,z)  {printf(x); \
+                               for(debug_loop=0;debug_loop<z;debug_loop++) printf("%.2x ", y[debug_loop]); \
+                               printf("\n"); \
 }
 #else
 #define NCI_PRINT_BUF(x,y,z)  {char tmp[200]; int loop; sprintf(tmp, x); \
                                for(loop=0;loop<(z<30?z:30);loop++) sprintf(tmp+7+(loop*3), "%.2x ", y[loop]); \
                                if(loop==30) sprintf(tmp+7+(loop*3), "...\n"); \
                                else sprintf(tmp+7+(loop*3), "\n"); \
-                               PRINTF(tmp);}
+                               printf(tmp);}
 #endif
 #else
 #define NCI_PRINT(...)

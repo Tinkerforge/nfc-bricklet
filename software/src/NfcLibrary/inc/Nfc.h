@@ -14,6 +14,9 @@
 
 /***** NFC dedicated interface ****************************************/
 
+#ifndef NFC_H
+#define NFC_H
+
 /*
  * Status code definition used as API returned values
  */
@@ -276,7 +279,7 @@ bool T4T_NDEF_EMU_SetMessage(unsigned char *pMessage, unsigned short Message_siz
  * Expose the previously registered NDEF message to discovered remote NFC reader (function is blocking until the remote reader is lost):
  * - RfIntf: discovered NFC device properties
   */
-void NxpNci_ProcessCardMode(NxpNci_RfIntf_t RfIntf);
+uint16_t NxpNci_ProcessCardMode(NxpNci_RfIntf_t RfIntf);
 
 /*
  * Perform RAW reception of data from the remote reader
@@ -362,3 +365,5 @@ bool NxpNci_FactoryTest_RfOn(void);
 
 #endif
 /********************************************************************************/
+
+#endif

@@ -23,8 +23,11 @@
 #include <RW_NDEF_T5T.h>
 #include <RW_NDEF_MIFARE.h>
 
+extern PN7150 pn7150;
+
 /* Allocate buffer for NDEF operations */
-unsigned char NdefBuffer[RW_MAX_NDEF_FILE_SIZE];
+//unsigned char NdefBuffer[RW_MAX_NDEF_FILE_SIZE];
+unsigned char *NdefBuffer = (unsigned char *)pn7150.data;
 
 typedef void RW_NDEF_Fct_t (unsigned char *pCmd, unsigned short Cmd_size, unsigned char *Rsp, unsigned short *pRsp_size);
 

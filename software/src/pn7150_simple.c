@@ -54,7 +54,6 @@ volatile static uint32_t pn7150_sort_start_time = 0;
 
 
 // Swap the specified amount of bytes between two memory areas.
-__attribute__((optimize("-Os")))
 static void memswap(void *ptr1, void *ptr2, size_t len) {
 	char *a = (char *)ptr1, *aend = a + len, *b = (char *)ptr2, tmp;
 	while(a < aend) {
@@ -67,7 +66,6 @@ static void memswap(void *ptr1, void *ptr2, size_t len) {
 }
 
 // From https://github.com/RedAndBlueEraser/c-sort
-__attribute__((optimize("-Os")))
 void sort_bubblesort(void *arr, size_t count, size_t elesize, int (*cmp)(const void *, const void *)) {
 	char *ptrstart = (char *)arr;               // Pointer to start of array.
 	char *ptrend = ptrstart + count * elesize;  // Pointer to end of unsorted portion of array.
@@ -98,7 +96,6 @@ void sort_bubblesort(void *arr, size_t count, size_t elesize, int (*cmp)(const v
 	}
 }
 
-__attribute__((optimize("-Os")))
 bool pn7150_simple_discovery(uint8_t *discovery_technologies, NxpNci_RfIntf_t *interface) {
 	if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
 		// Discovery failed. Perhaps there was still a discovery running? Lets stop and try again!
@@ -145,7 +142,6 @@ bool pn7150_simple_discovery(uint8_t *discovery_technologies, NxpNci_RfIntf_t *i
 //
 // Hint: On the application layer all tags, except Type 3, support NDEF.
 
-__attribute__((optimize("-Os")))
 bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 	uint8_t discovery_technologies[] = {
 		MODE_POLL | TECH_PASSIVE_NFCA,
@@ -237,7 +233,6 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 	return true;
 }
 
-__attribute__((optimize("-Os")))
 bool pn7150_simple_update_last_seen(void) {
 	for(uint8_t i = 0; i < SIMPLE_TAGS_NUM; i++) {
 		if((pn7150_simple_tags[i].type == pn7150.simple_tag_type) && (memcmp(pn7150_simple_tags[i].id, pn7150.simple_tag_id, pn7150.simple_tag_id_length) == 0)) {
@@ -249,7 +244,6 @@ bool pn7150_simple_update_last_seen(void) {
 	return false;
 }
 
-__attribute__((optimize("-Os")))
 void pn7150_delete_obsolete_tags(void) {
 	uint32_t now = system_timer_get_ms();
 	for(uint8_t i = 0; i < SIMPLE_TAGS_NUM; i++) {
@@ -275,7 +269,6 @@ int pn7150_simple_tags_compare(const void *s1, const void *s2) {
 	return t1_time - t2_time;
 }
 
-__attribute__((optimize("-Os")))
 void pn7150_simple_tags_resort(void) {
 	pn7150_sort_start_time = system_timer_get_ms();
 	// We don't have enough space for qsort :-(

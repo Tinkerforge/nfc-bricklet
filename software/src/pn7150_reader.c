@@ -101,7 +101,6 @@ static void pn7150_reader_write_ndef(void) {
 	}
 }
 
-__attribute__((optimize("-Os")))
 static void pn7150_reader_authenticate_mifare_classic_page(void) {
 	switch(pn7150_reader_interface.Protocol) {
 		// See NXP UM10936 7.1.8 MIFARE Classic REQs & RSPs, Table 38
@@ -130,7 +129,6 @@ static void pn7150_reader_authenticate_mifare_classic_page(void) {
 	}
 }
 
-__attribute__((optimize("-Os")))
 static void pn7150_reader_request_page(void) {
 	switch(pn7150_reader_interface.Protocol) {
 		case PROT_MIFARE: {
@@ -367,7 +365,6 @@ static void pn7150_reader_request_page(void) {
 	}
 }
 
-__attribute__((optimize("-Os")))
 void pn7150_reader_write_page(void) {
 	switch(pn7150_reader_interface.Protocol) {
 		case PROT_MIFARE: {

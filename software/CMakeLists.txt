@@ -12,7 +12,7 @@ PROJECT(${PROJECT_NAME})
 #SET(OPTIMIZATION_LEVEL 0)
 SET(DEBUG "-g -ggdb")
 
-SET(OPTIMIZATION_LEVEL 2)
+SET(OPTIMIZATION_LEVEL s)
 #SET(DEBUG "")
 
 SET(CMAKE_BUILD_TYPE None)
@@ -70,8 +70,8 @@ SET(SOURCES
 	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NdefLibrary/src/RW_NDEF_T2T.c"
 	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NdefLibrary/src/RW_NDEF_T3T.c"
 	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NdefLibrary/src/RW_NDEF_T4T.c"
-	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NdefLibrary/src/RW_NDEF_T5T.c"
-	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NdefLibrary/src/RW_NDEF_MIFARE.c"
+#	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NdefLibrary/src/RW_NDEF_T5T.c"
+#	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NdefLibrary/src/RW_NDEF_MIFARE.c"
 	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NdefLibrary/src/RW_NDEF.c"
 	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NdefLibrary/src/T4T_NDEF_emu.c"
 	"${PROJECT_SOURCE_DIR}/src/NfcLibrary/NxpNci/src/NxpNci.c"

@@ -87,7 +87,7 @@ void RW_NDEF_Reset(unsigned char type)
         pReadFct = RW_NDEF_T4T_Read_Next;
         pWriteFct = RW_NDEF_T4T_Write_Next;
         break;
-    case RW_NDEF_TYPE_T5T:
+    /*case RW_NDEF_TYPE_T5T:
         RW_NDEF_T5T_Reset();
         pReadFct = RW_NDEF_T5T_Read_Next;
         pWriteFct = RW_NDEF_T5T_Write_Next;
@@ -96,7 +96,7 @@ void RW_NDEF_Reset(unsigned char type)
         RW_NDEF_MIFARE_Reset();
         pReadFct = RW_NDEF_MIFARE_Read_Next;
         pWriteFct = RW_NDEF_MIFARE_Write_Next;
-        break;
+        break;*/
     default:
         break;
     }

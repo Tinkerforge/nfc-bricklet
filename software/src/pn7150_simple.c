@@ -161,6 +161,15 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 	pn7150.led_state_change_time = system_timer_get_ms();
 
 	if((interface->ModeTech & MODE_MASK) == MODE_POLL) {
+
+		// If mode is POLL and tech is NFCA we know where the uid is
+		// Note that it is possibel for Protocol to be ISODEP, but the tech not to bhe NFCA.
+		// So we can't do the copy below in the cases
+		if(interface->ModeTech == (MODE_POLL | TECH_PASSIVE_NFCA)) {
+			pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;
+			memcpy(pn7150.simple_tag_id, interface->Info.NFC_APP.NfcId, 10);
+		}
+
 		switch(interface->Protocol) {
 			case PROT_T1T: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_TYPE1;
@@ -184,8 +193,6 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 
 			case PROT_T2T: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_TYPE2;
-				pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;
-				memcpy(pn7150.simple_tag_id, interface->Info.NFC_APP.NfcId, 10);
 				break;
 			}
 
@@ -202,8 +209,6 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 
 			case PROT_ISODEP: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_TYPE4;
-				pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;
-				memcpy(pn7150.simple_tag_id, interface->Info.NFC_APP.NfcId, 10);
 				break;
 			}
 
@@ -217,8 +222,6 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 
 			case PROT_MIFARE: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_MIFARE_CLASSIC;
-				pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;
-				memcpy(pn7150.simple_tag_id, interface->Info.NFC_APP.NfcId, 10);
 				break;
 			}
 

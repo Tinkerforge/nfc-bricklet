@@ -214,9 +214,11 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 
 			case PROT_T5T: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_TYPE5;
-				// With ISO 15693 the ID is in NFC_VPP and the length is 8.
-				pn7150.simple_tag_id_length = 8;
-				memcpy(pn7150.simple_tag_id, interface->Info.NFC_VPP.ID, 8);
+				if(interface->ModeTech == (MODE_POLL | TECH_PASSIVE_15693)) {
+					// With ISO 15693 the ID is in NFC_VPP and the length is 8.
+					pn7150.simple_tag_id_length = 8;
+					memcpy(pn7150.simple_tag_id, interface->Info.NFC_VPP.ID, 8);
+				}
 				break;
 			}
 

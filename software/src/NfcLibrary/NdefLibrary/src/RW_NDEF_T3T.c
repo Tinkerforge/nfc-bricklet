@@ -39,7 +39,7 @@ typedef struct
 } RW_NDEF_T3T_Ndef_t;
 
 static RW_NDEF_T3T_state_t eRW_NDEF_T3T_State = Initial;
-RW_NDEF_T3T_Ndef_t RW_NDEF_T3T_Ndef;
+static RW_NDEF_T3T_Ndef_t RW_NDEF_T3T_Ndef;
 
 void RW_NDEF_T3T_Reset(void)
 {
@@ -72,12 +72,12 @@ void RW_NDEF_T3T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
         if ((pRsp[Rsp_size-1] == 0x00) && (pRsp[1] == 0x07) && (pRsp[10] == 0x00) && (pRsp[11] == 0x00))
         {
             /* Fill File structure */
-            RW_NDEF_T3T_Ndef.Size = (pRsp[24] << 16) + (pRsp[25] << 16) + pRsp[26];
+            RW_NDEF_T3T_Ndef.Size = (pRsp[24] << 16) + (pRsp[25] << 8) + pRsp[26];
 
             /* If provisioned buffer is not large enough or size is null, notify the application and stop reading */
             if ((RW_NDEF_T3T_Ndef.Size > RW_MAX_NDEF_FILE_SIZE) || (RW_NDEF_T3T_Ndef.Size == 0))
             {
-                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(NULL, 0);
+                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(NULL, 0, RW_NDEF_T3T_Ndef.Size);
                 break;
             }
 
@@ -101,7 +101,7 @@ void RW_NDEF_T3T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
             {
                 memcpy(&RW_NDEF_T3T_Ndef.p[RW_NDEF_T3T_Ndef.Ptr], &pRsp[13], (RW_NDEF_T3T_Ndef.Size - RW_NDEF_T3T_Ndef.Ptr));
                 /* Notify application of the NDEF reception */
-                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(RW_NDEF_T3T_Ndef.p, RW_NDEF_T3T_Ndef.Size);
+                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(RW_NDEF_T3T_Ndef.p, RW_NDEF_T3T_Ndef.Size, RW_NDEF_T3T_Ndef.Size);
             }
             else
             {

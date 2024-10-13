@@ -98,7 +98,7 @@ void RW_NDEF_T2T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
             /* If provisioned buffer is not large enough or message is empty, notify the application and stop reading */
             if ((RW_NDEF_T2T_Ndef.MessageSize > RW_MAX_NDEF_FILE_SIZE) || (RW_NDEF_T2T_Ndef.MessageSize == 0))
             {
-                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(NULL, 0);
+                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(NULL, 0, RW_NDEF_T2T_Ndef.MessageSize);
                 break;
             }
 
@@ -108,7 +108,7 @@ void RW_NDEF_T2T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
                 memcpy (RW_NDEF_T2T_Ndef.pMessage, &pRsp[Tmp+2], RW_NDEF_T2T_Ndef.MessageSize);
 
                 /* Notify application of the NDEF reception */
-                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(RW_NDEF_T2T_Ndef.pMessage, RW_NDEF_T2T_Ndef.MessageSize);
+                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(RW_NDEF_T2T_Ndef.pMessage, RW_NDEF_T2T_Ndef.MessageSize, RW_NDEF_T2T_Ndef.MessageSize);
             }
             else
             {
@@ -125,7 +125,7 @@ void RW_NDEF_T2T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
         }
         break;
 
-        case Reading_NDEF:
+    case Reading_NDEF:
         /* Is Read success ?*/
         if ((Rsp_size == 17) && (pRsp[Rsp_size-1] == 0x00))
         {
@@ -135,7 +135,7 @@ void RW_NDEF_T2T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
                 memcpy (&RW_NDEF_T2T_Ndef.pMessage[RW_NDEF_T2T_Ndef.MessagePtr], pRsp, RW_NDEF_T2T_Ndef.MessageSize - RW_NDEF_T2T_Ndef.MessagePtr);
 
                 /* Notify application of the NDEF reception */
-                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(RW_NDEF_T2T_Ndef.pMessage, RW_NDEF_T2T_Ndef.MessageSize);
+                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(RW_NDEF_T2T_Ndef.pMessage, RW_NDEF_T2T_Ndef.MessageSize, RW_NDEF_T2T_Ndef.MessageSize);
             }
             else
             {
@@ -209,7 +209,7 @@ void RW_NDEF_T2T_Write_Next(unsigned char *pRsp, unsigned short Rsp_size, unsign
             /* Is NDEF write already completed ? */
             if (RW_NdefMessage_size <= RW_NDEF_T2T_Ndef.MessagePtr)
             {
-                /* Notify application of the NDEF reception */
+                /* Notify application of the NDEF send completion */
                 if(pRW_NDEF_PushCb != NULL) pRW_NDEF_PushCb(pRW_NdefMessage, RW_NdefMessage_size);
             }
             else

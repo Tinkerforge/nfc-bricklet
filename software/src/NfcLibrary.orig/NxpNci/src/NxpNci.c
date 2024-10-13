@@ -18,8 +18,8 @@
 #include <Nfc_settings.h>
 
 #define MAX_NCI_FRAME_SIZE    258
-#define MAX(x,y)    (x > y ? x : y)
 
+static bool gRfSettingsRestored_flag = false;
 static uint8_t gNfcController_generation = 0;
 static uint8_t gNfcController_fw_version[3] = {0};
 static uint8_t gNextTag_Protocol = PROT_UNDETERMINED;
@@ -34,12 +34,32 @@ static bool NxpNci_CheckDevPres(void)
     uint8_t Answer[6];
     uint16_t NbBytes = 0;
 
+    /* Reset RF settings restore flag */
+    gRfSettingsRestored_flag = false;
+
     tml_Send(NCICoreReset, sizeof(NCICoreReset), &NbBytes);
     NCI_PRINT_BUF("NCI >> ", NCICoreReset, NbBytes);
     if (NbBytes != sizeof(NCICoreReset)) return NXPNCI_ERROR;
     tml_Receive(Answer, sizeof(Answer), &NbBytes, TIMEOUT_100MS);
-    if ((NbBytes == 0) || (Answer[0] != 0x40) || (Answer[1] != 0x00)) return NXPNCI_ERROR;
     NCI_PRINT_BUF("NCI << ", Answer, NbBytes);
+    if ((NbBytes == 0) || (Answer[0] != 0x40) || (Answer[1] != 0x00)) return NXPNCI_ERROR;
+
+    /* Catch potential notifications */
+    tml_Receive(Answer, sizeof(Answer), &NbBytes, TIMEOUT_100MS);
+    if (NbBytes != 0)
+    {
+        NCI_PRINT_BUF("NCI << ", Answer, NbBytes);
+        /* Is CORE_GENERIC_ERROR_NTF ? */
+        if ((Answer[0] == 0x60) && (Answer[1] == 0x07))
+        {
+            /* Is PN7150B0HN/C11004 Anti-tearing recovery procedure triggered ? */
+            if ((Answer[3] == 0xE6)) gRfSettingsRestored_flag = true;
+        }
+        else
+        {
+            return NXPNCI_ERROR;
+        }
+    }
 
     return NXPNCI_SUCCESS;
 }
@@ -132,15 +152,28 @@ void NxpNci_ProcessCardMode(NxpNci_RfIntf_t RfIntf)
 {
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
     uint16_t AnswerSize;
+    uint8_t NCIStopDiscovery[] = {0x21, 0x06, 0x01, 0x00};
+    bool FirstCmd = true;
 
     /* Reset Card emulation state */
     T4T_NDEF_EMU_Reset();
 
     while(NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_2S) == NXPNCI_SUCCESS)
     {
-        /* is RF_DEACTIVATE_NTF ? */
+    	/* is RF_DEACTIVATE_NTF ? */
         if((Answer[0] == 0x61) && (Answer[1] == 0x06))
         {
+            if(FirstCmd)
+            {
+            	/* Restart the discovery loop */
+				NxpNci_HostTransceive(NCIStopDiscovery, sizeof(NCIStopDiscovery), Answer, sizeof(Answer), &AnswerSize);
+				do
+				{
+					if ((Answer[0] == 0x41) && (Answer[1] == 0x06)) break;
+					NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+				} while (AnswerSize != 0);
+				NxpNci_HostTransceive(NCIStartDiscovery, NCIStartDiscovery_length, Answer, sizeof(Answer), &AnswerSize);
+            }
             /* Come back to discovery state */
             break;
         }
@@ -159,6 +192,7 @@ void NxpNci_ProcessCardMode(NxpNci_RfIntf_t RfIntf)
 
             NxpNci_HostTransceive(Cmd, CmdSize+3, Answer, sizeof(Answer), &AnswerSize);
         }
+        FirstCmd = false;
     }
 }
 
@@ -337,7 +371,7 @@ static void NxpNci_ReadNdef(NxpNci_RfIntf_t RfIntf)
             Cmd[2] = CmdSize & 0x00FF;
 
             NxpNci_HostTransceive(Cmd, CmdSize+3, Answer, sizeof(Answer), &AnswerSize);
-            NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+            NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_1S);
             
             /* Manage chaining in case of T4T */
             if((RfIntf.Interface = INTF_ISODEP) && Answer[0] == 0x10)
@@ -443,7 +477,7 @@ static void NxpNci_PresenceCheck(NxpNci_RfIntf_t RfIntf)
         } while ((Answer[0] == 0x6F) && (Answer[1] == 0x11) && (Answer[2] == 0x01) && (Answer[3] == 0x01));
         break;
 
-    case PROT_ISO15693:
+    case PROT_T5T:
         do
         {
             Sleep(500);
@@ -474,6 +508,13 @@ static void NxpNci_PresenceCheck(NxpNci_RfIntf_t RfIntf)
 
 void NxpNci_ProcessReaderMode(NxpNci_RfIntf_t RfIntf, NxpNci_RW_Operation_t Operation)
 {
+#ifndef NO_NDEF_SUPPORT
+	if(RfIntf.Protocol == PROT_T3T)
+	{
+		RW_NDEF_T3T_SetIDm(RfIntf.Info.NFC_FPP.SensRes);
+	}
+#endif
+
     switch (Operation)
     {
 #ifndef NO_NDEF_SUPPORT
@@ -617,14 +658,12 @@ bool NxpNci_ConfigureSettings(void)
     uint16_t NxpNci_CONF_size = 0;
 #endif
 #if (NXP_CORE_CONF_EXTN | NXP_CLK_CONF | NXP_TVDD_CONF | NXP_RF_CONF)
-    uint8_t currentTS[32] = __TIMESTAMP__;
     uint8_t NCIReadTS[] = {0x20, 0x03, 0x03, 0x01, 0xA0, 0x14};
     uint8_t NCIWriteTS[7+32] = {0x20, 0x02, 0x24, 0x01, 0xA0, 0x14, 0x20};
 #endif
     bool isResetRequired = false;
 
     /* Apply settings according definition of Nfc_settings.h header file */
-
 #if NXP_CORE_CONF
     if (sizeof(NxpNci_CORE_CONF) != 0)
     {
@@ -643,20 +682,21 @@ bool NxpNci_ConfigureSettings(void)
     }
 #endif
 
-    /* All further settings are not versatile, so configuration only applied if there are changes (application build timestamp) */
+    /* All further settings are not versatile, so configuration only applied if there are changes (application build timestamp) 
+       or in case of PN7150B0HN/C11004 Anti-tearing recovery procedure inducing RF setings were restored to their default value */
 #if (NXP_CORE_CONF_EXTN | NXP_CLK_CONF | NXP_TVDD_CONF | NXP_RF_CONF)
     /* First read timestamp stored in NFC Controller */
     if(gNfcController_generation == 1) NCIReadTS[5] = 0x0F;
     NxpNci_HostTransceive(NCIReadTS, sizeof(NCIReadTS), Answer, sizeof(Answer), &AnswerSize);
     if ((Answer[0] != 0x40) || (Answer[1] != 0x03) || (Answer[3] != 0x00)) return NXPNCI_ERROR;
-    /* Then compare with current build timestamp */
-    if(!memcmp(&Answer[8], currentTS, sizeof(currentTS)))
+    /* Then compare with current build timestamp, and check RF settings restore flag */
+    if(!memcmp(&Answer[8], NxpNci_SettingCurrentTS, sizeof(NxpNci_SettingCurrentTS)) && (gRfSettingsRestored_flag == false))
     {
         /* No change, nothing to do */
     }
     else
     {
-        /* Application changes, apply new setting */
+        /* Apply settings */
 #if NXP_CORE_CONF_EXTN
         if (sizeof(NxpNci_CORE_CONF_EXTN) != 0)
         {
@@ -716,7 +756,7 @@ bool NxpNci_ConfigureSettings(void)
 #endif
         /* Store curent timestamp to NFC Controller memory for further checks */
         if(gNfcController_generation == 1) NCIWriteTS[5] = 0x0F;
-        memcpy(&NCIWriteTS[7], currentTS, sizeof(currentTS));
+        memcpy(&NCIWriteTS[7], NxpNci_SettingCurrentTS, sizeof(NxpNci_SettingCurrentTS));
         NxpNci_HostTransceive(NCIWriteTS, sizeof(NCIWriteTS), Answer, sizeof(Answer), &AnswerSize);
         if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00) || (Answer[4] != 0x00)) return NXPNCI_ERROR;
     }
@@ -759,6 +799,11 @@ bool NxpNci_ConfigureMode(unsigned char mode)
 #if defined P2P_SUPPORT || defined CARDEMU_SUPPORT
     uint8_t NCIRouting[] = {0x21, 0x01, 0x07, 0x00, 0x01};
     uint8_t NCISetConfig_NFCA_SELRSP[] = {0x20, 0x02, 0x04, 0x01, 0x32, 0x01, 0x00};
+    // UID 04 45 76 4A B0 58 80
+    // uint8_t NCISetConfig_NFCA_SELRSP[] = {0x20, 0x02, 0x10, 0x03, 0x31, 0x01, 0x44, 0x32, 0x01, 0x00, 0x33, 0x07, 0x04, 0x45, 0x76, 0x4A, 0xB0, 0x58, 0x80};
+    // uint8_t NCISetConfig_NFCA_SELRSP[] = {0x20, 0x02, 0x10, 0x03, 0x31, 0x01, 0x40, 0x32, 0x01, 0x00, 0x33, 0x07, 0x04, 0x45, 0x76, 0x4A, 0xB0, 0x58, 0x80};
+    // uint8_t NCISetConfig_NFCA_SELRSP[] = {0x20, 0x02, 0x0A, 0x02, 0x32, 0x01, 0x00, 0x33, 0x04, 0x04, 0x01, 0x02, 0x03};
+    // uint8_t NCISetConfig_NFCA_SELRSP[] = {0x20, 0x02, 0x0D, 0x02, 0x32, 0x01, 0x00, 0x33, 0x07, 0x04, 0x45, 0x76, 0x4A, 0xB0, 0x58, 0x80};
 #endif
 
     if(mode == 0) return NXPNCI_SUCCESS;

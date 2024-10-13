@@ -20,20 +20,19 @@
 #include <RW_NDEF_T2T.h>
 #include <RW_NDEF_T3T.h>
 #include <RW_NDEF_T4T.h>
-
-extern PN7150 pn7150;
+#include <RW_NDEF_T5T.h>
+#include <RW_NDEF_MIFARE.h>
 
 /* Allocate buffer for NDEF operations */
-//unsigned char NdefBuffer[RW_MAX_NDEF_FILE_SIZE];
-unsigned char *NdefBuffer = (unsigned char *)pn7150.data;
+unsigned char NdefBuffer[RW_MAX_NDEF_FILE_SIZE];
 
 typedef void RW_NDEF_Fct_t (unsigned char *pCmd, unsigned short Cmd_size, unsigned char *Rsp, unsigned short *pRsp_size);
 
 unsigned char *pRW_NdefMessage;
 unsigned short RW_NdefMessage_size;
 
-RW_NDEF_Callback_t *pRW_NDEF_PullCb;
-RW_NDEF_Callback_t *pRW_NDEF_PushCb;
+RW_NDEF_PullCallback_t *pRW_NDEF_PullCb;
+RW_NDEF_PushCallback_t *pRW_NDEF_PushCb;
 
 static RW_NDEF_Fct_t *pReadFct = NULL;
 static RW_NDEF_Fct_t *pWriteFct = NULL;
@@ -44,7 +43,7 @@ bool RW_NDEF_SetMessage(unsigned char *pMessage, unsigned short Message_size, vo
     {
         pRW_NdefMessage = pMessage;
         RW_NdefMessage_size = Message_size;
-        pRW_NDEF_PushCb = (RW_NDEF_Callback_t*) pCb;
+        pRW_NDEF_PushCb = (RW_NDEF_PushCallback_t*) pCb;
         return true;
     }
     else
@@ -57,7 +56,7 @@ bool RW_NDEF_SetMessage(unsigned char *pMessage, unsigned short Message_size, vo
 
 void RW_NDEF_RegisterPullCallback(void *pCb)
 {
-    pRW_NDEF_PullCb = (RW_NDEF_Callback_t *) pCb;
+    pRW_NDEF_PullCb = (RW_NDEF_PullCallback_t *) pCb;
 }
 
 void RW_NDEF_Reset(unsigned char type)
@@ -84,6 +83,16 @@ void RW_NDEF_Reset(unsigned char type)
         RW_NDEF_T4T_Reset();
         pReadFct = RW_NDEF_T4T_Read_Next;
         pWriteFct = RW_NDEF_T4T_Write_Next;
+        break;
+    case RW_NDEF_TYPE_T5T:
+        RW_NDEF_T5T_Reset();
+        pReadFct = RW_NDEF_T5T_Read_Next;
+        pWriteFct = RW_NDEF_T5T_Write_Next;
+        break;
+    case RW_NDEF_TYPE_MIFARE:
+        RW_NDEF_MIFARE_Reset();
+        pReadFct = RW_NDEF_MIFARE_Read_Next;
+        pWriteFct = RW_NDEF_MIFARE_Write_Next;
         break;
     default:
         break;

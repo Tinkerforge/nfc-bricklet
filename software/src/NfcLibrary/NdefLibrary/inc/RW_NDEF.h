@@ -12,25 +12,25 @@
 *                          arising from its use.
 */
 
-//#define RW_MAX_NDEF_FILE_SIZE 500
-//extern unsigned char NdefBuffer[RW_MAX_NDEF_FILE_SIZE];
+#define RW_MAX_NDEF_FILE_SIZE 500
 
-#include "pn7150.h"
-#define RW_MAX_NDEF_FILE_SIZE PN7150_MAX_DATA_SIZE
-extern unsigned char *NdefBuffer;
+extern unsigned char NdefBuffer[RW_MAX_NDEF_FILE_SIZE];
 
-typedef void RW_NDEF_Callback_t (unsigned char*, unsigned short);
+typedef void RW_NDEF_PullCallback_t (unsigned char*, unsigned short, unsigned int);
+typedef void RW_NDEF_PushCallback_t (unsigned char*, unsigned short);
 
 #define RW_NDEF_TYPE_T1T    0x1
 #define RW_NDEF_TYPE_T2T    0x2
 #define RW_NDEF_TYPE_T3T    0x3
 #define RW_NDEF_TYPE_T4T    0x4
+#define RW_NDEF_TYPE_T5T    0x6
+#define RW_NDEF_TYPE_MIFARE 0x80
 
 extern unsigned char *pRW_NdefMessage;
 extern unsigned short RW_NdefMessage_size;
 
-extern RW_NDEF_Callback_t *pRW_NDEF_PullCb;
-extern RW_NDEF_Callback_t *pRW_NDEF_PushCb;
+extern RW_NDEF_PullCallback_t *pRW_NDEF_PullCb;
+extern RW_NDEF_PushCallback_t *pRW_NDEF_PushCb;
 
 void RW_NDEF_Reset(unsigned char type);
 void RW_NDEF_Read_Next(unsigned char *pCmd, unsigned short Cmd_size, unsigned char *Rsp, unsigned short *pRsp_size);

@@ -166,7 +166,7 @@ void RW_NDEF_T4T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
             /* If provisioned buffer is not large enough, notify the application and stop reading */
             if (RW_NDEF_T4T_Ndef.MessageSize > RW_MAX_NDEF_FILE_SIZE)
             {
-                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(NULL, 0);
+                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(NULL, 0, RW_NDEF_T4T_Ndef.MessageSize);
                 break;
             }
 
@@ -192,7 +192,7 @@ void RW_NDEF_T4T_Read_Next(unsigned char *pRsp, unsigned short Rsp_size, unsigne
             if (RW_NDEF_T4T_Ndef.MessagePtr == RW_NDEF_T4T_Ndef.MessageSize)
             {
                 /* Notify application of the NDEF reception */
-                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(RW_NDEF_T4T_Ndef.pMessage, RW_NDEF_T4T_Ndef.MessageSize);
+                if(pRW_NDEF_PullCb != NULL) pRW_NDEF_PullCb(RW_NDEF_T4T_Ndef.pMessage, RW_NDEF_T4T_Ndef.MessageSize, RW_NDEF_T4T_Ndef.MessageSize);
             }
             else
             {

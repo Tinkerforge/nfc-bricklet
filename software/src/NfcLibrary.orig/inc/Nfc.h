@@ -38,7 +38,7 @@
 #define PROT_T3T             0x3
 #define PROT_ISODEP          0x4
 #define PROT_NFCDEP          0x5
-#define PROT_ISO15693        0x6
+#define PROT_T5T             0x6
 #define PROT_MIFARE          0x80
 
 /*

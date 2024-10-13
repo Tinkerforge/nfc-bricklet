@@ -162,8 +162,8 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 
 	if((interface->ModeTech & MODE_MASK) == MODE_POLL) {
 
-		// If mode is POLL and tech is NFCA we know where the uid is
-		// Note that it is possibel for Protocol to be ISODEP, but the tech not to bhe NFCA.
+		// If mode is POLL and tech is NFCA we know where the uid is.
+		// Note that it is possible for Protocol to be ISODEP, but the tech not to bhe NFCA.
 		// So we can't do the copy below in the cases
 		if(interface->ModeTech == (MODE_POLL | TECH_PASSIVE_NFCA)) {
 			pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;

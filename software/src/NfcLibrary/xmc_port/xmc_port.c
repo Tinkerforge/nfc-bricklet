@@ -389,6 +389,8 @@ void tml_Send(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytesSent) {
 
 __attribute__((optimize("-Os")))
 void tml_Receive(uint8_t *pBuffer, uint16_t BufferLen, uint16_t *pBytes, uint16_t timeout) {
+	memset(pBuffer, 0, BufferLen);
+
 	uint32_t start = system_timer_get_ms();
 	bool elapsed = true;
 	if(timeout == 0) {

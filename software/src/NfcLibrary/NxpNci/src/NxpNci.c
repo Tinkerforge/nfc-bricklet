@@ -1011,7 +1011,7 @@ bool NxpNci_WaitForDiscoveryNotification(NxpNci_RfIntf_t *pRfIntf)
 {
     uint8_t NCIRfDiscoverSelect[] = {0x21, 0x04, 0x03, 0x01, PROT_ISODEP, INTF_ISODEP};
     uint8_t Answer[MAX_NCI_FRAME_SIZE];
-    uint16_t AnswerSize;
+    uint16_t AnswerSize = 0;
 
 #ifdef P2P_SUPPORT
     uint8_t NCIStopDiscovery[] = {0x21, 0x06, 0x01, 0x00};
@@ -1021,7 +1021,7 @@ wait:
 #endif
     do
     {
-        if(NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_INFINITE) == NXPNCI_ERROR) return NXPNCI_ERROR;
+        if(NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_2S) == NXPNCI_ERROR) return NXPNCI_ERROR;
     }while ((Answer[0] != 0x61) || ((Answer[1] != 0x05) && (Answer[1] != 0x03)));
 
     gNextTag_Protocol = PROT_UNDETERMINED;

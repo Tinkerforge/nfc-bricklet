@@ -1074,7 +1074,7 @@ wait:
                     if (AnswerSize != 0)
                     {
                         /* Flush any other notification  */
-                        while(Answer != 0) NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
+                        while(AnswerSize != 0) NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);
                         /* Restart the discovery loop */ 
                         NxpNci_HostTransceive(NCIRestartDiscovery, sizeof(NCIRestartDiscovery), Answer, sizeof(Answer), &AnswerSize);
                         NxpNci_WaitForReception(Answer, sizeof(Answer), &AnswerSize, TIMEOUT_100MS);

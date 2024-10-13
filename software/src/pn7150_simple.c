@@ -137,9 +137,6 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 	pn7150.led_state_change_time = system_timer_get_ms();
 
 	if((interface->ModeTech & MODE_MASK) == MODE_POLL) {
-		pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;
-		memcpy(pn7150.simple_tag_id, interface->Info.NFC_APP.NfcId, 10);
-
 		switch(interface->Protocol) {
 			case PROT_T1T: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_TYPE1;
@@ -163,6 +160,8 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 
 			case PROT_T2T: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_TYPE2;
+				pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;
+				memcpy(pn7150.simple_tag_id, interface->Info.NFC_APP.NfcId, 10);
 				break;
 			}
 
@@ -179,6 +178,11 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 
 			case PROT_ISODEP: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_TYPE4;
+				pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;
+				memcpy(pn7150.simple_tag_id, interface->Info.NFC_APP.NfcId, 10);
+				break;
+			}
+
 			case PROT_T5T: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_TYPE5;
 				// With ISO 15693 the ID is in NFC_VPP and the length is 8.
@@ -189,6 +193,8 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 
 			case PROT_MIFARE: {
 				pn7150.simple_tag_type = NFC_TAG_TYPE_MIFARE_CLASSIC;
+				pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;
+				memcpy(pn7150.simple_tag_id, interface->Info.NFC_APP.NfcId, 10);
 				break;
 			}
 

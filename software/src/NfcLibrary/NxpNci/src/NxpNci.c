@@ -91,7 +91,7 @@ static bool NxpNci_HostTransceive(uint8_t *pTBuff, uint16_t TbuffLen, uint8_t *p
     return NXPNCI_SUCCESS;
 }
 
-static void NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf)
+static bool NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf, uint32_t AnswerSize)
 {
     uint8_t i, temp;
 
@@ -100,6 +100,9 @@ static void NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf)
     case (MODE_POLL | TECH_PASSIVE_NFCA):
         memcpy(pRfIntf->Info.NFC_APP.SensRes, &pBuf[0], 2);
         temp = 2;
+        if(pBuf[temp] > sizeof(pRfIntf->Info.NFC_APP.NfcId)) {
+            return NXPNCI_ERROR;
+        }
         pRfIntf->Info.NFC_APP.NfcIdLen = pBuf[temp];
         temp++;
         memcpy(pRfIntf->Info.NFC_APP.NfcId, &pBuf[3], pRfIntf->Info.NFC_APP.NfcIdLen);
@@ -111,8 +114,11 @@ static void NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf)
         if(pBuf[temp] != 0)
         {
             temp++;
+            if(pBuf[temp] > sizeof(pRfIntf->Info.NFC_APP.Rats)) {
+                return NXPNCI_ERROR;
+            }
             pRfIntf->Info.NFC_APP.RatsLen = pBuf[temp];
-            memcpy(pRfIntf->Info.NFC_APP.Rats, &pBuf[temp+1], pBuf[temp]);
+            memcpy(pRfIntf->Info.NFC_APP.Rats, &pBuf[temp+1], pRfIntf->Info.NFC_APP.RatsLen);
         }
         else
         {
@@ -121,14 +127,20 @@ static void NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf)
         break;
 
     case (MODE_POLL | TECH_PASSIVE_NFCB):
+        if(pBuf[0] > sizeof(pRfIntf->Info.NFC_BPP.SensRes)) {
+            return NXPNCI_ERROR;
+        }
         pRfIntf->Info.NFC_BPP.SensResLen = pBuf[0];
         memcpy(pRfIntf->Info.NFC_BPP.SensRes, &pBuf[1], pRfIntf->Info.NFC_BPP.SensResLen);
         temp = pBuf[0] + 4;
         if(pBuf[temp] != 0)
         {
             temp++;
+            if(pBuf[temp] > sizeof(pRfIntf->Info.NFC_BPP.AttribRes)) {
+                return NXPNCI_ERROR;
+            }
             pRfIntf->Info.NFC_BPP.AttribResLen = pBuf[temp];
-            memcpy(pRfIntf->Info.NFC_BPP.AttribRes, &pBuf[temp+1], pBuf[temp]);
+            memcpy(pRfIntf->Info.NFC_BPP.AttribRes, &pBuf[temp+1], pRfIntf->Info.NFC_BPP.AttribResLen);
         }
         else
         {
@@ -138,6 +150,9 @@ static void NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf)
 
     case (MODE_POLL | TECH_PASSIVE_NFCF):
         pRfIntf->Info.NFC_FPP.BitRate = pBuf[0];
+        if(pBuf[1] > sizeof(pRfIntf->Info.NFC_FPP.SensRes)) {
+            return NXPNCI_ERROR;
+        }
         pRfIntf->Info.NFC_FPP.SensResLen = pBuf[1];
         memcpy(pRfIntf->Info.NFC_FPP.SensRes, &pBuf[2], pRfIntf->Info.NFC_FPP.SensResLen);
         break;
@@ -151,6 +166,8 @@ static void NxpNci_FillInterfaceInfo(NxpNci_RfIntf_t* pRfIntf, uint8_t* pBuf)
     default:
         break;
     }
+
+    return NXPNCI_SUCCESS;
 }
 
 #ifdef CARDEMU_SUPPORT
@@ -599,7 +616,9 @@ bool NxpNci_ReaderActivateNext(NxpNci_RfIntf_t *pRfIntf)
             pRfIntf->Interface = Answer[4];
             pRfIntf->Protocol = Answer[5];
             pRfIntf->ModeTech = Answer[6];
-            NxpNci_FillInterfaceInfo(pRfIntf, &Answer[10]);
+            if (NxpNci_FillInterfaceInfo(pRfIntf, &Answer[10], AnswerSize) != NXPNCI_SUCCESS) {
+                return NXPNCI_ERROR;
+            }
             status = NXPNCI_SUCCESS;
         }
     }
@@ -1014,7 +1033,9 @@ wait:
         pRfIntf->Protocol = Answer[5];
         pRfIntf->ModeTech = Answer[6];
         pRfIntf->MoreTags = false;
-        NxpNci_FillInterfaceInfo(pRfIntf, &Answer[10]);
+        if(NxpNci_FillInterfaceInfo(pRfIntf, &Answer[10], AnswerSize) != NXPNCI_SUCCESS) {
+            return NXPNCI_ERROR;
+        }
 
 #ifdef P2P_SUPPORT
         /* Verifying if not a P2P device also presenting T4T emulation */
@@ -1042,7 +1063,9 @@ wait:
                         pRfIntf->Protocol = Answer[5];
                         pRfIntf->ModeTech = Answer[6];
                         pRfIntf->MoreTags = false;
-                        NxpNci_FillInterfaceInfo(pRfIntf, &Answer[10]);
+                        if(NxpNci_FillInterfaceInfo(pRfIntf, &Answer[10], AnswerSize) != NXPNCI_SUCCESS) {
+                            return NXPNCI_ERROR;
+                        }
                         break;
                     }
                 }
@@ -1093,7 +1116,9 @@ wait:
                 pRfIntf->Interface = Answer[4];
                 pRfIntf->Protocol = Answer[5];
                 pRfIntf->ModeTech = Answer[6];
-                NxpNci_FillInterfaceInfo(pRfIntf, &Answer[10]);
+                if(NxpNci_FillInterfaceInfo(pRfIntf, &Answer[10], AnswerSize) != NXPNCI_SUCCESS) {
+                    return NXPNCI_ERROR;
+                }
             }
 #ifdef P2P_SUPPORT
             /* In case of P2P target detected but lost, inform application to restart discovery */

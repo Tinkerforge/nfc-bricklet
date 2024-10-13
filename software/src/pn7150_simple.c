@@ -117,6 +117,34 @@ bool pn7150_simple_discovery(uint8_t *discovery_technologies, NxpNci_RfIntf_t *i
 	return true;
 }
 
+// -- Some notes regarding NFC technology, tag type and protocol --
+
+// Mapping between technology, standards and tag types
+// Technology   Standard             Tags
+// NFCA         ISO 14443-3A         supported by Type 1, Type 2, Type 4
+// NFCB         ISO 14443-3B         supported by Type 4
+// NFCF         JIS 6319-4[FeliCa]   supported by Type 3
+// NFCV         ISO 15693            supported by Type 5
+// ISODEP       ISO 14443-4          supported by Type 4 (14443-4 defines the protocol for authentication/encryption)
+// MIFARE       Not standardized     supported by Mifare Classic
+//
+// Hint: The mapping above is done this way in most libraries (e.g. NfcLibrary, Android, etc).
+//       This is a bit strange, since the standards that the technology is mapped to are
+//       not all on the same abstraction layer (see below).
+
+// Mapping tag types with standards through all layers
+// Tag      Example                   Application Protocol   Protocol       Anticollision   RF             Physical
+// Type 1   Topaz (Innovsion)         -                      Topaz          -               ISO 14443-2A   ISO 14443-1A
+// Type 2   MIFARE Ultralight (NXP)   -                      MIFARE UL      ISO 14443-3A    ISO 14443-2A   ISO 14443-1A
+// Type 3   FeliCa (Sony)             JIS 6319-4             JIS 6319-4     JIS 6319-4      JIS 6319-4     JIS 6319-4
+// Type 4   MIFARE DESFire (NXP)      ISO 7861-4 (APDUs)     ISO 14443-4A   ISO 14443-3A    ISO 14443-2A   ISO 14443-1A
+// Type 4   SLE66CL160S (Infineon)    ISO 7861-4 (APDUs)     ISO 14443-4B   ISO 14443-3B    ISO 14443-2B   ISO 14443-1B
+// Type 5   ICODE SLIX (NXP)          ISO 15693              ISO 15693      ISO 15693       ISO 15693      ISO 15693
+// Mifare   MIFARE Classic (NXP)      -                      MIFARE         ISO 14443-3A    ISO 14443-2A   ISO 14443-1A
+//          P2P                       -                      LLCP           ISO 18092       ISO 18092      ISO 18092
+//
+// Hint: On the application layer all tags, except Type 3, support NDEF.
+
 __attribute__((optimize("-Os")))
 bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 	uint8_t discovery_technologies[] = {

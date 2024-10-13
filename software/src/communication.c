@@ -427,7 +427,7 @@ BootloaderHandleMessageResponse simple_get_tag_id_low_level(const SimpleGetTagID
 	response->last_seen     = 0;
 	response->tag_id_length = 0;
 	response->tag_type      = 0;
-	memset(response->tag_id_data, 0, 32);
+	memset(response->tag_id_data, 0, 10);
 
 	// index = 255 => zero out simple tag data
 	if(data->index == 255) {

@@ -98,12 +98,12 @@ void sort_bubblesort(void *arr, size_t count, size_t elesize, int (*cmp)(const v
 	}
 }
 
-
 __attribute__((optimize("-Os")))
 bool pn7150_simple_discovery(uint8_t *discovery_technologies, NxpNci_RfIntf_t *interface) {
 	if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
 		// Discovery failed. Perhaps there was still a discovery running? Lets stop and try again!
 		NxpNci_StopDiscovery();
+		memset(interface, 0, sizeof(NxpNci_RfIntf_t));
 		if(NxpNci_StartDiscovery(discovery_technologies, sizeof(discovery_technologies)) != NFC_SUCCESS) {
 			pn7150_init_nfc();
 			return false;
@@ -126,7 +126,9 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 		MODE_POLL | TECH_PASSIVE_15693
 	};
 
+	memset(interface, 0, sizeof(NxpNci_RfIntf_t));
 	if(NxpNci_ReaderActivateNext(interface) == NFC_ERROR) {
+		memset(interface, 0, sizeof(NxpNci_RfIntf_t));
 		if(!pn7150_simple_discovery(discovery_technologies, interface)) {
 			return false;
 		}

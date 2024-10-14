@@ -40,8 +40,12 @@ void pn7150_cardemu_cb(unsigned char *pNdefRecord, unsigned short NdefRecordSize
 
 void pn7150_cardemu_discover(void) {
 	uint8_t discovery_technologies[] = {
+		MODE_LISTEN | TECH_ACTIVE_NFCA,
+		MODE_LISTEN | TECH_ACTIVE_NFCF,
 		MODE_LISTEN | TECH_PASSIVE_NFCA,
 		MODE_LISTEN | TECH_PASSIVE_NFCB,
+		MODE_LISTEN | TECH_PASSIVE_NFCF,
+		MODE_LISTEN | TECH_PASSIVE_15693,
 	};
 
 	if(!pn7150_simple_discovery(discovery_technologies, &pn7150_cardemu_interface)) {

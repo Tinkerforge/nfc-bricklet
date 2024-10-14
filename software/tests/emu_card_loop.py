@@ -55,6 +55,8 @@ if __name__ == "__main__":
     nfc.register_callback(nfc.CALLBACK_CARDEMU_STATE_CHANGED,
                           lambda x, y: cb_cardemu_state_changed(x, y, nfc))
 
+    #nfc.cardemu_set_tag_id(4, [0x42, 0x23, 0x13, 0x37, 0x00, 0x00, 0x00])
+
     # Enable cardemu mode
     nfc.set_mode(nfc.MODE_CARDEMU)
 

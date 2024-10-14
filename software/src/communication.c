@@ -1,5 +1,5 @@
 /* nfc-bricklet
- * Copyright (C) 2017 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2017, 2024 Olaf Lüke <olaf@tinkerforge.com>
  *
  * communication.c: TFP protocol message handling
  *
@@ -63,6 +63,8 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_SET_MAXIMUM_TIMEOUT: return set_maximum_timeout(message);
 		case FID_GET_MAXIMUM_TIMEOUT: return get_maximum_timeout(message, response);
 		case FID_SIMPLE_GET_TAG_ID_LOW_LEVEL: return simple_get_tag_id_low_level(message, response);
+		case FID_CARDEMU_SET_TAG_ID: return cardemu_set_tag_id(message);
+		case FID_CARDEMU_GET_TAG_ID: return cardemu_get_tag_id(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -440,6 +442,21 @@ BootloaderHandleMessageResponse simple_get_tag_id_low_level(const SimpleGetTagID
 			memcpy(response->tag_id_data, pn7150_simple_tags[data->index].id, pn7150_simple_tags[data->index].id_length);
 		}
 	}
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse cardemu_set_tag_id(const CardemuSetTagID *data) {
+	pn7150.cardemu_tag_id_length = data->tag_id_length;
+	memcpy(pn7150.cardemu_tag_id_data, data->tag_id_data, 7);
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse cardemu_get_tag_id(const CardemuGetTagID *data, CardemuGetTagID_Response *response) {
+	response->header.length = sizeof(CardemuGetTagID_Response);
+	response->tag_id_length = pn7150.cardemu_tag_id_length;
+	memcpy(response->tag_id_data, pn7150.cardemu_tag_id_data, 7);
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

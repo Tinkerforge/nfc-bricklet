@@ -53,6 +53,9 @@ typedef struct {
 	uint8_t  reader_mifare_auth_key_number;
 	uint8_t  reader_mifare_auth_key[6];
 
+	uint8_t  cardemu_tag_id_length;
+	uint8_t  cardemu_tag_id_data[7];
+
 	uint16_t reader_mifare_auth_page;
 	uint16_t reader_request_page;
 	uint16_t reader_request_length;

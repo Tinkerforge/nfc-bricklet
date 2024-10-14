@@ -1,5 +1,5 @@
 /* nfc-bricklet
- * Copyright (C) 2018, 2021 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2018, 2021, 2024 Olaf Lüke <olaf@tinkerforge.com>
  *
  * communication.h: TFP protocol message handling
  *
@@ -156,6 +156,8 @@ void communication_init(void);
 #define FID_SET_MAXIMUM_TIMEOUT 27
 #define FID_GET_MAXIMUM_TIMEOUT 28
 #define FID_SIMPLE_GET_TAG_ID_LOW_LEVEL 29
+#define FID_CARDEMU_SET_TAG_ID 30
+#define FID_CARDEMU_GET_TAG_ID 31
 
 #define FID_CALLBACK_READER_STATE_CHANGED 13
 #define FID_CALLBACK_CARDEMU_STATE_CHANGED 18
@@ -376,6 +378,22 @@ typedef struct {
 	uint32_t last_seen;
 } __attribute__((__packed__)) SimpleGetTagIDLowLevel_Response;
 
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t tag_id_length;
+	uint8_t tag_id_data[7];
+} __attribute__((__packed__)) CardemuSetTagID;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) CardemuGetTagID;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t tag_id_length;
+	uint8_t tag_id_data[7];
+} __attribute__((__packed__)) CardemuGetTagID_Response;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse set_mode(const SetMode *data);
@@ -404,6 +422,8 @@ BootloaderHandleMessageResponse get_detection_led_config(const GetDetectionLEDCo
 BootloaderHandleMessageResponse set_maximum_timeout(const SetMaximumTimeout *data);
 BootloaderHandleMessageResponse get_maximum_timeout(const GetMaximumTimeout *data, GetMaximumTimeout_Response *response);
 BootloaderHandleMessageResponse simple_get_tag_id_low_level(const SimpleGetTagIDLowLevel *data, SimpleGetTagIDLowLevel_Response *response);
+BootloaderHandleMessageResponse cardemu_set_tag_id(const CardemuSetTagID *data);
+BootloaderHandleMessageResponse cardemu_get_tag_id(const CardemuGetTagID *data, CardemuGetTagID_Response *response);
 
 // Callbacks
 bool handle_reader_state_changed_callback(void);

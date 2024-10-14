@@ -845,7 +845,23 @@ bool NxpNci_ConfigureMode(unsigned char mode)
 #endif
 #if defined P2P_SUPPORT || defined CARDEMU_SUPPORT
     uint8_t NCIRouting[] = {0x21, 0x01, 0x07, 0x00, 0x01};
-    uint8_t NCISetConfig_NFCA_SELRSP[] = {0x20, 0x02, 0x04, 0x01, 0x32, 0x01, 0x00};
+    uint8_t NCISetConfig_NFCA_SELRSP[7 + 2 + 7] = {0x20, 0x02, 0x04, 0x01, 0x32, 0x01, 0x00};
+
+    const bool valid_tag_length = (pn7150.cardemu_tag_id_length == 4) || (pn7150.cardemu_tag_id_length == 7);
+    uint8_t nfca_selrsp_length = 7 + 2;
+
+    NCISetConfig_NFCA_SELRSP[2] += 2; // Original length + 2 byte extra command
+    NCISetConfig_NFCA_SELRSP[3] = 2; // Two commands in stead of one
+    NCISetConfig_NFCA_SELRSP[7] = 0x33; // LA_NFCID1
+    if(valid_tag_length) {
+        nfca_selrsp_length += pn7150.cardemu_tag_id_length;
+        NCISetConfig_NFCA_SELRSP[2] += pn7150.cardemu_tag_id_length; // The original length + extra command + length of tag id
+        NCISetConfig_NFCA_SELRSP[8] = pn7150.cardemu_tag_id_length; // Tag length
+        memcpy(&NCISetConfig_NFCA_SELRSP[9], pn7150.cardemu_tag_id_data, pn7150.cardemu_tag_id_length);
+    } else {
+        NCISetConfig_NFCA_SELRSP[8] = 0; // Tag length 0 = random id
+    }
+
     // UID 04 45 76 4A B0 58 80
     // uint8_t NCISetConfig_NFCA_SELRSP[] = {0x20, 0x02, 0x10, 0x03, 0x31, 0x01, 0x44, 0x32, 0x01, 0x00, 0x33, 0x07, 0x04, 0x45, 0x76, 0x4A, 0xB0, 0x58, 0x80};
     // uint8_t NCISetConfig_NFCA_SELRSP[] = {0x20, 0x02, 0x10, 0x03, 0x31, 0x01, 0x40, 0x32, 0x01, 0x00, 0x33, 0x07, 0x04, 0x45, 0x76, 0x4A, 0xB0, 0x58, 0x80};
@@ -941,7 +957,7 @@ bool NxpNci_ConfigureMode(unsigned char mode)
 #if defined P2P_SUPPORT || defined CARDEMU_SUPPORT
     if (NCISetConfig_NFCA_SELRSP[6] != 0x00)
     {
-        NxpNci_HostTransceive(NCISetConfig_NFCA_SELRSP, sizeof(NCISetConfig_NFCA_SELRSP), Answer, sizeof(Answer), &AnswerSize);
+        NxpNci_HostTransceive(NCISetConfig_NFCA_SELRSP, nfca_selrsp_length, Answer, sizeof(Answer), &AnswerSize);
         if ((Answer[0] != 0x40) || (Answer[1] != 0x02) || (Answer[3] != 0x00)) return NXPNCI_ERROR;
     }
 #endif

@@ -35,7 +35,7 @@
 
 typedef struct {
 	uint8_t  data[PN7150_MAX_DATA_SIZE + PN7150_MAX_OVERHEAD];
-	uint8_t  simple_tag_id[32];
+	uint8_t  simple_tag_id[10];
 	uint8_t  simple_tag_type;
 	uint8_t  simple_tag_id_length;
 
@@ -48,7 +48,7 @@ typedef struct {
 
 	uint8_t  reader_tag_type;
 	uint8_t  reader_tag_id_length;
-	uint8_t  reader_tag_id[32];
+	uint8_t  reader_tag_id[10];
 
 	uint8_t  reader_mifare_auth_key_number;
 	uint8_t  reader_mifare_auth_key[6];

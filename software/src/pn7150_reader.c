@@ -61,7 +61,9 @@ static void pn7150_reader_request_ndef(void) {
 		case PROT_T1T:
 		case PROT_T2T:
 		case PROT_T3T:
-		case PROT_ISODEP: {
+		case PROT_ISODEP:
+		case PROT_T5T:
+		case PROT_MIFARE: {
 			NxpNci_ProcessReaderMode(pn7150_reader_interface, READ_NDEF);
 			if(pn7150.reader_state != NFC_READER_STATE_REQUEST_NDEF_READY) {
 				pn7150.reader_state = NFC_READER_STATE_REQUEST_NDEF_ERROR;
@@ -69,8 +71,6 @@ static void pn7150_reader_request_ndef(void) {
 			break;
 		}
 
-		// Read NDEF not supported for Mifare Classic tags
-		case PROT_MIFARE:
 		default: {
 			pn7150.reader_state = NFC_READER_STATE_REQUEST_NDEF_ERROR;
 			break;
@@ -81,7 +81,9 @@ static void pn7150_reader_request_ndef(void) {
 static void pn7150_reader_write_ndef(void) {
 	switch(pn7150_reader_interface.Protocol) {
 		case PROT_T2T:
+		case PROT_T5T:
 		case PROT_ISODEP: {
+		case PROT_MIFARE:
 			NxpNci_ProcessReaderMode(pn7150_reader_interface, WRITE_NDEF);
 			if(pn7150.reader_state != NFC_READER_STATE_WRITE_NDEF_READY) {
 				pn7150.reader_state = NFC_READER_STATE_WRITE_NDEF_ERROR;
@@ -90,10 +92,9 @@ static void pn7150_reader_write_ndef(void) {
 			break;
 		}
 
-		// write NDEF not supported for type 1, 3 and mifare tags
+		// write NDEF not supported for type 1 and 3
 		case PROT_T1T:
 		case PROT_T3T:
-		case PROT_MIFARE:
 		default: {
 			pn7150.reader_state = NFC_READER_STATE_WRITE_NDEF_ERROR;
 			break;
@@ -358,6 +359,32 @@ static void pn7150_reader_request_page(void) {
 			break;
 		}
 
+		case PROT_T5T: {
+			uint8_t length;
+			uint16_t offset = 0;
+			uint16_t page = pn7150.reader_request_page;
+			uint8_t response[256];
+			do {
+				uint8_t read[] = {0x02, 0x20, page};
+				bool status = NxpNci_ReaderTagCmd(read, sizeof(read), response, &length);
+				if((status == NFC_ERROR) || (response[length - 1] != 0)) {
+					pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
+					return;
+				}
+				memcpy(pn7150.data + offset, response + 1, 4);
+
+				pn7150.led_state_change_time = system_timer_get_ms();
+				page++;
+				offset += 4;
+			} while(offset < pn7150.reader_request_length);
+
+			pn7150.data_length       = pn7150.reader_request_length;
+			pn7150.data_chunk_offset = 0;
+
+			pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_READY;
+			break;
+		}
+
 		default: {
 			pn7150.reader_state = NFC_READER_STATE_REQUEST_PAGE_ERROR;
 			break;
@@ -580,6 +607,30 @@ void pn7150_reader_write_page(void) {
 				}
 
 				offset += write_data[4];
+			} while(offset < pn7150.reader_write_length);
+
+			pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_READY;
+			break;
+		}
+
+		case PROT_T5T: {
+			uint16_t offset = 0;
+			uint16_t page = pn7150.reader_write_page;
+			uint8_t ret[16];
+			uint8_t ret_length;
+			do {
+				uint8_t write[7] = {0x02, 0x21, page};
+				memcpy(write+3, pn7150.data + offset, 4);
+				bool status = NxpNci_ReaderTagCmd(write, sizeof(write), ret, &ret_length);
+
+				if((status == NFC_ERROR) || (ret[ret_length - 1] != 0)) {
+					pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_ERROR;
+					return;
+				}
+
+				pn7150.led_state_change_time = system_timer_get_ms();
+				page++;
+				offset += 4;
 			} while(offset < pn7150.reader_write_length);
 
 			pn7150.reader_state = NFC_READER_STATE_WRITE_PAGE_READY;

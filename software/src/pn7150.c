@@ -113,7 +113,7 @@ void pn7150_tick_task(void) {
 		switch(pn7150.mode) {
 			case NFC_MODE_READER:  pn7150_reader_state_machine();  break;
 			case NFC_MODE_CARDEMU: pn7150_cardemu_state_machine(); break;
-			case NFC_MODE_P2P:     pn7150_p2p_state_machine();     break;
+			//case NFC_MODE_P2P:     pn7150_p2p_state_machine();     break;
 			case NFC_MODE_SIMPLE:  pn7150_simple_state_machine();  break;
 			default: break;
 		}

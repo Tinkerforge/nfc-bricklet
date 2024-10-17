@@ -28,3 +28,12 @@
 
 2021-09-03: 2.0.6 (6b3d237)
 - Add simple tag support
+
+2024-10-17: 2.1.0 (TBD)
+- Update NXP NfcLibrary
+- Fix input buffer overwrite bug
+- Add support for NFC Forum Type 5 (IS 15693)
+- Add NDEF support for NFC Forum Type 5 and Mifare Classic
+- Improve card emulation support (now properly works between two NFC Bricklets and with Android/iPhone)
+- Add support for custom tag ID in cardemu mode
+- Remove P2P support

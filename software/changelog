@@ -37,3 +37,6 @@
 - Improve card emulation support (now properly works between two NFC Bricklets and with Android/iPhone)
 - Add support for custom tag ID in cardemu mode
 - Remove P2P support
+
+2025-07-24: 2.1.1 (1c95409)
+- Fix binary damage in upload of 2.1.0

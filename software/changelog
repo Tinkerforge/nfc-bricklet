@@ -40,3 +40,6 @@
 
 2025-07-24: 2.1.1 (1c95409)
 - Fix binary damage in upload of 2.1.0
+
+2026-XX-XX: 2.1.2 (TBD)
+- Add Phone with HCE (host card emulation) as tag type

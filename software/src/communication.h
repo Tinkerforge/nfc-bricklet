@@ -47,6 +47,7 @@ void communication_init(void);
 #define NFC_TAG_TYPE_TYPE3 3
 #define NFC_TAG_TYPE_TYPE4 4
 #define NFC_TAG_TYPE_TYPE5 5 // ISO 15693
+#define NFC_TAG_TYPE_PHONE 6 // Phone with HCE (Host Card Emulation)
 
 #define NFC_READER_STATE_INITIALIZATION 0
 #define NFC_READER_STATE_IDLE 128

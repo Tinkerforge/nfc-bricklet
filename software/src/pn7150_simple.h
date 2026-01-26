@@ -39,6 +39,7 @@ typedef struct {
 
 bool pn7150_simple_discovery(uint8_t *discovery_technologies, NxpNci_RfIntf_t *interface);
 bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface);
+bool pn7150_simple_try_read_phone_id(void);
 void pn7150_simple_state_machine(void);
 
 #endif

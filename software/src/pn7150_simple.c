@@ -157,13 +157,13 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 			return false;
 		}
 	}
-	
+
 	pn7150.led_state_change_time = system_timer_get_ms();
 
 	if((interface->ModeTech & MODE_MASK) == MODE_POLL) {
 
 		// If mode is POLL and tech is NFCA we know where the uid is.
-		// Note that it is possible for Protocol to be ISODEP, but the tech not to bhe NFCA.
+		// Note that it is possible for Protocol to be ISODEP, but the tech not to be NFCA.
 		// So we can't do the copy below in the cases
 		if(interface->ModeTech == (MODE_POLL | TECH_PASSIVE_NFCA)) {
 			pn7150.simple_tag_id_length = interface->Info.NFC_APP.NfcIdLen;
@@ -208,6 +208,14 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 			}
 
 			case PROT_ISODEP: {
+				// Try to read phone ID. If successful, it is a compatible phone app
+				if(pn7150_simple_try_read_phone_id()) {
+					// Phone ID was read successfully, type is already set to NFC_TAG_TYPE_PHONE
+					// and simple_tag_id contains the phone ID
+					break;
+				}
+
+				// Not a compatible phone app, treat as regular Type 4 tag
 				pn7150.simple_tag_type = NFC_TAG_TYPE_TYPE4;
 				break;
 			}
@@ -234,6 +242,63 @@ bool pn7150_simple_request_tag_id(NxpNci_RfIntf_t *interface) {
 	} else {
 		return false;
 	}
+
+	return true;
+}
+
+// Try to read phone ID from an ISO-DEP device using Tinkerforge NFC ID protocol.
+//
+// This should be called after detecting an ISO-DEP device (Type 4).
+// If successful, updates pn7150.simple_tag_type to NFC_TAG_TYPE_PHONE
+// and stores the first 10 bytes of the phone ID in pn7150.simple_tag_id.
+//
+// The phone sends 20 bytes, but we only use the first 10 (they contain
+// enough entropy for unique identification).
+//
+// Returns true if this is a compatible phone app, false otherwise.
+
+bool pn7150_simple_try_read_phone_id(void) {
+	uint8_t response[256];
+	uint8_t length;
+
+	// Tinkerforge NFC ID AID: 54 46 4E 46 43 49 44 ("TFNFCID" in ASCII)
+	// SELECT AID command: CLA=00, INS=A4, P1=04 (select by name), P2=00, Lc=07, AID, Le=00
+	uint8_t select_aid[] = {0x00, 0xA4, 0x04, 0x00, 0x07,
+	                        0x54, 0x46, 0x4E, 0x46, 0x43, 0x49, 0x44,
+	                        0x00};
+
+	// GET DATA command: CLA=00, INS=CA, P1=00, P2=01 (get device ID), Le=00
+	uint8_t get_id[] = {0x00, 0xCA, 0x00, 0x01, 0x00};
+
+	// Step 1: Select the application
+	bool status = NxpNci_ReaderTagCmd(select_aid, sizeof(select_aid), response, &length);
+	if(status == NFC_ERROR) {
+		return false;
+	}
+
+	// Check for success (SW1=90, SW2=00)
+	// Response format: [SW1] [SW2] (just 2 bytes for SELECT with no data)
+	if(length < 2 || response[length - 2] != 0x90 || response[length - 1] != 0x00) {
+		// AID not found - this is not a compatible phone app
+		return false;
+	}
+
+	// Step 2: Get the device ID
+	status = NxpNci_ReaderTagCmd(get_id, sizeof(get_id), response, &length);
+	if(status == NFC_ERROR) {
+		return false;
+	}
+
+	// Expected response: <20 bytes ID> [SW1=90] [SW2=00]
+	// Total length: 20 + 2 = 22 bytes
+	if(length < 22 || response[length - 2] != 0x90 || response[length - 1] != 0x00) {
+		return false;
+	}
+
+	// Success!
+	pn7150.simple_tag_type = NFC_TAG_TYPE_PHONE;
+	pn7150.simple_tag_id_length = SIMPLE_TAG_ID_MAX_LENGTH;
+	memcpy(pn7150.simple_tag_id, response, SIMPLE_TAG_ID_MAX_LENGTH);
 
 	return true;
 }

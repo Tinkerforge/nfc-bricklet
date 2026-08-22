@@ -251,13 +251,15 @@ bool i2c_read(uint8_t *data, const uint16_t length) {
 
 		// If there is data in the rx fifo we read it here.
 		// To save CPU time the rx irq is only triggered if the fifo level
-		// goes above 8. For the last 7 bytes this might not happen at all,
+		// goes above 4. For the last bytes this might not happen at all,
 		// so we also have to poll the buffer here.
-		__disable_irq();
+		NVIC_DisableIRQ((IRQn_Type)PN7150_IRQ_RX);
+		__DSB();
+		__ISB();
 		if(!XMC_USIC_CH_RXFIFO_IsEmpty(PN7150_I2C)) {
 			i2c_rx_irq_handler();
 		}
-		__enable_irq();
+		NVIC_EnableIRQ((IRQn_Type)PN7150_IRQ_RX);
 
 		if(i2c_rx_data_index != i2c_rx_data_length) {
 			coop_task_yield();
@@ -306,8 +308,8 @@ void tml_Connect(void) {
 	XMC_USIC_CH_TXFIFO_Flush(PN7150_I2C);
 	XMC_USIC_CH_RXFIFO_Flush(PN7150_I2C);
 
-	XMC_USIC_CH_TXFIFO_Configure(PN7150_I2C, 48, XMC_USIC_CH_FIFO_SIZE_16WORDS, 8);
-	XMC_USIC_CH_RXFIFO_Configure(PN7150_I2C, 32, XMC_USIC_CH_FIFO_SIZE_16WORDS, 8);
+	XMC_USIC_CH_TXFIFO_Configure(PN7150_I2C, 16, XMC_USIC_CH_FIFO_SIZE_8WORDS, 4);
+	XMC_USIC_CH_RXFIFO_Configure(PN7150_I2C, 24, XMC_USIC_CH_FIFO_SIZE_8WORDS, 4);
 
 	// Set service request for tx FIFO transmit interrupt
 	XMC_USIC_CH_TXFIFO_SetInterruptNodePointer(PN7150_I2C, XMC_USIC_CH_TXFIFO_INTERRUPT_NODE_POINTER_STANDARD, PN7150_SERVICE_REQUEST_TX);

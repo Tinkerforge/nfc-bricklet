@@ -23,6 +23,7 @@
 #include <stdbool.h>
 
 #include "configs/config.h"
+#include "configs/config_custom_bootloader.h"
 
 #include "bricklib2/bootloader/bootloader.h"
 #include "bricklib2/hal/system_timer/system_timer.h"
@@ -31,6 +32,8 @@
 #include "pn7150.h"
 
 #include "xmc_gpio.h"
+#include "xmc_spi.h"
+#include "xmc_usic.h"
 
 #if LOGGING_LEVEL != LOGGING_NONE
 void HardFault_Handler(void) {
@@ -110,7 +113,7 @@ void HardFault_HandlerC(unsigned int *hardfault_args) {
 	uartbb_printf("AFSR = %x\n\r", _AFSR);
 
 	stack_debug_update();
-	uartbb_printf("in coop: %d, boot in tx/rx: %d/%d coop in tx/rx: %d/%d\n\r", 
+	uartbb_printf("in coop: %d, boot in tx/rx: %d/%d coop in tx/rx: %d/%d\n\r",
 	              in_coop, bootloader_in_tx, bootloader_in_rx, coop_in_tx, coop_in_rx);
 	uartbb_printf("coop free: %d, stack free: %d\n\r", pn7150_task.stack_low_watermark, stack_debug_get_low_watermark());
 	while(true) {
@@ -122,6 +125,14 @@ void HardFault_HandlerC(unsigned int *hardfault_args) {
 int main(void) {
 	logging_init();
 	logd("Start NFC Bricklet\n\r");
+
+	// The bootloader configured 16-word SPITFP TX FIFO, we update it here
+	NVIC_DisableIRQ((IRQn_Type)SPITFP_IRQ_TX);
+	__DSB();
+	__ISB();
+	XMC_USIC_CH_TXFIFO_Flush(SPITFP_USIC);
+	XMC_USIC_CH_TXFIFO_Configure(SPITFP_USIC, SPITFP_TX_DATA_POINTER, SPITFP_TX_SIZE, SPITFP_TX_LIMIT);
+	NVIC_EnableIRQ((IRQn_Type)SPITFP_IRQ_TX);
 
 	communication_init();
 	pn7150_init();

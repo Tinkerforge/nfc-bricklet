@@ -1,7 +1,7 @@
 /* nfc-bricklet
  * Copyright (C) 2017-2018 Olaf Lüke <olaf@tinkerforge.com>
  *
- * config_custom_bootloader.h: Bootloader configurations for 
+ * config_custom_bootloader.h: Bootloader configurations for
  *                             NFC Bricklet
  *
  * This library is free software; you can redistribute it and/or
@@ -67,9 +67,19 @@
 #define SPITFP_IRQ_TX               10
 #define SPITFP_IRQ_TX_PRIORITY      3
 
-#define SPITFP_TX_DATA_POINTER      16
-#define SPITFP_TX_SIZE              XMC_USIC_CH_FIFO_SIZE_16WORDS
-#define SPITFP_TX_LIMIT             8
+// The 64-word USIC0 FIFO buffer shared by both channels is partitioned as:
+// SPITFP RX 0-15, I2C TX 16-23, I2C RX 24-31, SPITFP TX 32-63.
+//
+// 32 TX words instead of 16: The PN7150 I2C interrupts (priority 0/1) can
+// delay the SPITFP TX interrupt (priority 3) long enough to underrun a
+// 16-word FIFO mid-frame.
+//
+// The firmware reconfigures the FIFO at startup.
+// The bootloader functions used through the function table
+// query the FIFO through hardware registers and work with any size.
+#define SPITFP_TX_DATA_POINTER      32
+#define SPITFP_TX_SIZE              XMC_USIC_CH_FIFO_SIZE_32WORDS
+#define SPITFP_TX_LIMIT             16
 
 #define SPITFP_RX_DATA_POINTER      0
 #define SPITFP_RX_SIZE              XMC_USIC_CH_FIFO_SIZE_16WORDS

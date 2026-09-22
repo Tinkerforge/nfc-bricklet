@@ -581,11 +581,16 @@ bool handle_simple_tag_seen_callback(void) {
 			i--;
 			SimpleTag *tag = pn7150_simple_tags + i;
 
+			if(tag->id_length == 0) {
+				continue;
+			}
+
 			if(tag->last_seen - tag->last_callback - pn7150.simple_callback_period < (UINT32_MAX / 2)) {
 				tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(SimpleTagSeen_Callback), FID_CALLBACK_SIMPLE_TAG_SEEN);
 
 				cb.tag_id_length = pn7150_simple_tags[i].id_length;
 				cb.tag_type = pn7150_simple_tags[i].type;
+				memset(cb.tag_id_data, 0, sizeof(cb.tag_id_data));
 				memcpy(cb.tag_id_data, pn7150_simple_tags[i].id, pn7150_simple_tags[i].id_length);
 
 				tag->last_callback = tag->last_seen;

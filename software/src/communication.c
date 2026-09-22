@@ -53,11 +53,11 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_CARDEMU_START_DISCOVERY: return cardemu_start_discovery(message);
 		case FID_CARDEMU_WRITE_NDEF_LOW_LEVEL: return cardemu_write_ndef_low_level(message);
 		case FID_CARDEMU_START_TRANSFER: return cardemu_start_transfer(message);
-		case FID_P2P_GET_STATE: return p2p_get_state(message, response);
-		case FID_P2P_START_DISCOVERY: return p2p_start_discovery(message);
-		case FID_P2P_WRITE_NDEF_LOW_LEVEL: return p2p_write_ndef_low_level(message);
-		case FID_P2P_START_TRANSFER: return p2p_start_transfer(message);
-		case FID_P2P_READ_NDEF_LOW_LEVEL: return p2p_read_ndef_low_level(message, response);
+		//case FID_P2P_GET_STATE: return p2p_get_state(message, response);
+		//case FID_P2P_START_DISCOVERY: return p2p_start_discovery(message);
+		//case FID_P2P_WRITE_NDEF_LOW_LEVEL: return p2p_write_ndef_low_level(message);
+		//case FID_P2P_START_TRANSFER: return p2p_start_transfer(message);
+		//case FID_P2P_READ_NDEF_LOW_LEVEL: return p2p_read_ndef_low_level(message, response);
 		case FID_SET_DETECTION_LED_CONFIG: return set_detection_led_config(message);
 		case FID_GET_DETECTION_LED_CONFIG: return get_detection_led_config(message, response);
 		case FID_SET_MAXIMUM_TIMEOUT: return set_maximum_timeout(message);
@@ -74,7 +74,7 @@ extern PN7150 pn7150;
 extern SimpleTag pn7150_simple_tags[SIMPLE_TAGS_NUM];
 
 BootloaderHandleMessageResponse set_mode(const SetMode *data) {
-	if(data->mode > NFC_MODE_SIMPLE) {
+	if(data->mode > NFC_MODE_SIMPLE || data->mode == NFC_MODE_P2P) {
 		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 	}
 
@@ -516,6 +516,8 @@ bool handle_cardemu_state_changed_callback(void) {
 }
 
 bool handle_p2p_state_changed_callback(void) {
+	return false;	// P2P mode is disabled
+
 	static bool is_buffered = false;
 	static P2PStateChanged_Callback cb;
 	static uint8_t last_state = NFC_P2P_STATE_INITIALIZATION;

@@ -159,10 +159,13 @@ void communication_init(void);
 #define FID_SIMPLE_GET_TAG_ID_LOW_LEVEL 29
 #define FID_CARDEMU_SET_TAG_ID 30
 #define FID_CARDEMU_GET_TAG_ID 31
+#define FID_SET_SIMPLE_TAG_SEEN_CALLBACK_CONFIGURATION 33
+#define FID_GET_SIMPLE_TAG_SEEN_CALLBACK_CONFIGURATION 34
 
 #define FID_CALLBACK_READER_STATE_CHANGED 13
 #define FID_CALLBACK_CARDEMU_STATE_CHANGED 18
 #define FID_CALLBACK_P2P_STATE_CHANGED 24
+#define FID_CALLBACK_SIMPLE_TAG_SEEN 32
 
 typedef struct {
 	TFPMessageHeader header;
@@ -395,6 +398,27 @@ typedef struct {
 	uint8_t tag_id_data[7];
 } __attribute__((__packed__)) CardemuGetTagID_Response;
 
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t tag_type;
+	uint8_t tag_id_length;
+	uint8_t tag_id_data[10];
+} __attribute__((__packed__)) SimpleTagSeen_Callback;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint32_t period;
+} __attribute__((__packed__)) SetSimpleTagSeenCallbackConfiguration;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetSimpleTagSeenCallbackConfiguration;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint32_t period;
+} __attribute__((__packed__)) GetSimpleTagSeenCallbackConfiguration_Response;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse set_mode(const SetMode *data);
@@ -425,18 +449,22 @@ BootloaderHandleMessageResponse get_maximum_timeout(const GetMaximumTimeout *dat
 BootloaderHandleMessageResponse simple_get_tag_id_low_level(const SimpleGetTagIDLowLevel *data, SimpleGetTagIDLowLevel_Response *response);
 BootloaderHandleMessageResponse cardemu_set_tag_id(const CardemuSetTagID *data);
 BootloaderHandleMessageResponse cardemu_get_tag_id(const CardemuGetTagID *data, CardemuGetTagID_Response *response);
+BootloaderHandleMessageResponse set_simple_tag_seen_callback_configuration(const SetSimpleTagSeenCallbackConfiguration *data);
+BootloaderHandleMessageResponse get_simple_tag_seen_callback_configuration(const GetSimpleTagSeenCallbackConfiguration *data, GetSimpleTagSeenCallbackConfiguration_Response *response);
 
 // Callbacks
 bool handle_reader_state_changed_callback(void);
 bool handle_cardemu_state_changed_callback(void);
 bool handle_p2p_state_changed_callback(void);
+bool handle_simple_tag_seen_callback(void);
 
 #define COMMUNICATION_CALLBACK_TICK_WAIT_MS 1
-#define COMMUNICATION_CALLBACK_HANDLER_NUM 3
+#define COMMUNICATION_CALLBACK_HANDLER_NUM 4
 #define COMMUNICATION_CALLBACK_LIST_INIT \
 	handle_reader_state_changed_callback, \
 	handle_cardemu_state_changed_callback, \
 	handle_p2p_state_changed_callback, \
+	handle_simple_tag_seen_callback, \
 
 
 #endif

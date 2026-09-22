@@ -35,6 +35,7 @@ typedef struct {
 	uint8_t id_length;
 	uint8_t id[SIMPLE_TAG_ID_MAX_LENGTH];
 	uint32_t last_seen;
+	uint32_t last_callback;
 } SimpleTag;
 
 bool pn7150_simple_discovery(uint8_t *discovery_technologies, NxpNci_RfIntf_t *interface);

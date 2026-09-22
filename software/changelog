@@ -46,3 +46,6 @@
 
 2026-08-22: 2.1.3 (9806a85)
 - Increase SPI FIFO size and decrease I2C FIFO size
+
+2026-08-23: 2.1.4 (TBD)
+- Add callback for seen tags in simple mode

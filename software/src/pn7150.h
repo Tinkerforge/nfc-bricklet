@@ -38,6 +38,7 @@ typedef struct {
 	uint8_t  simple_tag_id[10];
 	uint8_t  simple_tag_type;
 	uint8_t  simple_tag_id_length;
+	uint32_t simple_callback_period;
 
 	uint8_t  p2p_state;
 

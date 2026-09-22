@@ -47,7 +47,7 @@ extern PN7150 pn7150;
 
 static NxpNci_RfIntf_t pn7150_simple_interface;
 SimpleTag pn7150_simple_tags[SIMPLE_TAGS_NUM] = {
-	{0, 0, {0}, 0}
+	{0, 0, {0}, 0, 0}
 };
 
 volatile static uint32_t pn7150_sort_start_time = 0;
@@ -356,6 +356,7 @@ void pn7150_simple_state_machine(void) {
 				oldest->id_length = pn7150.simple_tag_id_length;
 				oldest->type = pn7150.simple_tag_type;
 				oldest->last_seen = system_timer_get_ms();
+				oldest->last_callback = oldest->last_seen - pn7150.simple_callback_period;
 			}
 
 			pn7150_simple_tags_resort();

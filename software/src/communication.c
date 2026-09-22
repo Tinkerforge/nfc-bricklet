@@ -65,6 +65,8 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_SIMPLE_GET_TAG_ID_LOW_LEVEL: return simple_get_tag_id_low_level(message, response);
 		case FID_CARDEMU_SET_TAG_ID: return cardemu_set_tag_id(message);
 		case FID_CARDEMU_GET_TAG_ID: return cardemu_get_tag_id(message, response);
+		case FID_SET_SIMPLE_TAG_SEEN_CALLBACK_CONFIGURATION: return set_simple_tag_seen_callback_configuration(message);
+		case FID_GET_SIMPLE_TAG_SEEN_CALLBACK_CONFIGURATION: return get_simple_tag_seen_callback_configuration(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -461,6 +463,26 @@ BootloaderHandleMessageResponse cardemu_get_tag_id(const CardemuGetTagID *data, 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
+BootloaderHandleMessageResponse set_simple_tag_seen_callback_configuration(const SetSimpleTagSeenCallbackConfiguration *data) {
+	pn7150.simple_callback_period =	data->period;
+
+	// Reset all callback timers to avoid re-triggering past seen tags.
+	for(uint8_t i = 0; i < SIMPLE_TAGS_NUM; i++) {
+		SimpleTag *tag = pn7150_simple_tags + i;
+		tag->last_callback = tag->last_seen;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_simple_tag_seen_callback_configuration(const GetSimpleTagSeenCallbackConfiguration *data, GetSimpleTagSeenCallbackConfiguration_Response *response) {
+	response->header.length = sizeof(GetSimpleTagSeenCallbackConfiguration_Response);
+	response->period = pn7150.simple_callback_period;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+
 bool handle_reader_state_changed_callback(void) {
 	static bool is_buffered = false;
 	static ReaderStateChanged_Callback cb;
@@ -543,6 +565,51 @@ bool handle_p2p_state_changed_callback(void) {
 
 	return false;
 }
+
+bool handle_simple_tag_seen_callback(void) {
+	static bool is_buffered = false;
+	static SimpleTagSeen_Callback cb;
+
+	if(!is_buffered) {
+		if(pn7150.simple_callback_period == 0) {
+			return false;
+		}
+
+		bool found = false;
+		uint8_t i = SIMPLE_TAGS_NUM;
+		do {
+			i--;
+			SimpleTag *tag = pn7150_simple_tags + i;
+
+			if(tag->last_seen - tag->last_callback - pn7150.simple_callback_period < (UINT32_MAX / 2)) {
+				tfp_make_default_header(&cb.header, bootloader_get_uid(), sizeof(SimpleTagSeen_Callback), FID_CALLBACK_SIMPLE_TAG_SEEN);
+
+				cb.tag_id_length = pn7150_simple_tags[i].id_length;
+				cb.tag_type = pn7150_simple_tags[i].type;
+				memcpy(cb.tag_id_data, pn7150_simple_tags[i].id, pn7150_simple_tags[i].id_length);
+
+				tag->last_callback = tag->last_seen;
+				found = true;
+				break;
+			}
+		} while(i > 0);
+
+		if(!found) {
+			return false;
+		}
+	}
+
+	if(bootloader_spitfp_is_send_possible(&bootloader_status.st)) {
+		bootloader_spitfp_send_ack_and_message(&bootloader_status, (uint8_t*)&cb, sizeof(SimpleTagSeen_Callback));
+		is_buffered = false;
+		return true;
+	} else {
+		is_buffered = true;
+	}
+
+	return false;
+}
+
 
 void communication_tick(void) {
 	communication_callback_tick();
